@@ -4,15 +4,26 @@
         class="aurora-companion"
         :style="{ left: pos.x + 'px', top: pos.y + 'px' }"
         :class="{ dragging }">
-        <div v-if="bubble" class="aurora-bubble">
-            <span>{{ bubble }}</span>
+        <div v-if="bubble" class="nx-dialog">
+            <div class="nx-name">&gt; neon:</div>
+            <div class="nx-text">{{ bubble }}<span class="nx-caret"></span></div>
             <div v-if="current" class="aurora-bubble-actions">
                 <button type="button" @click="addNote">{{ t('view.settings.aurora.note_add') }}</button>
                 <button type="button" class="ghost" @click="later">{{ t('view.settings.aurora.note_later') }}</button>
             </div>
         </div>
-        <div class="aurora-body" @pointerdown="startDrag" @click="poke">
-            <AuroraMascot :size="76" />
+        <div v-if="bubble" class="nx-status">
+            <span class="nx-dot"></span>
+            <b>Neon</b><i>|</i><i>{{ speaking ? 'Talking' : 'Idle' }}</i>
+            <span class="nx-grow"></span>
+            <span class="nx-tag">{{ settings.mascotVoiceEnabled ? 'VOICE: TTS' : 'VOICE: OFF' }}</span>
+        </div>
+        <div class="aurora-body nx-portrait" @pointerdown="startDrag" @click="poke">
+            <div class="nx-tab"></div>
+            <div class="nx-frame">
+                <AuroraMascot :size="120" />
+            </div>
+            <span class="nx-label">NEON.EXE</span>
         </div>
     </div>
 </template>
@@ -23,7 +34,7 @@
 
     import { showUserDialog } from '../coordinators/userCoordinator';
     import { clearPending, companionEnabled, initCompanion, noteReminders, pendingNotes } from '../services/auroraCompanion';
-    import { setMood, speak } from '../services/auroraVoice';
+    import { setMood, speak, speaking } from '../services/auroraVoice';
     import { useAuroraSettingsStore } from '../stores';
     import AuroraMascot from './AuroraMascot.vue';
 
@@ -149,29 +160,127 @@
         z-index: 60;
         display: flex;
         flex-direction: column;
+        align-items: flex-end;
+        gap: 8px;
+        width: 290px;
+        pointer-events: none;
+        font-family: 'Share Tech Mono', ui-monospace, monospace;
+    }
+    .nx-dialog,
+    .nx-status {
+        pointer-events: auto;
+        box-sizing: border-box;
+        width: 100%;
+        background: #05030a;
+        color: #fff;
+        border: 2px solid var(--primary);
+        box-shadow: 0 0 20px color-mix(in oklch, var(--primary) 50%, transparent);
+        clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px));
+    }
+    .nx-dialog {
+        padding: 10px 14px 12px;
+    }
+    .nx-name {
+        color: var(--primary);
+        font-weight: 700;
+        font-size: 12px;
+        margin-bottom: 4px;
+    }
+    .nx-text {
+        font-size: 12.5px;
+        line-height: 1.5;
+    }
+    .nx-caret {
+        display: inline-block;
+        width: 7px;
+        height: 13px;
+        margin-left: 3px;
+        vertical-align: -2px;
+        background: var(--primary);
+        animation: nx-blink 1s steps(1) infinite;
+    }
+    @keyframes nx-blink {
+        50% {
+            opacity: 0;
+        }
+    }
+    .nx-status {
+        display: flex;
         align-items: center;
         gap: 8px;
-        pointer-events: none;
+        height: 32px;
+        padding: 0 12px;
+        border-width: 1px;
+        font-size: 11px;
     }
-    .aurora-body {
+    .nx-status i {
+        font-style: normal;
+        color: var(--primary);
+    }
+    .nx-grow {
+        flex-grow: 1;
+    }
+    .nx-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--primary);
+        box-shadow: 0 0 8px var(--primary);
+    }
+    .nx-tag {
+        padding: 1px 6px;
+        border: 1px solid #fff;
+        font-size: 10px;
+    }
+    .nx-portrait {
+        position: relative;
+        width: 132px;
+        height: 158px;
+        margin-top: 10px;
         pointer-events: auto;
         cursor: grab;
-        filter: drop-shadow(0 6px 18px color-mix(in oklch, var(--primary) 55%, transparent));
     }
-    .dragging .aurora-body {
+    .dragging .nx-portrait {
         cursor: grabbing;
     }
-    .aurora-bubble {
-        pointer-events: auto;
-        max-width: 240px;
-        padding: 10px 14px;
-        border-radius: 16px 16px 16px 4px;
-        font-size: 13px;
-        line-height: 1.4;
-        background: var(--popover);
-        color: var(--popover-foreground);
-        border: 1px solid var(--primary);
-        box-shadow: 0 0 20px color-mix(in oklch, var(--primary) 45%, transparent);
+    .nx-tab {
+        position: absolute;
+        left: 22px;
+        top: -9px;
+        width: 88px;
+        height: 9px;
+        background: var(--primary);
+        clip-path: polygon(8px 0, calc(100% - 8px) 0, 100% 100%, 0 100%);
+    }
+    .nx-frame {
+        position: absolute;
+        inset: 0;
+        padding: 4px;
+        box-sizing: border-box;
+        background: var(--primary);
+        clip-path: polygon(14px 0, calc(100% - 14px) 0, 100% 14px, 100% calc(100% - 14px), calc(100% - 14px) 100%, 14px 100%, 0 calc(100% - 14px), 0 14px);
+        filter: drop-shadow(0 0 12px var(--primary));
+    }
+    .nx-frame :deep(.aurora-mascot) {
+        width: 100% !important;
+        height: 100% !important;
+        display: block;
+        background: #000;
+        clip-path: polygon(11px 0, calc(100% - 11px) 0, 100% 11px, 100% calc(100% - 11px), calc(100% - 11px) 100%, 11px 100%, 0 calc(100% - 11px), 0 11px);
+    }
+    .nx-frame :deep(img) {
+        border-radius: 0;
+        object-position: 50% 20%;
+    }
+    .nx-label {
+        position: absolute;
+        left: 14px;
+        bottom: 8px;
+        font-size: 9px;
+        letter-spacing: 0.14em;
+        color: #fff;
+        text-shadow: 0 0 6px var(--primary);
+        pointer-events: none;
     }
     .aurora-bubble-actions {
         display: flex;
@@ -179,17 +288,16 @@
         margin-top: 8px;
     }
     .aurora-bubble-actions button {
-        height: 28px;
+        height: 26px;
         padding: 0 12px;
-        border-radius: 14px;
-        font-size: 12px;
-        font-weight: 600;
+        font-size: 11px;
+        font-weight: 700;
         background: var(--primary);
-        color: var(--primary-foreground);
+        color: #05030a;
     }
     .aurora-bubble-actions button.ghost {
         background: transparent;
-        color: var(--muted-foreground);
-        border: 1px solid var(--border);
+        color: #fff;
+        border: 1px solid var(--primary);
     }
 </style>

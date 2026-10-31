@@ -1,5 +1,12 @@
 <template>
     <div class="flex flex-col gap-10 py-2">
+        <div class="flex items-center gap-4">
+            <AuroraMascot :size="72" />
+            <div class="flex flex-col">
+                <span class="text-base font-semibold text-foreground">Aurora</span>
+                <span class="text-xs text-muted-foreground">{{ t('view.settings.aurora.tagline') }}</span>
+            </div>
+        </div>
         <SettingsGroup :title="t('view.settings.aurora.header')">
             <SettingsItem
                 :label="t('view.settings.aurora.enabled')"
@@ -218,6 +225,7 @@
     import { isValidPin } from '@/services/auroraSecurity';
     import { CLEANUP_KEYS, cleanCategories, countCategory } from '@/services/auroraCleanup';
 
+    import AuroraMascot from '@/components/AuroraMascot.vue';
     import SettingsGroup from '../SettingsGroup.vue';
     import SettingsItem from '../SettingsItem.vue';
 

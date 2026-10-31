@@ -3,7 +3,12 @@
  * Nothing is sent anywhere. The model downloads once on first use and is cached by the browser.
  * It loads lazily, so nothing is paid for until voice is enabled and used.
  */
+import { ref } from 'vue';
+
 import { applyVoiceFx, FX_PRESETS } from './auroraVoiceFx';
+
+/** True while the mascot is talking. The mascot component listens to this. */
+export const speaking = ref(false);
 
 let ttsPromise = null;
 
@@ -46,6 +51,10 @@ export async function speak(text, { voice = 'af_heart', speed = 1, volume = 0.8,
     currentSource = audioCtx.createBufferSource();
     currentSource.buffer = buffer;
     currentSource.connect(gain).connect(audioCtx.destination);
+    currentSource.onended = () => {
+        speaking.value = false;
+    };
+    speaking.value = true;
     currentSource.start();
 }
 
@@ -58,6 +67,7 @@ export function stopSpeaking() {
         }
         currentSource = null;
     }
+    speaking.value = false;
 }
 
 export const VOICES = [

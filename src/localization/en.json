@@ -1446,7 +1446,8 @@
                     "confirm": "Click again to delete",
                     "done": "Removed {n} entries.",
                     "failed": "Cleanup failed."
-                }
+                },
+                "tagline": "Your mascot. She glows when she talks."
             }
         }
     },

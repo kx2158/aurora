@@ -5,7 +5,7 @@
         role="dialog"
         aria-modal="true">
         <form v-if="ready" class="flex w-72 flex-col items-center gap-4" @submit.prevent="submit">
-            <img :src="logo" alt="" class="size-20 rounded-2xl" />
+            <AuroraMascot :size="96" :reactive="false" />
             <span class="text-lg font-semibold text-foreground">{{ t('view.settings.aurora.lock.title') }}</span>
             <Input
                 ref="pinInput"
@@ -33,7 +33,7 @@
     import { useI18n } from 'vue-i18n';
 
     import { useAuroraSettingsStore } from '@/stores';
-    import logo from '../../images/VRCX.png';
+    import AuroraMascot from './AuroraMascot.vue';
 
     const { t } = useI18n();
     const store = useAuroraSettingsStore();

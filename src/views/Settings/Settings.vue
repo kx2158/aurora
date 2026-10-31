@@ -26,6 +26,9 @@
                 <template #integrations>
                     <IntegrationsTab />
                 </template>
+                <template #aurora>
+                    <AuroraTab />
+                </template>
                 <template #advanced>
                     <AdvancedTab />
                 </template>
@@ -39,6 +42,7 @@
     import { TabsUnderline } from '@/components/ui/tabs';
     import { useI18n } from 'vue-i18n';
 
+    import AuroraTab from './components/Tabs/AuroraTab.vue';
     import AdvancedTab from './components/Tabs/AdvancedTab.vue';
     import InterfaceTab from './components/Tabs/InterfaceTab.vue';
     import IntegrationsTab from './components/Tabs/IntegrationsTab.vue';
@@ -57,6 +61,7 @@
         { value: 'vr', label: t('view.settings.category.vr') },
         { value: 'media', label: t('view.settings.category.media') },
         { value: 'integrations', label: t('view.settings.category.integrations') },
+        { value: 'aurora', label: t('view.settings.category.aurora') },
         { value: 'advanced', label: t('view.settings.category.advanced') }
     ]);
 

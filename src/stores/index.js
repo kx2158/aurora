@@ -41,6 +41,7 @@ import { useVrcStatusStore } from './vrcStatus';
 import { useVrcxStore } from './vrcx';
 import { useWorldStore } from './world';
 import { useWristOverlaySettingsStore } from './settings/wristOverlay';
+import { useAuroraSettingsStore } from './settings/aurora';
 
 export const pinia = createPinia();
 
@@ -127,6 +128,7 @@ export function createGlobalStores() {
         generalSettings: useGeneralSettingsStore(),
         notificationsSettings: useNotificationsSettingsStore(),
         wristOverlaySettings: useWristOverlaySettingsStore(),
+        auroraSettings: useAuroraSettingsStore(),
         avatarProvider: useAvatarProviderStore(),
         externalLink: useExternalLinkStore(),
         favorite: useFavoriteStore(),
@@ -192,6 +194,7 @@ export {
     useGeneralSettingsStore,
     useNotificationsSettingsStore,
     useWristOverlaySettingsStore,
+    useAuroraSettingsStore,
     useToolsStore,
     useUiStore,
     useUserStore,

@@ -140,7 +140,7 @@ Function .onInstSuccess
 FunctionEnd
 
 Function createDesktopShortcut
-    CreateShortcut "$DESKTOP\VRCX.lnk" "$INSTDIR\VRCX.exe"
+    CreateShortcut "$DESKTOP\Aurora.lnk" "$INSTDIR\VRCX.exe"
 FunctionEnd
 
 Function launchVRCX
@@ -165,6 +165,13 @@ Section "Install" SecInstall
 
     afterUpgrade:
 
+    ; Safety copy of your VRCX/Aurora data (history, favorites, settings). The data itself is never touched.
+    IfFileExists "$APPDATA\VRCX\*.*" 0 noBackup
+        DetailPrint "Backing up your data to Documents\Aurora-backups ..."
+        nsExec::ExecToLog 'robocopy "$APPDATA\VRCX" "$DOCUMENTS\Aurora-backups\VRCX-data-before-aurora" /E /R:1 /W:1 /NFL /NDL /NJH /NJS'
+        Pop $0
+    noBackup:
+
     SetOutPath "$INSTDIR"
 
     File /r /x *.log /x *.pdb "..\build\Cef\*.*"
@@ -186,8 +193,11 @@ Section "Install" SecInstall
     ${GetParameters} $R2
     ${GetOptions} $R2 /SKIP_SHORTCUT= $3
     StrCmp $3 "true" noShortcut
-        CreateShortCut "$SMPROGRAMS\VRCX.lnk" "$INSTDIR\VRCX.exe"
-        ApplicationID::Set "$SMPROGRAMS\VRCX.lnk" "VRCX"
+        Delete "$SMPROGRAMS\VRCX.lnk"
+        Delete "$DESKTOP\VRCX.lnk"
+        CreateShortCut "$SMPROGRAMS\Aurora.lnk" "$INSTDIR\VRCX.exe"
+        ApplicationID::Set "$SMPROGRAMS\Aurora.lnk" "VRCX"
+        CreateShortCut "$DESKTOP\Aurora.lnk" "$INSTDIR\VRCX.exe"
     noShortcut:
 
     WriteRegStr HKCU "Software\Classes\vrcx" "" "URL:vrcx"
@@ -221,5 +231,7 @@ Section "Uninstall"
     ${IfNot} ${Silent}
         Delete "$SMPROGRAMS\VRCX.lnk"
         Delete "$DESKTOP\VRCX.lnk"
+        Delete "$SMPROGRAMS\Aurora.lnk"
+        Delete "$DESKTOP\Aurora.lnk"
     ${EndIf}
 SectionEnd

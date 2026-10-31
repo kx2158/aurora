@@ -23,9 +23,9 @@ All Aurora settings live in `Settings > Aurora`.
 
 ## Get the app
 
-1. Go to the [Releases page](https://github.com/kx2158/aurora/releases/latest) and download `Aurora_Setup_x64.exe` (and `Update-Aurora.bat` + `Update-Aurora.ps1` if you are switching from VRCX).
-2. **Coming from VRCX?** Put the three files in one folder and double-click `Update-Aurora.bat`. It closes VRCX, backs up your data folder to `Documents\Aurora-backups`, installs Aurora over VRCX, and checks that your data is still there. Your history, favorites and settings carry over, and Aurora switches to its own theme on the first start.
-3. **New install?** Just run `Aurora_Setup_x64.exe`.
+1. Go to the [Releases page](https://github.com/kx2158/aurora/releases/latest) and download **`Aurora_Setup_x64.exe`**. That one file is all you need.
+2. Run it. If you have VRCX installed, Aurora replaces it, copies your data to `Documents\Aurora-backups` as a safety backup (the data itself stays where it is, so your history, favorites and settings carry over), and puts **Aurora** shortcuts on your desktop and Start menu.
+3. Open **Aurora**. It starts in the pink Aurora theme.
 
 After that Aurora updates itself: it checks this repository's releases and offers new versions in the app (`Settings > System`).
 

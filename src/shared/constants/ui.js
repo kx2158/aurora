@@ -9,6 +9,13 @@ const navDefinitions = [
         routeName: 'home'
     },
     {
+        key: 'chatbox',
+        icon: 'ri-chat-3-line',
+        tooltip: 'nav_tooltip.chatbox',
+        labelKey: 'nav_tooltip.chatbox',
+        routeName: 'chatbox'
+    },
+    {
         key: 'feed',
         icon: 'ri-rss-line',
         tooltip: 'nav_tooltip.feed',

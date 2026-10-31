@@ -85,7 +85,8 @@
         "collapse_menu": "Collapse Menu",
         "expand_sidebar": "Expand Sidebar",
         "toggle_theme": "Toggle Theme",
-        "home": "Home"
+        "home": "Home",
+        "chatbox": "Chatbox"
     },
     "nav_menu": {
         "resources": "RESOURCES",
@@ -1490,6 +1491,18 @@
             "min_ago": "added {n} min ago",
             "hour_ago": "added {n} h ago",
             "day_ago": "added {n} days ago"
+        },
+        "chatbox": {
+            "title": "Chatbox",
+            "subtitle": "Live text in your VRChat chatbox. OSC must be on in the VRChat action menu.",
+            "pages": "Pages (they rotate)",
+            "add_page": "Add page",
+            "insert": "Insert live value",
+            "preview": "Preview",
+            "send_now": "Send now",
+            "manual_ph": "Type a message and press Enter",
+            "send": "Send",
+            "game_off": "VRChat is not running."
         }
     },
     "dialog": {

@@ -29,6 +29,8 @@ Aurora is built on GitHub, so you do not need any developer tools.
 2. Choose **Build Aurora (Windows installer)** and press **Run workflow**.
 3. When it finishes (about 10 to 15 minutes), open the run and download **Aurora-Setup** from *Artifacts*. Unzip it and run `Aurora_Setup_x64.exe`.
 
+To replace VRCX in one go and keep your data, unzip **Aurora-Setup** and double-click `Update-Aurora.bat`. It closes VRCX, backs up your data folder to `Documents\Aurora-backups`, installs Aurora over VRCX, and checks that your data is still there.
+
 Things to know:
 
 - Windows may show a SmartScreen warning because the installer is not code-signed. Only install builds you made yourself from this repository.

@@ -473,7 +473,16 @@ function changeHtmlLangAttribute(language) {
 }
 
 async function getThemeMode(configRepository) {
-    const initThemeMode = await configRepository.getString('VRCX_ThemeMode', 'aurora');
+    // Existing VRCX settings carry over, so switch an old install to the Aurora theme once.
+    // After that the theme is yours to change in Settings.
+    let initThemeMode;
+    if (await configRepository.getBool('Aurora_themeApplied', false)) {
+        initThemeMode = await configRepository.getString('VRCX_ThemeMode', 'aurora');
+    } else {
+        initThemeMode = 'aurora';
+        await configRepository.setString('VRCX_ThemeMode', 'aurora');
+        await configRepository.setBool('Aurora_themeApplied', true);
+    }
 
     let isDarkMode;
     if (initThemeMode === 'light') {

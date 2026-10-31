@@ -52,11 +52,17 @@ jobs:
           script-file: Installer/installer.nsi
           additional-plugin-paths: Installer/Plugins
 
+      - name: Stage installer and updater
+        run: |
+          mkdir -p stage
+          cp Installer/Aurora_Setup_x64.exe stage/
+          cp Update-Aurora.ps1 Update-Aurora.bat stage/
+
       - name: Upload installer
         uses: actions/upload-artifact@v7
         with:
           name: Aurora-Setup
-          path: Installer/Aurora_Setup_x64.exe
+          path: stage
           if-no-files-found: error
 
       - name: Upload portable folder

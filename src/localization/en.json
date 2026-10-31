@@ -1375,6 +1375,13 @@
                 }
             },
             "aurora": {
+                "chatbox": "VRChat chatbox",
+                "chatbox_desc": "Shows a live line of text in your VRChat chatbox (OSC must be enabled in the VRChat action menu). Only sends while VRChat is running.",
+                "chatbox_template": "Text",
+                "chatbox_template_desc": "Put these words in curly brackets to fill them in live: time, date, world, players, friends. Max 144 characters.",
+                "chatbox_interval": "Update every (seconds)",
+                "chatbox_notify": "Play the chatbox sound",
+                "chatbox_preview": "Preview",
                 "companion": "Floating Neon",
                 "companion_desc": "Neon floats around the app, reacts to what happens and talks with her own face and mouth. Drag her anywhere.",
                 "note_reminders": "Remind me to add notes",

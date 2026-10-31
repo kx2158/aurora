@@ -273,6 +273,10 @@ declare global {
         CancelUpdate(): Promise<void>;
         CheckUpdateProgress(): Promise<number>;
 
+        // OSC chatbox
+        SendOscChatbox(text: string, sendImmediately?: boolean, notify?: boolean, port?: number): Promise<void>;
+        SendOscTyping(typing: boolean, port?: number): Promise<void>;
+
         // Notifications
         XSNotification(title: string, content: string, timeout: number, opacity: number, image?: string): Promise<void>;
         OVRTNotification(

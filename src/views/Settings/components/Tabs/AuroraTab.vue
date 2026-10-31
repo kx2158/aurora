@@ -7,6 +7,38 @@
                 <span class="text-xs text-muted-foreground">{{ t('view.settings.aurora.tagline') }}</span>
             </div>
         </div>
+        <SettingsGroup :title="t('view.settings.aurora.chatbox')">
+            <SettingsItem
+                :label="t('view.settings.aurora.chatbox')"
+                :description="t('view.settings.aurora.chatbox_desc')"
+                toggle>
+                <Switch
+                    :model-value="chatboxEnabled"
+                    :ariaLabel="t('view.settings.aurora.chatbox')"
+                    @update:modelValue="setChatboxEnabled" />
+            </SettingsItem>
+            <SettingsItem :label="t('view.settings.aurora.chatbox_template')" :description="t('view.settings.aurora.chatbox_template_desc')">
+                <Input :model-value="chatboxTemplate" class="w-80" @update:modelValue="setChatboxTemplate" />
+            </SettingsItem>
+            <SettingsItem :label="t('view.settings.aurora.chatbox_interval')">
+                <Input
+                    type="number"
+                    min="3"
+                    max="60"
+                    :model-value="chatboxInterval"
+                    class="w-24"
+                    @update:modelValue="setChatboxInterval" />
+            </SettingsItem>
+            <SettingsItem :label="t('view.settings.aurora.chatbox_notify')" toggle>
+                <Switch
+                    :model-value="chatboxNotify"
+                    :ariaLabel="t('view.settings.aurora.chatbox_notify')"
+                    @update:modelValue="setChatboxNotify" />
+            </SettingsItem>
+            <SettingsItem :label="t('view.settings.aurora.chatbox_preview')">
+                <span class="text-xs text-muted-foreground">{{ chatboxPreview || '...' }}</span>
+            </SettingsItem>
+        </SettingsGroup>
         <SettingsGroup :title="t('view.settings.aurora.companion')">
             <SettingsItem
                 :label="t('view.settings.aurora.companion')"
@@ -230,11 +262,23 @@
 </template>
 
 <script setup>
-    import { ref } from 'vue';
+    import { onMounted, ref } from 'vue';
     import { Button } from '@/components/ui/button';
     import { Input } from '@/components/ui/input';
     import { Switch } from '@/components/ui/switch';
     import { companionEnabled, noteReminders, setCompanionEnabled, setNoteReminders } from '@/services/auroraCompanion';
+    import {
+        chatboxEnabled,
+        chatboxInterval,
+        chatboxNotify,
+        chatboxPreview,
+        chatboxTemplate,
+        initChatbox,
+        setChatboxEnabled,
+        setChatboxInterval,
+        setChatboxNotify,
+        setChatboxTemplate
+    } from '@/services/auroraChatbox';
     import { Slider } from '@/components/ui/slider';
     import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
     import { storeToRefs } from 'pinia';
@@ -358,4 +402,8 @@
             busy.value = false;
         }
     }
+
+    onMounted(() => {
+        initChatbox();
+    });
 </script>

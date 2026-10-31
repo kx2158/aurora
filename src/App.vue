@@ -36,6 +36,7 @@
     import { TooltipProvider } from './components/ui/tooltip';
     import { createGlobalStores } from './stores';
     import { initNoty } from './plugins/noty';
+    import { initChatbox } from './services/auroraChatbox';
 
     import AuroraCompanion from './components/AuroraCompanion.vue';
     import AuroraLockScreen from './components/AuroraLockScreen.vue';
@@ -58,6 +59,7 @@
     });
 
     initNoty();
+    initChatbox();
 
     const store = createGlobalStores();
 

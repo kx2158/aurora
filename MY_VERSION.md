@@ -50,3 +50,7 @@ VRCX is MIT licensed. Keep the `LICENSE` file and its copyright line in your for
 ## Not tested
 
 These edits were made without being able to build the app here (the project's dependencies could not be installed), so the first thing to do on your machine is `npm ci` and a build. The changes are small and limited to the files listed above. If the project's tests (`npm test`) complain about the updater, they predate the fork switch and just need `updaterEnabled` set to `true` inside the test.
+
+## Icon
+
+The app icon is `images/aurora/icon.svg`. The files `images/VRCX.png`, `VRCX.ico`, `VRCX_notify.png` and `VRCX_notify.ico` are exports of it (same names on purpose, so the build keeps working). To change it, edit the SVG and re-export.

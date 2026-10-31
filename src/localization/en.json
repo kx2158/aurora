@@ -1468,7 +1468,11 @@
                     "done": "Removed {n} entries.",
                     "failed": "Cleanup failed."
                 },
-                "tagline": "Your mascot, Neon. She glows when she talks."
+                "tagline": "Your mascot, Neon. She glows when she talks.",
+                "home": "Where Neon stays",
+                "home_desc": "Float around the whole app, or rest next to the info dock (current instance and announcements).",
+                "home_roam": "Float around",
+                "home_dock": "Rest at the dock"
             }
         },
         "home": {
@@ -1505,6 +1509,15 @@
             "game_off": "VRChat is not running.",
             "afk_minutes": "AFK after (minutes idle)",
             "pulsoid": "Heart rate (Pulsoid token)"
+        },
+        "dock": {
+            "title": "DOCK",
+            "instance": "Current instance",
+            "news": "News",
+            "no_news": "No announcements yet.",
+            "not_in_world": "Not in a world",
+            "players": "{n} players",
+            "update": "Neon {v} is ready. Update when you like."
         }
     },
     "dialog": {

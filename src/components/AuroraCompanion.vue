@@ -29,11 +29,12 @@
 </template>
 
 <script setup>
-    import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+    import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
     import { useI18n } from 'vue-i18n';
 
     import { showUserDialog } from '../coordinators/userCoordinator';
-    import { clearPending, companionEnabled, initCompanion, noteReminders, pendingNotes } from '../services/auroraCompanion';
+    import { clearPending, companionEnabled, companionHome, initCompanion, noteReminders, pendingNotes } from '../services/auroraCompanion';
+    import { takeUnspoken, unspoken } from '../services/auroraNews';
     import { pregenerate, setMood, speak, speaking } from '../services/auroraVoice';
     import { useAuroraSettingsStore } from '../stores';
     import AuroraMascot from './AuroraMascot.vue';
@@ -55,6 +56,11 @@
     const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
     function pickTarget() {
+        if (companionHome.value === 'dock') {
+            // rest to the left of the dock in the bottom right corner
+            target = { x: Math.max(260, window.innerWidth - 330 - 290), y: Math.max(80, window.innerHeight - 400) };
+            return;
+        }
         const w = window.innerWidth - SIZE - 24;
         const h = window.innerHeight - SIZE - 24;
         target = { x: 260 + Math.random() * Math.max(40, w - 260), y: 80 + Math.random() * Math.max(40, h - 80) };
@@ -95,6 +101,23 @@
         } else {
             show();
         }
+    }
+
+    function announceNews() {
+        if (current.value || speaking.value) {
+            return;
+        }
+        const item = takeUnspoken();
+        if (!item) {
+            return;
+        }
+        const line =
+            item.kind === 'update'
+                ? item.text
+                : item.title && item.text && item.title !== item.text
+                  ? `${item.title}. ${item.text}`
+                  : item.title || item.text;
+        say(String(line).slice(0, 200), item.kind === 'update' ? 'joy' : 'surprised');
     }
 
     function nextReminder() {
@@ -166,6 +189,8 @@
         raf = requestAnimationFrame(step);
         timers.push(setInterval(pickTarget, 9000));
         timers.push(setInterval(nextReminder, 20000));
+        timers.push(setInterval(announceNews, 4000));
+        watch(companionHome, pickTarget);
         timers.push(setTimeout(nextReminder, 6000));
         // quietly prepare the lines she repeats, so they play instantly
         timers.push(

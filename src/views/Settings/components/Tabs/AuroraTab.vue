@@ -49,6 +49,17 @@
                     :ariaLabel="t('view.settings.aurora.companion')"
                     @update:modelValue="setCompanionEnabled" />
             </SettingsItem>
+            <SettingsItem :label="t('view.settings.aurora.home')" :description="t('view.settings.aurora.home_desc')">
+                <Select :model-value="companionHome" @update:modelValue="setCompanionHome">
+                    <SelectTrigger size="sm">
+                        <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="roam">{{ t('view.settings.aurora.home_roam') }}</SelectItem>
+                        <SelectItem value="dock">{{ t('view.settings.aurora.home_dock') }}</SelectItem>
+                    </SelectContent>
+                </Select>
+            </SettingsItem>
             <SettingsItem
                 :label="t('view.settings.aurora.note_reminders')"
                 :description="t('view.settings.aurora.note_reminders_desc')"
@@ -266,7 +277,14 @@
     import { Button } from '@/components/ui/button';
     import { Input } from '@/components/ui/input';
     import { Switch } from '@/components/ui/switch';
-    import { companionEnabled, noteReminders, setCompanionEnabled, setNoteReminders } from '@/services/auroraCompanion';
+    import {
+        companionEnabled,
+        companionHome,
+        noteReminders,
+        setCompanionEnabled,
+        setCompanionHome,
+        setNoteReminders
+    } from '@/services/auroraCompanion';
     import {
         chatboxEnabled,
         chatboxInterval,

@@ -16,6 +16,7 @@
             <DatabaseUpgradeDialog></DatabaseUpgradeDialog>
 
             <VRCXUpdateDialog></VRCXUpdateDialog>
+            <NeonDock></NeonDock>
             <AuroraCompanion></AuroraCompanion>
             <AuroraLockScreen></AuroraLockScreen>
         </div>
@@ -38,6 +39,7 @@
     import { initNoty } from './plugins/noty';
     import { initChatbox } from './services/auroraChatbox';
 
+    import NeonDock from './components/NeonDock.vue';
     import AuroraCompanion from './components/AuroraCompanion.vue';
     import AuroraLockScreen from './components/AuroraLockScreen.vue';
     import AlertDialogModal from './components/ui/alert-dialog/AlertDialogModal.vue';

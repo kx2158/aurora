@@ -8,6 +8,8 @@ import configRepository from './config';
 
 export const companionEnabled = ref(true);
 export const noteReminders = ref(true);
+/** 'roam' floats around the whole app, 'dock' rests next to the info dock. */
+export const companionHome = ref('roam');
 /** Friends added recently that still have no note: [{ id, name, at }] */
 export const pendingNotes = ref([]);
 
@@ -21,6 +23,7 @@ export async function initCompanion() {
     loaded = true;
     companionEnabled.value = await configRepository.getBool('Aurora_companionEnabled', true);
     noteReminders.value = await configRepository.getBool('Aurora_noteReminders', true);
+    companionHome.value = await configRepository.getString('Neon_companionHome', 'roam');
     try {
         const list = JSON.parse(await configRepository.getString(KEY, '[]'));
         pendingNotes.value = Array.isArray(list) ? list.slice(0, 50) : [];
@@ -56,4 +59,9 @@ export async function queueNewFriend(id, name) {
 export function clearPending(id) {
     pendingNotes.value = pendingNotes.value.filter((f) => f.id !== id);
     persist();
+}
+
+export function setCompanionHome(value) {
+    companionHome.value = value === 'dock' ? 'dock' : 'roam';
+    configRepository.setString('Neon_companionHome', companionHome.value);
 }

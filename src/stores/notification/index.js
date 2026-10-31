@@ -1,3 +1,4 @@
+import { newsFromNoty } from '../../services/auroraNews';
 import { computed, ref, watch } from 'vue';
 import { defineStore } from 'pinia';
 import { toast } from 'vue-sonner';
@@ -768,6 +769,7 @@ export const useNotificationStore = defineStore('Notification', () => {
      * @param {object} noty
      */
     function queueNotificationNoty(noty) {
+        newsFromNoty(noty);
         noty.isFriend = friendStore.friends.has(noty.senderUserId);
         noty.isFavorite = friendStore.localFavoriteFriends.has(noty.senderUserId);
         const notyFilter = notificationsSettingsStore.sharedFeedFilters.noty;

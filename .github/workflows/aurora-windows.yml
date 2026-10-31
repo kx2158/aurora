@@ -1,0 +1,66 @@
+name: Build Aurora (Windows installer)
+
+# Run it by hand: Actions tab > "Build Aurora (Windows installer)" > Run workflow.
+# The installer shows up under "Artifacts" at the bottom of the finished run.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      # npm install, not npm ci: Aurora adds packages (kokoro-js) that the lock file may not list yet
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Build the app UI
+        run: npm run prod
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Set version
+        run: |
+          VERSION="$(cat Version | tr -d '\r\n')"
+          echo "!define PRODUCT_VERSION_FROM_FILE \"${VERSION}.0\"" > Installer/version_define.nsh
+          echo "VERSION=${VERSION}" >> "$GITHUB_ENV"
+
+      - name: Build the Windows app (CEF)
+        run: dotnet build Dotnet/VRCX-Cef.csproj -p:Configuration=Release -p:WarningLevel=0 -p:Platform=x64 -p:PlatformTarget=x64 -t:"Clean;Build" -maxcpucount --runtime win-x64 --self-contained
+
+      - name: Install NSIS
+        run: choco install nsis -y
+
+      - name: Create installer
+        uses: joncloud/makensis-action@v5.0
+        with:
+          script-file: Installer/installer.nsi
+          additional-plugin-paths: Installer/Plugins
+
+      - name: Upload installer
+        uses: actions/upload-artifact@v7
+        with:
+          name: Aurora-Setup
+          path: Installer/Aurora_Setup_x64.exe
+          if-no-files-found: error
+
+      - name: Upload portable folder
+        uses: actions/upload-artifact@v7
+        with:
+          name: Aurora-Portable
+          path: build/Cef

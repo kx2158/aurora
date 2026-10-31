@@ -58,3 +58,12 @@ The app icon is `images/aurora/icon.png`. The files `images/VRCX.png`, `VRCX.ico
 ## Security (app lock)
 
 Settings > Aurora > Security sets a PIN (4 to 12 digits). Aurora then starts locked and re-locks after the idle time you choose. Only a salted PBKDF2 hash is stored. Repeated wrong PINs add growing waits. This keeps people out of the app. It does not encrypt the database or config files on disk, so use Windows disk encryption (BitLocker) for that. The updater and crash reporter stay off, so the app makes no calls to the original project.
+
+## Hardening (what was done, what was not)
+
+- **No calls home:** updater and crash reporter are off (`src/shared/constants/fork.js`).
+- **Electron build:** context isolation, sandbox and web security are set explicitly. The app cannot open extra windows or navigate away from its own pages, only plain http(s) links open in your normal browser, and camera, microphone and location requests are refused. Mostly relevant on Linux and macOS.
+- **Page policy:** `object-src 'none'`, `base-uri 'self'`, `frame-ancestors 'none'` in `src/index.html`. A stricter script policy was left out on purpose because it can break the Vite build and VRCX's many image hosts.
+- **App lock:** see Security above.
+- **Not done / you should do:** the Windows build uses the CEF shell (C# in `Dotnet/`), which I could not compile or audit here. Run `npm audit` after `npm ci` and update flagged packages. Turn on BitLocker for the data folder. Only install builds you made yourself from this repo.
+- **VRChat rules:** Aurora only reads your logs and VRChat's normal API the way VRCX does. It has no bulk moderation, auto-kick or automation features, because automating actions against VRChat can get an account banned.

@@ -10,7 +10,8 @@ const {
     dialog,
     Notification: ElectronNotification,
     nativeImage,
-    nativeTheme
+    nativeTheme,
+    shell
 } = require('electron');
 const { spawnSync } = require('child_process');
 const fs = require('fs');
@@ -295,6 +296,34 @@ ipcMain.handle('app:setThemeSource', (_event, source) => {
 
 nativeTheme.on('updated', sendSystemTheme);
 
+/**
+ * Aurora hardening: the app never opens extra windows, never navigates away from its own pages,
+ * and only hands plain http(s) links to the system browser.
+ */
+function hardenWebContents(contents) {
+    contents.setWindowOpenHandler(({ url }) => {
+        try {
+            const parsed = new URL(url);
+            if (parsed.protocol === 'https:' || parsed.protocol === 'http:') {
+                shell.openExternal(url);
+            }
+        } catch {
+            // ignore malformed URLs
+        }
+        return { action: 'deny' };
+    });
+    contents.on('will-navigate', (event, url) => {
+        const isAppPage = url.startsWith('file://') || url.startsWith('http://localhost:9000/');
+        if (!isAppPage) {
+            event.preventDefault();
+        }
+    });
+    contents.session.setPermissionRequestHandler((_wc, permission, callback) => {
+        // only what the app needs, everything else (camera, mic, geolocation, ...) is refused
+        callback(['clipboard-read', 'clipboard-sanitized-write', 'fullscreen'].includes(permission));
+    });
+}
+
 function createWindow() {
     console.log('Creating main window');
 
@@ -318,9 +347,15 @@ function createWindow() {
         autoHideMenuBar: true,
         titleBarStyle: 'hiddenInset',
         webPreferences: {
-            preload: path.join(__dirname, 'preload.js')
+            preload: path.join(__dirname, 'preload.js'),
+            contextIsolation: true,
+            nodeIntegration: false,
+            sandbox: true,
+            webSecurity: true,
+            allowRunningInsecureContent: false
         }
     });
+    hardenWebContents(mainWindow.webContents);
     applyWindowState();
     const indexPath = path.join(rootDir, 'build/html/index.html');
     mainWindow.loadFile(indexPath);
@@ -446,9 +481,15 @@ function createOverlayWindowOffscreen() {
         webPreferences: {
             partition: 'vrcx-vr-overlay',
             offscreen: true,
-            preload: path.join(__dirname, 'preload.js')
+            preload: path.join(__dirname, 'preload.js'),
+            contextIsolation: true,
+            nodeIntegration: false,
+            sandbox: true,
+            webSecurity: true,
+            allowRunningInsecureContent: false
         }
     });
+    hardenWebContents(overlayWindow.webContents);
     overlayWindow.webContents.setFrameRate(48);
 
     let fileUrl = `file://${path.join(rootDir, 'build/html/vr.html')}`;

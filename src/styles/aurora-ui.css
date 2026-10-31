@@ -1,0 +1,165 @@
+/* Aurora UI layer: shapes, glow and motion shared by both Aurora themes (dark and light).
+ * Colors come from the theme files (aurora.css, aurora-light.css) through the --primary / --border tokens,
+ * so everything here follows the active theme automatically.
+ */
+:root[data-theme='aurora'],
+:root[data-theme='auroralight'] {
+    --neon: var(--aurora-pink);
+    --neon-soft: color-mix(in oklch, var(--aurora-pink) 18%, transparent);
+    --neon-glow: color-mix(in oklch, var(--aurora-pink) 55%, transparent);
+}
+
+/* ---------- sidebar: pill buttons, neon marker on the active page ---------- */
+:root[data-theme='aurora'] [data-slot='sidebar-menu-button'],
+:root[data-theme='auroralight'] [data-slot='sidebar-menu-button'] {
+    border-radius: 999px;
+    position: relative;
+    transition:
+        background-color 0.18s ease,
+        box-shadow 0.18s ease,
+        transform 0.18s ease;
+}
+:root[data-theme='aurora'] [data-slot='sidebar-menu-button']:hover,
+:root[data-theme='auroralight'] [data-slot='sidebar-menu-button']:hover {
+    background-color: var(--neon-soft);
+    transform: translateX(2px);
+}
+:root[data-theme='aurora'] [data-slot='sidebar-menu-button'][data-active='true'],
+:root[data-theme='auroralight'] [data-slot='sidebar-menu-button'][data-active='true'] {
+    background: linear-gradient(90deg, var(--neon-soft), transparent 92%);
+    color: var(--foreground);
+    font-weight: 600;
+    box-shadow: inset 0 0 0 1px var(--neon-soft);
+}
+:root[data-theme='aurora'] [data-slot='sidebar-menu-button'][data-active='true']::before,
+:root[data-theme='auroralight'] [data-slot='sidebar-menu-button'][data-active='true']::before {
+    content: '';
+    position: absolute;
+    left: -2px;
+    top: 22%;
+    bottom: 22%;
+    width: 3px;
+    border-radius: 3px;
+    background: var(--neon);
+    box-shadow: 0 0 10px var(--neon-glow);
+}
+:root[data-theme='aurora'] [data-slot='sidebar-menu-button'][data-active='true'] i,
+:root[data-theme='auroralight'] [data-slot='sidebar-menu-button'][data-active='true'] i {
+    color: var(--neon);
+    filter: drop-shadow(0 0 6px var(--neon-glow));
+}
+
+/* ---------- cards, panels, dialogs ---------- */
+:root[data-theme='aurora'] [data-slot='dialog-content'],
+:root[data-theme='auroralight'] [data-slot='dialog-content'],
+:root[data-theme='aurora'] [data-slot='popover-content'],
+:root[data-theme='auroralight'] [data-slot='popover-content'] {
+    border-color: var(--neon-soft);
+    border-radius: 1.1rem;
+    box-shadow:
+        0 0 0 1px var(--neon-soft),
+        0 18px 50px -18px var(--neon-glow);
+}
+
+/* ---------- buttons and badges ---------- */
+:root[data-theme='aurora'] [data-slot='button'],
+:root[data-theme='auroralight'] [data-slot='button'] {
+    border-radius: 999px;
+}
+:root[data-theme='aurora'] [data-slot='button']:not(:disabled):hover,
+:root[data-theme='auroralight'] [data-slot='button']:not(:disabled):hover {
+    box-shadow: 0 0 16px -4px var(--neon-glow);
+}
+:root[data-theme='aurora'] [data-slot='badge'],
+:root[data-theme='auroralight'] [data-slot='badge'] {
+    border-radius: 999px;
+    border-color: var(--neon-soft);
+    letter-spacing: 0.02em;
+}
+
+/* ---------- tables and the feed: airy rows with a neon edge on hover ---------- */
+:root[data-theme='aurora'] [data-slot='table-head'],
+:root[data-theme='auroralight'] [data-slot='table-head'] {
+    text-transform: uppercase;
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    color: var(--muted-foreground);
+}
+:root[data-theme='aurora'] [data-slot='table-row'],
+:root[data-theme='auroralight'] [data-slot='table-row'] {
+    border-color: var(--neon-soft);
+    transition:
+        background-color 0.15s ease,
+        box-shadow 0.15s ease;
+}
+:root[data-theme='aurora'] [data-slot='table-row']:hover,
+:root[data-theme='auroralight'] [data-slot='table-row']:hover {
+    box-shadow: inset 3px 0 0 var(--neon);
+}
+
+/* ---------- inputs ---------- */
+:root[data-theme='aurora'] [data-slot='input'],
+:root[data-theme='auroralight'] [data-slot='input'],
+:root[data-theme='aurora'] [data-slot='select-trigger'],
+:root[data-theme='auroralight'] [data-slot='select-trigger'] {
+    border-radius: 999px;
+}
+
+/* ---------- soft scanlines over the background (very faint, never blocks clicks) ---------- */
+:root[data-theme='aurora'] body::after,
+:root[data-theme='auroralight'] body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 2147483000;
+    background: repeating-linear-gradient(0deg, transparent 0 3px, color-mix(in oklch, var(--aurora-pink) 4%, transparent) 3px 4px);
+    opacity: 0.55;
+}
+:root[data-theme='auroralight'] body::after {
+    opacity: 0.3;
+}
+
+/* ---------- Aurora sidebar header (mascot + wordmark) ---------- */
+.aurora-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.25rem 0.25rem;
+}
+.aurora-brand-name {
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    color: var(--foreground);
+}
+.aurora-brand-name b {
+    color: var(--aurora-pink, currentColor);
+    text-shadow: 0 0 12px color-mix(in oklch, var(--aurora-pink, currentColor) 60%, transparent);
+}
+
+/* glitch flicker on the wordmark when hovered */
+.aurora-brand:hover .aurora-brand-name b {
+    animation: aurora-glitch 0.4s steps(2, end) 1;
+}
+@keyframes aurora-glitch {
+    0% {
+        transform: translate(0);
+        text-shadow: 2px 0 var(--aurora-cyan, cyan), -2px 0 var(--aurora-pink, pink);
+    }
+    50% {
+        transform: translate(-1px, 1px);
+    }
+    100% {
+        transform: translate(0);
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .aurora-brand:hover .aurora-brand-name b {
+        animation: none;
+    }
+    [data-slot='sidebar-menu-button']:hover {
+        transform: none !important;
+    }
+}

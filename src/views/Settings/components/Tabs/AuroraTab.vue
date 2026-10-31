@@ -3,7 +3,7 @@
         <div class="flex items-center gap-4">
             <AuroraMascot :size="72" />
             <div class="flex flex-col">
-                <span class="text-base font-semibold text-foreground">Aurora</span>
+                <span class="text-base font-semibold text-foreground">Neon</span>
                 <span class="text-xs text-muted-foreground">{{ t('view.settings.aurora.tagline') }}</span>
             </div>
         </div>

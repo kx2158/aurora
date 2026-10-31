@@ -11,7 +11,7 @@ Aurora is a personal fork of [VRCX](https://github.com/vrcx-team/VRCX) (MIT lice
 ## What is different
 
 - **Aurora look, dark and light:** a dark pink theme (default) and a baby pink light theme, both under `Settings > Interface > Theme`. Choose *System* and Aurora follows Windows: dark at night, light by day.
-- **Meet Aurora:** the app's mascot is named Aurora too, a black-helmeted robot with a baby pink face-screen. Her icon is `images/aurora/icon.png`.
+- **Meet Neon:** the app's mascot is Neon, a cat-eared cyber spirit in baby pink. Her picture is the app icon (`images/aurora/icon.png`) and she glows and bobs when she talks.
 - **Mascot voice:** short spoken lines from a local text-to-speech model (Kokoro-82M, runs on the CPU, nothing leaves your PC), with robot effects: bitcrusher, sample crush, ring modulation and stutter.
 - **Data cleanup:** removes invite data, expired notifications, download logs, caches and old feed entries. Preview first, confirm, optional automatic run after login.
 - **App lock:** optional PIN with idle auto-lock and growing delays after wrong tries. It keeps people out of the app. It does not encrypt files on disk, so use BitLocker for that.

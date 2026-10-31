@@ -1382,7 +1382,7 @@
                 "speed": "Speed",
                 "volume": "Volume",
                 "test": "Test voice",
-                "test_line": "Aurora online. Tracking is running.",
+                "test_line": "Neon online. Tracking is running.",
                 "error": "Could not load the voice model. Check your connection and try again.",
                 "fx_preset": "Robot effect",
                 "fx_clean": "Clean",
@@ -1448,7 +1448,7 @@
                     "done": "Removed {n} entries.",
                     "failed": "Cleanup failed."
                 },
-                "tagline": "Your mascot. She glows when she talks."
+                "tagline": "Your mascot, Neon. She glows when she talks."
             }
         }
     },

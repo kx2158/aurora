@@ -70,4 +70,4 @@ Settings > Aurora > Security sets a PIN (4 to 12 digits). Aurora then starts loc
 
 ## Mascot
 
-The mascot is named Aurora, like the app. Voice lines are spoken by her (Settings > Aurora). The mascot sprites (expression and mouth sheets) are not in the repo yet.
+The mascot is named Neon. Voice lines are spoken by her (Settings > Aurora). The mascot sprites (expression and mouth sheets) are not in the repo yet.

@@ -1,5 +1,11 @@
 <template>
     <Sidebar side="left" variant="sidebar" collapsible="icon">
+        <SidebarHeader class="px-2 pt-3 pb-1">
+            <div class="aurora-brand" :class="{ 'justify-center': isCollapsed }">
+                <AuroraMascot :size="isCollapsed ? 28 : 36" />
+                <span v-show="!isCollapsed" class="aurora-brand-name">Auro<b>ra</b></span>
+            </div>
+        </SidebarHeader>
         <SidebarHeader v-if="showNewDashboardButton" class="px-2 py-2">
             <SidebarMenu>
                 <SidebarMenuItem>
@@ -159,6 +165,7 @@
 </template>
 
 <script setup>
+    import AuroraMascot from '@/components/AuroraMascot.vue';
     import { computed, h, onMounted, ref, watch } from 'vue';
 
     import { storeToRefs } from 'pinia';

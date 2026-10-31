@@ -71,10 +71,10 @@
         raf = requestAnimationFrame(step);
     }
 
-    function say(text, mood) {
+    function say(text, mood, force = false) {
         bubble.value = text;
         setMood(mood || 'smug', 7000);
-        if (settings.mascotVoiceEnabled) {
+        if (settings.mascotVoiceEnabled || force) {
             speak(text, {
                 voice: settings.mascotVoice,
                 speed: settings.mascotVoiceSpeed,
@@ -115,16 +115,27 @@
         bubble.value = '';
     }
 
+    let moved = false;
+    let pokeCount = 0;
     function poke() {
-        if (!dragging.value) {
-            say(t('view.settings.aurora.poke'), 'joy');
+        if (moved) {
+            return; // that was a drag, not a click
         }
+        const keys = ['poke', 'poke2', 'poke3', 'poke4'];
+        const key = keys[pokeCount++ % keys.length];
+        // a click is an explicit request, so she speaks even if the voice switch is off
+        say(t('view.settings.aurora.' + key), ['joy', 'smug', 'surprised'][pokeCount % 3], true);
     }
 
     function startDrag(e) {
         dragging.value = true;
+        moved = false;
+        const start = { x: e.clientX, y: e.clientY };
         dragOff = { x: e.clientX - pos.value.x, y: e.clientY - pos.value.y };
         const move = (ev) => {
+            if (Math.abs(ev.clientX - start.x) + Math.abs(ev.clientY - start.y) > 5) {
+                moved = true;
+            }
             pos.value = { x: ev.clientX - dragOff.x, y: ev.clientY - dragOff.y };
         };
         const up = () => {

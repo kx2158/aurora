@@ -473,7 +473,7 @@ function changeHtmlLangAttribute(language) {
 }
 
 async function getThemeMode(configRepository) {
-    const initThemeMode = await configRepository.getString('VRCX_ThemeMode', 'system');
+    const initThemeMode = await configRepository.getString('VRCX_ThemeMode', 'aurora');
 
     let isDarkMode;
     if (initThemeMode === 'light') {

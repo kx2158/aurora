@@ -1,0 +1,108 @@
+/* Aurora: dark cyberpunk base with neon pink accents.
+ * Near-black surfaces with a faint magenta tint, hot pink primary, cyan used sparingly.
+ * Change --aurora-pink and --aurora-cyan to re-tint the whole theme.
+ */
+:root[data-theme='aurora'] {
+    --aurora-pink: oklch(0.7 0.24 353);
+    --aurora-pink-soft: oklch(0.7 0.24 353 / 35%);
+    --aurora-cyan: oklch(0.82 0.13 205);
+
+    --radius: 0.75rem;
+
+    --background: oklch(0.13 0.02 330);
+    --foreground: oklch(0.97 0.01 340);
+    --card: oklch(0.165 0.025 330);
+    --card-foreground: oklch(0.97 0.01 340);
+    --profile-card: oklch(0.2 0.03 330 / 80%);
+    --popover: oklch(0.185 0.03 330);
+    --popover-foreground: oklch(0.97 0.01 340);
+    --primary: var(--aurora-pink);
+    --primary-foreground: oklch(0.14 0.03 350);
+    --secondary: oklch(0.225 0.03 330);
+    --secondary-foreground: oklch(0.97 0.01 340);
+    --muted: oklch(0.21 0.028 330);
+    --muted-foreground: oklch(0.72 0.03 340);
+    --accent: oklch(0.27 0.07 345);
+    --accent-foreground: oklch(0.97 0.01 340);
+    --destructive: oklch(0.68 0.2 25);
+    --destructive-foreground: oklch(0.97 0.01 340);
+    --border: oklch(0.7 0.24 353 / 16%);
+    --input: oklch(0.7 0.24 353 / 22%);
+    --ring: var(--aurora-pink);
+
+    --chart-1: var(--aurora-pink);
+    --chart-2: var(--aurora-cyan);
+    --chart-3: oklch(0.72 0.18 300);
+    --chart-4: oklch(0.85 0.15 90);
+    --chart-5: oklch(0.8 0.2 145);
+
+    --sidebar: oklch(0.105 0.02 330);
+    --sidebar-foreground: oklch(0.97 0.01 340);
+    --sidebar-primary: var(--aurora-pink);
+    --sidebar-primary-foreground: oklch(0.14 0.03 350);
+    --sidebar-accent: oklch(0.24 0.06 345);
+    --sidebar-accent-foreground: oklch(0.97 0.01 340);
+    --sidebar-border: oklch(0.7 0.24 353 / 14%);
+    --sidebar-ring: var(--aurora-pink);
+}
+
+/* soft pink and cyan glow behind the whole app */
+:root[data-theme='aurora'] body {
+    background-image:
+        radial-gradient(55rem 38rem at 6% -12%, oklch(0.55 0.22 353 / 22%), transparent 60%),
+        radial-gradient(48rem 34rem at 104% 112%, oklch(0.6 0.12 205 / 14%), transparent 60%);
+    background-attachment: fixed;
+}
+
+/* main content panel: raised, with a thin neon edge */
+:root[data-theme='aurora'] .x-container,
+:root[data-theme='aurora'].dark .x-container {
+    background: var(--card);
+    border-color: var(--border);
+    box-shadow:
+        0 1px 0 oklch(1 0 0 / 5%) inset,
+        0 0 0 1px oklch(0.7 0.24 353 / 6%),
+        0 14px 36px -16px oklch(0 0 0 / 70%);
+}
+
+:root[data-theme='aurora'] [data-slot='card'] {
+    border-color: var(--border);
+    box-shadow: 0 8px 22px -16px oklch(0 0 0 / 80%);
+}
+
+/* primary buttons glow a little */
+:root[data-theme='aurora'] .bg-primary {
+    box-shadow: 0 0 18px -5px oklch(0.7 0.24 353 / 55%);
+}
+
+:root[data-theme='aurora'] [data-slot='button'],
+:root[data-theme='aurora'] [data-slot='input'],
+:root[data-theme='aurora'] [data-slot='select-trigger'] {
+    transition:
+        background-color 0.15s ease,
+        border-color 0.15s ease,
+        box-shadow 0.15s ease,
+        color 0.15s ease;
+}
+
+:root[data-theme='aurora'] [data-slot='input']:focus-visible,
+:root[data-theme='aurora'] [data-slot='select-trigger']:focus-visible {
+    border-color: var(--ring);
+    box-shadow: 0 0 0 3px oklch(0.7 0.24 353 / 28%);
+}
+
+:root[data-theme='aurora'] [data-slot='table-row']:hover {
+    background-color: oklch(0.7 0.24 353 / 7%);
+}
+
+:root[data-theme='aurora'] ::selection {
+    background: oklch(0.7 0.24 353 / 40%);
+}
+
+:root[data-theme='aurora'] ::-webkit-scrollbar-thumb {
+    background-color: oklch(0.7 0.24 353 / 28%);
+}
+
+:root[data-theme='aurora'] ::-webkit-scrollbar-thumb:hover {
+    background-color: oklch(0.7 0.24 353 / 50%);
+}

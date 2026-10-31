@@ -15,6 +15,11 @@ export const THEME_CONFIG = {
         isDark: true,
         name: 'Midnight',
         file: 'midnight.css'
+    },
+    aurora: {
+        isDark: true,
+        name: 'Aurora',
+        file: 'aurora.css'
     }
 };
 

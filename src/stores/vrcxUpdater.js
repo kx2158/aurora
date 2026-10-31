@@ -227,6 +227,24 @@ export const useVRCXUpdaterStore = defineStore('VRCXUpdater', () => {
             await configRepository.setString('VRCX_id', vrcxId.value);
         }
     }
+    /**
+     * Compares version numbers like "Aurora 2026.10.31.7" and "VRCX 2026.09.16" by their numbers only.
+     * @param {string} a
+     * @param {string} b
+     * @returns {boolean} true when a is newer than b
+     */
+    function isNewerVersion(a, b) {
+        const nums = (v) => (String(v).match(/\d+/g) || []).map(Number);
+        const x = nums(a);
+        const y = nums(b);
+        for (let i = 0; i < Math.max(x.length, y.length); i++) {
+            const d = (x[i] || 0) - (y[i] || 0);
+            if (d !== 0) {
+                return d > 0;
+            }
+        }
+        return false;
+    }
     function getAssetOfInterest(assets) {
         let downloadUrl = '';
         let hashString = '';
@@ -292,7 +310,7 @@ export const useVRCXUpdaterStore = defineStore('VRCXUpdater', () => {
                 url,
                 method: 'GET',
                 headers: {
-                    'VRCX-ID': vrcxId.value
+                    Accept: 'application/vnd.github+json'
                 }
             });
             json = JSON.parse(response.data);
@@ -324,7 +342,7 @@ export const useVRCXUpdaterStore = defineStore('VRCXUpdater', () => {
             if (releaseName === pendingVRCXInstall.value) {
                 // update already downloaded
                 VRCXUpdateDialog.value.updatePendingIsLatest = true;
-            } else if (releaseName > currentVersion.value) {
+            } else if (isNewerVersion(releaseName, currentVersion.value)) {
                 const { downloadUrl, hashString, size } = getAssetOfInterest(json.assets);
                 if (!downloadUrl) {
                     return true;
@@ -376,7 +394,7 @@ export const useVRCXUpdaterStore = defineStore('VRCXUpdater', () => {
                 url,
                 method: 'GET',
                 headers: {
-                    'VRCX-ID': vrcxId.value
+                    Accept: 'application/vnd.github+json'
                 }
             });
             json = JSON.parse(response.data);

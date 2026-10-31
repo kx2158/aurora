@@ -23,19 +23,20 @@ All Aurora settings live in `Settings > Aurora`.
 
 ## Get the app
 
-Aurora is built on GitHub, so you do not need any developer tools.
+1. Go to the [Releases page](https://github.com/kx2158/aurora/releases/latest) and download `Aurora_Setup_x64.exe` (and `Update-Aurora.bat` + `Update-Aurora.ps1` if you are switching from VRCX).
+2. **Coming from VRCX?** Put the three files in one folder and double-click `Update-Aurora.bat`. It closes VRCX, backs up your data folder to `Documents\Aurora-backups`, installs Aurora over VRCX, and checks that your data is still there. Your history, favorites and settings carry over, and Aurora switches to its own theme on the first start.
+3. **New install?** Just run `Aurora_Setup_x64.exe`.
 
-1. Open this repository on GitHub, go to the **Actions** tab.
-2. Choose **Build Aurora (Windows installer)** and press **Run workflow**.
-3. When it finishes (about 10 to 15 minutes), open the run and download **Aurora-Setup** from *Artifacts*. Unzip it and run `Aurora_Setup_x64.exe`.
+After that Aurora updates itself: it checks this repository's releases and offers new versions in the app (`Settings > System`).
 
-To replace VRCX in one go and keep your data, unzip **Aurora-Setup** and double-click `Update-Aurora.bat`. It closes VRCX, backs up your data folder to `Documents\Aurora-backups`, installs Aurora over VRCX, and checks that your data is still there.
+### About the Windows warning
 
-Things to know:
+Windows SmartScreen or Defender may say "unknown publisher" or flag the installer. That is because the installer is not code-signed yet (signing certificates cost money or need an application) and new files have no download reputation. The whole source is in this repository, and every installer is built from it by GitHub Actions in the open (`.github/workflows/aurora-windows.yml`), so you can read exactly what goes into it or build it yourself. Do not turn off Defender or add folder exclusions for Aurora. To report a false positive, Microsoft takes submissions at https://www.microsoft.com/wdsi/filesubmission.
 
-- Windows may show a SmartScreen warning because the installer is not code-signed. Only install builds you made yourself from this repository.
-- Aurora installs over VRCX and uses the same data folder (`%APPDATA%\VRCX`), so your history, favorites and settings carry over. Do not run stock VRCX and Aurora at the same time. Back up that folder before the first run.
-- This build has not been tested on a real machine yet. If the workflow fails, open the failed step and send me the red error text.
+### Notes
+
+- Aurora installs over VRCX and uses the same data folder (`%APPDATA%\VRCX`). Do not run stock VRCX and Aurora at the same time. Back up that folder before the first run if you want to be extra safe.
+- This is a hobby project and has had little testing on real machines. If something breaks, open an issue.
 
 ## Build it yourself
 

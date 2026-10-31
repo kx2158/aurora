@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write   # needed to publish the release the in-app updater reads
 
 jobs:
   build:
@@ -34,10 +34,12 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
+      # Version looks like 2026.10.31.7 (date + build number), so every build counts as newer
       - name: Set version
         run: |
-          VERSION="$(cat Version | tr -d '\r\n')"
-          echo "!define PRODUCT_VERSION_FROM_FILE \"${VERSION}.0\"" > Installer/version_define.nsh
+          VERSION="$(date -u +%Y.%m.%d).${{ github.run_number }}"
+          echo "$VERSION" > Version
+          echo "!define PRODUCT_VERSION_FROM_FILE \"${VERSION}\"" > Installer/version_define.nsh
           echo "VERSION=${VERSION}" >> "$GITHUB_ENV"
 
       - name: Build the Windows app (CEF)
@@ -64,6 +66,13 @@ jobs:
           name: Aurora-Setup
           path: stage
           if-no-files-found: error
+
+      - name: Publish release (the app's updater reads this)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "v${VERSION}" stage/Aurora_Setup_x64.exe stage/Update-Aurora.ps1 stage/Update-Aurora.bat \
+            --title "Aurora ${VERSION}" --generate-notes --latest
 
       - name: Upload portable folder
         uses: actions/upload-artifact@v7

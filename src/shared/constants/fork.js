@@ -1,8 +1,9 @@
 /**
  * Switches for this personal fork. Change them here.
  *
- * updaterEnabled: when false the app never asks the original VRCX servers for
- *   new versions and never offers to replace itself with stock VRCX.
+ * updaterEnabled: Aurora checks ITS OWN GitHub releases (kx2158/aurora, see
+ *   src/shared/constants/settings.js) for new versions. It never contacts the original
+ *   VRCX servers. Set to false to turn the updater off completely.
  * telemetryEnabled: when false the crash reporter (Sentry) is never started,
  *   even in nightly builds.
  *
@@ -10,6 +11,6 @@
  *   node build-scripts/set-app-name.js "Your Name"
  */
 export const FORK = {
-    updaterEnabled: false,
+    updaterEnabled: true,
     telemetryEnabled: false
 };

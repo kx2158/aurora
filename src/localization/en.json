@@ -1382,7 +1382,17 @@
                 "volume": "Volume",
                 "test": "Test voice",
                 "test_line": "Aurora online. Tracking is running.",
-                "error": "Could not load the voice model. Check your connection and try again."
+                "error": "Could not load the voice model. Check your connection and try again.",
+                "fx_preset": "Robot effect",
+                "fx_clean": "Clean",
+                "fx_robot": "Robot",
+                "fx_glitchy": "Glitchy",
+                "fx_custom": "Custom",
+                "bitDepth": "Bitcrush (bits)",
+                "downsample": "Sample crush",
+                "ringHz": "Ring mod (Hz)",
+                "ringMix": "Ring mod mix",
+                "glitch": "Stutter chance"
             }
         }
     },

@@ -48,6 +48,38 @@
                     @update:modelValue="(v) => setMascotVoiceVolume(v[0])" />
             </SettingsItem>
 
+            <SettingsItem :label="t('view.settings.aurora.fx_preset')">
+                <Select
+                    :model-value="mascotFxPreset"
+                    :disabled="!mascotVoiceEnabled"
+                    :ariaLabel="t('view.settings.aurora.fx_preset')"
+                    @update:modelValue="setMascotFxPreset">
+                    <SelectTrigger size="sm">
+                        <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="clean">{{ t('view.settings.aurora.fx_clean') }}</SelectItem>
+                        <SelectItem value="robot">{{ t('view.settings.aurora.fx_robot') }}</SelectItem>
+                        <SelectItem value="glitchy">{{ t('view.settings.aurora.fx_glitchy') }}</SelectItem>
+                        <SelectItem value="custom" disabled>{{ t('view.settings.aurora.fx_custom') }}</SelectItem>
+                    </SelectContent>
+                </Select>
+            </SettingsItem>
+
+            <SettingsItem
+                v-for="s in fxSliders"
+                :key="s.key"
+                :label="t('view.settings.aurora.' + s.key) + ' ' + mascotFx[s.key]">
+                <Slider
+                    class="w-48"
+                    :model-value="[mascotFx[s.key]]"
+                    :min="s.min"
+                    :max="s.max"
+                    :step="s.step"
+                    :disabled="!mascotVoiceEnabled"
+                    @update:modelValue="(v) => setMascotFxValue(s.key, v[0])" />
+            </SettingsItem>
+
             <SettingsItem :label="t('view.settings.aurora.test')">
                 <Button size="sm" variant="outline" :disabled="!mascotVoiceEnabled || busy" @click="testVoice">
                     {{ t('view.settings.aurora.test') }}
@@ -75,8 +107,24 @@
 
     const { t } = useI18n();
     const store = useAuroraSettingsStore();
-    const { mascotVoiceEnabled, mascotVoice, mascotVoiceSpeed, mascotVoiceVolume } = storeToRefs(store);
-    const { setMascotVoiceEnabled, setMascotVoice, setMascotVoiceSpeed, setMascotVoiceVolume } = store;
+    const { mascotVoiceEnabled, mascotVoice, mascotVoiceSpeed, mascotVoiceVolume, mascotFxPreset, mascotFx } =
+        storeToRefs(store);
+    const {
+        setMascotVoiceEnabled,
+        setMascotVoice,
+        setMascotVoiceSpeed,
+        setMascotVoiceVolume,
+        setMascotFxPreset,
+        setMascotFxValue
+    } = store;
+
+    const fxSliders = [
+        { key: 'bitDepth', min: 2, max: 16, step: 1 },
+        { key: 'downsample', min: 1, max: 12, step: 1 },
+        { key: 'ringHz', min: 0, max: 200, step: 5 },
+        { key: 'ringMix', min: 0, max: 1, step: 0.05 },
+        { key: 'glitch', min: 0, max: 0.5, step: 0.02 }
+    ];
 
     const busy = ref(false);
 
@@ -86,7 +134,8 @@
             await speak(t('view.settings.aurora.test_line'), {
                 voice: mascotVoice.value,
                 speed: mascotVoiceSpeed.value,
-                volume: mascotVoiceVolume.value
+                volume: mascotVoiceVolume.value,
+                fx: { ...mascotFx.value }
             });
         } catch (err) {
             console.error(err);

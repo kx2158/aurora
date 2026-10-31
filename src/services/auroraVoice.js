@@ -3,6 +3,8 @@
  * Nothing is sent anywhere. The model downloads once on first use and is cached by the browser.
  * It loads lazily, so nothing is paid for until voice is enabled and used.
  */
+import { applyVoiceFx, FX_PRESETS } from './auroraVoiceFx';
+
 let ttsPromise = null;
 
 async function loadModel() {
@@ -20,27 +22,41 @@ async function loadModel() {
     return ttsPromise;
 }
 
-let currentAudio = null;
+let audioCtx = null;
+let currentSource = null;
 
-export async function speak(text, { voice = 'af_heart', speed = 1, volume = 0.8 } = {}) {
+export async function speak(text, { voice = 'af_heart', speed = 1, volume = 0.8, fx = FX_PRESETS.robot } = {}) {
     const line = String(text || '').trim();
     if (!line) {
         return;
     }
     const tts = await loadModel();
-    const audio = await tts.generate(line, { voice, speed });
-    const url = URL.createObjectURL(audio.toBlob());
+    const raw = await tts.generate(line, { voice, speed });
+    const samples = applyVoiceFx(raw.audio, raw.sampling_rate, fx);
+
+    audioCtx = audioCtx || new AudioContext();
+    if (audioCtx.state === 'suspended') {
+        await audioCtx.resume();
+    }
+    const buffer = audioCtx.createBuffer(1, samples.length, raw.sampling_rate);
+    buffer.copyToChannel(samples, 0);
     stopSpeaking();
-    currentAudio = new Audio(url);
-    currentAudio.volume = Math.min(1, Math.max(0, volume));
-    currentAudio.addEventListener('ended', () => URL.revokeObjectURL(url), { once: true });
-    await currentAudio.play();
+    const gain = audioCtx.createGain();
+    gain.gain.value = Math.min(1, Math.max(0, volume));
+    currentSource = audioCtx.createBufferSource();
+    currentSource.buffer = buffer;
+    currentSource.connect(gain).connect(audioCtx.destination);
+    currentSource.start();
 }
 
 export function stopSpeaking() {
-    if (currentAudio) {
-        currentAudio.pause();
-        currentAudio = null;
+    if (currentSource) {
+        try {
+            currentSource.stop();
+        } catch {
+            // already stopped
+        }
+        currentSource = null;
     }
 }
 

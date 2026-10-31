@@ -9,6 +9,58 @@ import { applyVoiceFx, FX_PRESETS } from './auroraVoiceFx';
 
 /** True while the mascot is talking. The mascot component listens to this. */
 export const speaking = ref(false);
+/** Loudness of the voice right now, 0 to 1. Drives the mouth sprites. */
+export const mouthLevel = ref(0);
+/** Current emotion: neutral, smug, joy, surprised, angry, sad, sleepy, error. */
+export const emotion = ref('neutral');
+
+let moodTimer = null;
+/** Show an emotion for a while, then fall back to neutral. */
+export function setMood(name, ms = 4000) {
+    emotion.value = name;
+    clearTimeout(moodTimer);
+    if (name !== 'neutral') {
+        moodTimer = setTimeout(() => {
+            if (!speaking.value) {
+                emotion.value = 'neutral';
+            }
+        }, ms);
+    }
+}
+
+/** Cheap guess of the emotion from the words, so she reacts without any extra model. */
+export function guessEmotion(text) {
+    const t = String(text || '').toLowerCase();
+    if (/(error|failed|broke|cannot|can't|crash)/.test(t)) return 'error';
+    if (/(wow|whoa|new friend|just joined|came online|!\?|\?!)/.test(t)) return 'surprised';
+    if (/(sorry|miss|left|offline|sad|lonely)/.test(t)) return 'sad';
+    if (/(sleep|late|tired|night)/.test(t)) return 'sleepy';
+    if (/(angry|blocked|warning|danger|unsafe)/.test(t)) return 'angry';
+    if (/(love|great|nice|yay|welcome|hello|hey|hi )/.test(t) || t.includes('!')) return 'joy';
+    return 'smug';
+}
+
+let analyser = null;
+let levelBuf = null;
+let levelRaf = 0;
+function trackLevel() {
+    cancelAnimationFrame(levelRaf);
+    const tick = () => {
+        if (!analyser || !speaking.value) {
+            mouthLevel.value = 0;
+            return;
+        }
+        analyser.getByteTimeDomainData(levelBuf);
+        let peak = 0;
+        for (let i = 0; i < levelBuf.length; i++) {
+            peak = Math.max(peak, Math.abs(levelBuf[i] - 128));
+        }
+        // smooth so the mouth does not flicker
+        mouthLevel.value = mouthLevel.value * 0.55 + Math.min(1, peak / 70) * 0.45;
+        levelRaf = requestAnimationFrame(tick);
+    };
+    levelRaf = requestAnimationFrame(tick);
+}
 
 let ttsPromise = null;
 
@@ -30,7 +82,7 @@ async function loadModel() {
 let audioCtx = null;
 let currentSource = null;
 
-export async function speak(text, { voice = 'af_heart', speed = 1, volume = 0.8, fx = FX_PRESETS.robot } = {}) {
+export async function speak(text, { voice = 'af_heart', speed = 1, volume = 0.8, fx = FX_PRESETS.robot, mood = null } = {}) {
     const line = String(text || '').trim();
     if (!line) {
         return;
@@ -50,12 +102,20 @@ export async function speak(text, { voice = 'af_heart', speed = 1, volume = 0.8,
     gain.gain.value = Math.min(1, Math.max(0, volume));
     currentSource = audioCtx.createBufferSource();
     currentSource.buffer = buffer;
-    currentSource.connect(gain).connect(audioCtx.destination);
+    analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 256;
+    levelBuf = new Uint8Array(analyser.fftSize);
+    currentSource.connect(analyser);
+    analyser.connect(gain).connect(audioCtx.destination);
     currentSource.onended = () => {
         speaking.value = false;
+        mouthLevel.value = 0;
+        setMood('neutral');
     };
+    emotion.value = mood || guessEmotion(line);
     speaking.value = true;
     currentSource.start();
+    trackLevel();
 }
 
 export function stopSpeaking() {
@@ -68,6 +128,7 @@ export function stopSpeaking() {
         currentSource = null;
     }
     speaking.value = false;
+    mouthLevel.value = 0;
 }
 
 export const VOICES = [

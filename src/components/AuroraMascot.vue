@@ -7,12 +7,13 @@
 <script setup>
     import { computed } from 'vue';
 
-    import { speaking } from '@/services/auroraVoice';
+    import { emotion, mouthLevel, speaking } from '@/services/auroraVoice';
     import icon from '../../images/aurora/icon.png';
 
     const props = defineProps({
         size: { type: Number, default: 96 },
-        expression: { type: String, default: 'neutral' },
+        // leave empty to follow Neon's live emotion
+        expression: { type: String, default: '' },
         // when true the mascot reacts to the voice. Turn off for a static picture.
         reactive: { type: Boolean, default: true }
     });
@@ -25,9 +26,25 @@
     }
 
     const isSpeaking = computed(() => props.reactive && speaking.value);
+
+    // emotions whose own face already shows the mood, mouth sync would hide it
+    const FIXED_FACE = ['angry', 'sad', 'sleepy', 'error', 'surprised'];
+
+    function mouthFor(level, mood) {
+        if (level < 0.08) return 'm-closed';
+        if (level < 0.2) return mood === 'joy' ? 'm-happy' : 'm-small';
+        if (level < 0.38) return mood === 'joy' ? 'm-laugh' : 'm-happy';
+        if (level < 0.6) return 'm-o';
+        return mood === 'joy' ? 'm-laugh' : 'm-grin';
+    }
+
     const src = computed(() => {
-        const wanted = isSpeaking.value && bySlug.speaking ? 'speaking' : props.expression;
-        return bySlug[wanted] || bySlug.neutral || icon;
+        const mood = props.expression || (props.reactive ? emotion.value : 'neutral');
+        let wanted = mood;
+        if (isSpeaking.value && !FIXED_FACE.includes(mood)) {
+            wanted = mouthFor(mouthLevel.value, mood);
+        }
+        return bySlug[wanted] || bySlug[mood] || bySlug.neutral || icon;
     });
 </script>
 
@@ -40,7 +57,7 @@
     .aurora-mascot img {
         width: 100%;
         height: 100%;
-        object-fit: contain;
+        object-fit: cover;
         border-radius: 22%;
         user-select: none;
     }

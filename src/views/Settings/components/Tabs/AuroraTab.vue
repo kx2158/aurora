@@ -7,6 +7,26 @@
                 <span class="text-xs text-muted-foreground">{{ t('view.settings.aurora.tagline') }}</span>
             </div>
         </div>
+        <SettingsGroup :title="t('view.settings.aurora.companion')">
+            <SettingsItem
+                :label="t('view.settings.aurora.companion')"
+                :description="t('view.settings.aurora.companion_desc')"
+                toggle>
+                <Switch
+                    :model-value="companionEnabled"
+                    :ariaLabel="t('view.settings.aurora.companion')"
+                    @update:modelValue="setCompanionEnabled" />
+            </SettingsItem>
+            <SettingsItem
+                :label="t('view.settings.aurora.note_reminders')"
+                :description="t('view.settings.aurora.note_reminders_desc')"
+                toggle>
+                <Switch
+                    :model-value="noteReminders"
+                    :ariaLabel="t('view.settings.aurora.note_reminders')"
+                    @update:modelValue="setNoteReminders" />
+            </SettingsItem>
+        </SettingsGroup>
         <SettingsGroup :title="t('view.settings.aurora.header')">
             <SettingsItem
                 :label="t('view.settings.aurora.enabled')"
@@ -214,6 +234,7 @@
     import { Button } from '@/components/ui/button';
     import { Input } from '@/components/ui/input';
     import { Switch } from '@/components/ui/switch';
+    import { companionEnabled, noteReminders, setCompanionEnabled, setNoteReminders } from '@/services/auroraCompanion';
     import { Slider } from '@/components/ui/slider';
     import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
     import { storeToRefs } from 'pinia';

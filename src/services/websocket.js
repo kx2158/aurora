@@ -20,6 +20,7 @@ import { request } from './request';
 import { runUpdateFriendFlow } from '../coordinators/friendPresenceCoordinator';
 import { runSetCurrentUserLocationFlow } from '../coordinators/locationCoordinator';
 import { watchState } from './watchState';
+import { queueNewFriend } from './auroraCompanion';
 
 import * as workerTimers from 'worker-timers';
 
@@ -269,6 +270,7 @@ function handlePipeline(args) {
 
         case 'friend-add':
             applyUser(content.user);
+            queueNewFriend(content.userId, content.user?.displayName);
             handleFriendAdd({
                 params: {
                     userId: content.userId

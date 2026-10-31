@@ -144,6 +144,61 @@
                     @update:modelValue="(v) => setAutoLockMinutes(v[0])" />
             </SettingsItem>
         </SettingsGroup>
+
+        <SettingsGroup :title="t('view.settings.aurora.cleanup.header')">
+            <SettingsItem
+                v-for="key in CLEANUP_KEYS"
+                :key="key"
+                :label="t('view.settings.aurora.cleanup.' + key)"
+                :description="
+                    counts[key] === undefined
+                        ? t('view.settings.aurora.cleanup.' + key + '_desc')
+                        : t('view.settings.aurora.cleanup.found', { n: counts[key] })
+                "
+                toggle>
+                <Switch
+                    :model-value="cleanupSelected.includes(key)"
+                    :ariaLabel="t('view.settings.aurora.cleanup.' + key)"
+                    @update:modelValue="(on) => toggleCleanup(key, on)" />
+            </SettingsItem>
+
+            <SettingsItem
+                :label="t('view.settings.aurora.cleanup.keep_days') + ' ' + cleanupKeepDays + ' d'"
+                :description="t('view.settings.aurora.cleanup.keep_days_desc')">
+                <Slider
+                    class="w-48"
+                    :model-value="[cleanupKeepDays]"
+                    :min="7"
+                    :max="365"
+                    :step="1"
+                    @update:modelValue="(v) => setCleanupKeepDays(v[0])" />
+            </SettingsItem>
+
+            <SettingsItem
+                :label="t('view.settings.aurora.cleanup.auto')"
+                :description="t('view.settings.aurora.cleanup.auto_desc')"
+                toggle>
+                <Switch
+                    :model-value="cleanupAuto"
+                    :ariaLabel="t('view.settings.aurora.cleanup.auto')"
+                    @update:modelValue="setCleanupAuto" />
+            </SettingsItem>
+
+            <SettingsItem :label="t('view.settings.aurora.cleanup.actions')">
+                <div class="flex gap-2">
+                    <Button size="sm" variant="outline" :disabled="cleaning" @click="checkSizes">
+                        {{ t('view.settings.aurora.cleanup.check') }}
+                    </Button>
+                    <Button
+                        size="sm"
+                        :variant="confirming ? 'destructive' : 'default'"
+                        :disabled="cleaning || cleanupSelected.length === 0"
+                        @click="cleanNow">
+                        {{ confirming ? t('view.settings.aurora.cleanup.confirm') : t('view.settings.aurora.cleanup.now') }}
+                    </Button>
+                </div>
+            </SettingsItem>
+        </SettingsGroup>
     </div>
 </template>
 
@@ -161,13 +216,14 @@
     import { useAuroraSettingsStore } from '@/stores';
     import { speak, VOICES } from '@/services/auroraVoice';
     import { isValidPin } from '@/services/auroraSecurity';
+    import { CLEANUP_KEYS, cleanCategories, countCategory } from '@/services/auroraCleanup';
 
     import SettingsGroup from '../SettingsGroup.vue';
     import SettingsItem from '../SettingsItem.vue';
 
     const { t } = useI18n();
     const store = useAuroraSettingsStore();
-    const { mascotVoiceEnabled, mascotVoice, mascotVoiceSpeed, mascotVoiceVolume, mascotFxPreset, mascotFx, appLockEnabled, autoLockMinutes } =
+    const { mascotVoiceEnabled, mascotVoice, mascotVoiceSpeed, mascotVoiceVolume, mascotFxPreset, mascotFx, appLockEnabled, autoLockMinutes, cleanupSelected, cleanupKeepDays, cleanupAuto } =
         storeToRefs(store);
     const {
         setMascotVoiceEnabled,
@@ -177,8 +233,44 @@
         setMascotFxPreset,
         setMascotFxValue,
         setAutoLockMinutes,
-        lockNow
+        lockNow,
+        toggleCleanup,
+        setCleanupKeepDays,
+        setCleanupAuto
     } = store;
+
+    const counts = ref({});
+    const cleaning = ref(false);
+    const confirming = ref(false);
+    let confirmTimer = null;
+
+    async function checkSizes() {
+        const next = {};
+        for (const key of CLEANUP_KEYS) {
+            next[key] = await countCategory(key, cleanupKeepDays.value);
+        }
+        counts.value = next;
+    }
+    async function cleanNow() {
+        if (!confirming.value) {
+            confirming.value = true; // second click confirms
+            clearTimeout(confirmTimer);
+            confirmTimer = setTimeout(() => (confirming.value = false), 5000);
+            return;
+        }
+        confirming.value = false;
+        cleaning.value = true;
+        try {
+            const removed = await cleanCategories(cleanupSelected.value, cleanupKeepDays.value);
+            toast.success(t('view.settings.aurora.cleanup.done', { n: removed }));
+            counts.value = {};
+        } catch (err) {
+            console.error(err);
+            toast.error(t('view.settings.aurora.cleanup.failed'));
+        } finally {
+            cleaning.value = false;
+        }
+    }
 
     const currentPin = ref('');
     const newPin = ref('');

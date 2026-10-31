@@ -1420,6 +1420,32 @@
                     "enabled_toast": "App lock is on.",
                     "changed_toast": "PIN changed.",
                     "disabled_toast": "App lock is off."
+                },
+                "cleanup": {
+                    "header": "Data cleanup",
+                    "invites": "Invite data",
+                    "invites_desc": "Invites, invite requests and their responses.",
+                    "expiredNotifications": "Expired notifications",
+                    "expiredNotifications_desc": "Notifications that already expired.",
+                    "resourceLoads": "Resource load log",
+                    "resourceLoads_desc": "Log of images and strings VRChat downloaded. Rarely useful.",
+                    "portalSpawns": "Portal spawn log",
+                    "portalSpawns_desc": "Who dropped portals. Off by default.",
+                    "cache": "Avatar and world cache",
+                    "cache_desc": "Cached info that is fetched again when needed.",
+                    "oldFeed": "Old feed entries",
+                    "oldFeed_desc": "Old location, status, bio and avatar changes in your feed.",
+                    "found": "{n} entries found",
+                    "keep_days": "Keep feed for",
+                    "keep_days_desc": "Only applies to old feed entries.",
+                    "auto": "Clean automatically after login",
+                    "auto_desc": "Runs the selected cleanups every time you log in.",
+                    "actions": "Cleanup",
+                    "check": "Check sizes",
+                    "now": "Clean now",
+                    "confirm": "Click again to delete",
+                    "done": "Removed {n} entries.",
+                    "failed": "Cleanup failed."
                 }
             }
         }

@@ -24,6 +24,7 @@ import { useVrcxStore } from './vrcx';
 import { watchState } from '../services/watchState';
 
 import configRepository from '../services/config';
+import { runAutoCleanup } from '../services/auroraCleanup';
 import security from '../services/security';
 import webApiService from '../services/webapi';
 
@@ -868,6 +869,7 @@ export const useAuthStore = defineStore('Auth', () => {
             return;
         }
         await database.initUserTables(userStore.currentUser.id);
+        runAutoCleanup();
         advancedSettingsStore.runAvatarAutoCleanup(userStore.currentUser.id);
         watchState.isLoggedIn = true;
         AppApi.CheckGameRunning(); // restore state from hot-reload

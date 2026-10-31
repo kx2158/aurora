@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import { ref } from 'vue';
 
 import { hashPin, isValidPin, lockoutSeconds, verifyPin } from '../../services/auroraSecurity';
+import { DEFAULT_SELECTED } from '../../services/auroraCleanup';
 import { FX_PRESETS } from '../../services/auroraVoiceFx';
 import configRepository from '../../services/config';
 
@@ -13,6 +14,11 @@ export const useAuroraSettingsStore = defineStore('AuroraSettings', () => {
     const mascotFxPreset = ref('robot');
     const mascotFx = ref({ ...FX_PRESETS.robot });
 
+    // data cleanup
+    const cleanupSelected = ref([...DEFAULT_SELECTED]);
+    const cleanupKeepDays = ref(90);
+    const cleanupAuto = ref(false);
+
     // app lock
     const ready = ref(false);
     const locked = ref(false);
@@ -23,7 +29,7 @@ export const useAuroraSettingsStore = defineStore('AuroraSettings', () => {
     let pinHash = '';
 
     async function initAuroraSettings() {
-        const [enabled, voice, speed, volume, preset, fxJson, lockHash, autoMin, fails, until] = await Promise.all([
+        const [enabled, voice, speed, volume, preset, fxJson, lockHash, autoMin, fails, until, selRaw, keepDays, autoClean] = await Promise.all([
             configRepository.getBool('Aurora_mascotVoiceEnabled', false),
             configRepository.getString('Aurora_mascotVoice', 'af_heart'),
             configRepository.getFloat('Aurora_mascotVoiceSpeed', 1),
@@ -33,8 +39,18 @@ export const useAuroraSettingsStore = defineStore('AuroraSettings', () => {
             configRepository.getString('Aurora_pinHash', ''),
             configRepository.getInt('Aurora_autoLockMinutes', 10),
             configRepository.getInt('Aurora_failedAttempts', 0),
-            configRepository.getFloat('Aurora_lockedUntil', 0)
+            configRepository.getFloat('Aurora_lockedUntil', 0),
+            configRepository.getString('Aurora_cleanupSelected', ''),
+            configRepository.getInt('Aurora_cleanupKeepDays', 90),
+            configRepository.getBool('Aurora_cleanupAuto', false)
         ]);
+        try {
+            cleanupSelected.value = selRaw ? JSON.parse(selRaw) : [...DEFAULT_SELECTED];
+        } catch {
+            cleanupSelected.value = [...DEFAULT_SELECTED];
+        }
+        cleanupKeepDays.value = keepDays;
+        cleanupAuto.value = autoClean;
         pinHash = lockHash || '';
         appLockEnabled.value = Boolean(pinHash);
         autoLockMinutes.value = autoMin;
@@ -123,6 +139,24 @@ export const useAuroraSettingsStore = defineStore('AuroraSettings', () => {
             locked.value = true;
         }
     }
+    function toggleCleanup(key, on) {
+        const next = new Set(cleanupSelected.value);
+        if (on) {
+            next.add(key);
+        } else {
+            next.delete(key);
+        }
+        cleanupSelected.value = [...next];
+        configRepository.setString('Aurora_cleanupSelected', JSON.stringify(cleanupSelected.value));
+    }
+    function setCleanupKeepDays(value) {
+        cleanupKeepDays.value = value;
+        configRepository.setInt('Aurora_cleanupKeepDays', value);
+    }
+    function setCleanupAuto(value) {
+        cleanupAuto.value = value;
+        configRepository.setBool('Aurora_cleanupAuto', value);
+    }
     function setAutoLockMinutes(value) {
         autoLockMinutes.value = value;
         configRepository.setInt('Aurora_autoLockMinutes', value);
@@ -144,6 +178,12 @@ export const useAuroraSettingsStore = defineStore('AuroraSettings', () => {
     }
 
     return {
+        cleanupSelected,
+        cleanupKeepDays,
+        cleanupAuto,
+        toggleCleanup,
+        setCleanupKeepDays,
+        setCleanupAuto,
         ready,
         locked,
         appLockEnabled,

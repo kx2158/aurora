@@ -35,17 +35,17 @@ body {
     --platform-quest: #3ddc84;
     --platform-ios: #8e8e93;
 
-    --vr-bg: #18181b;
-    --vr-bg-surface: #27272a;
-    --vr-text: #e4e4e7;
-    --vr-text-secondary: #a1a1aa;
-    --vr-text-muted: #71717a;
-    --vr-text-name: #d4d4d8;
-    --vr-text-friend: #fafafa;
-    --vr-text-favorite: #fbbf24;
-    --vr-border: rgba(255, 255, 255, 0.06);
-    --vr-border-strong: rgba(255, 255, 255, 0.12);
-    --vr-radius: 8px;
+    --vr-bg: #07050d;
+    --vr-bg-surface: #120b1d;
+    --vr-text: #f6eef6;
+    --vr-text-secondary: #d9b8cf;
+    --vr-text-muted: #ff3d9a;
+    --vr-text-name: #f6eef6;
+    --vr-text-friend: #ffffff;
+    --vr-text-favorite: #ff7ac2;
+    --vr-border: rgba(255, 61, 154, 0.2);
+    --vr-border-strong: #ff3d9a;
+    --vr-radius: 0;
 
     --vr-font-xs: 14px;
     --vr-font-sm: 16px;
@@ -594,4 +594,106 @@ i.x-user-status.busy {
 .tracker-device span {
     font-size: 14px;
     letter-spacing: 0.02em;
+}
+
+
+/* ---- Neon in-game look: black, hot pink, white, sharp cut corners ---- */
+.wrist {
+    border-width: 2px;
+    clip-path: polygon(0 0, calc(100% - 22px) 0, 100% 22px, 100% 100%, 22px 100%, 0 calc(100% - 22px));
+}
+
+.wrist::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 5px;
+    z-index: 2;
+    background: repeating-linear-gradient(135deg, #ff3d9a 0, #ff3d9a 10px, #000 10px, #000 20px);
+}
+
+.wrist::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    background: repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.03) 0, rgba(255, 255, 255, 0.03) 1px, transparent 1px, transparent 3px);
+}
+
+.wrist .x-container {
+    padding-top: 12px;
+}
+
+.x-friend-item {
+    border-left: 3px solid transparent;
+    padding-left: 6px;
+}
+
+.x-friend-item.friend {
+    border-left-color: #ff3d9a;
+}
+
+.x-friend-item.favorite {
+    border-left-color: #ffffff;
+}
+
+.x-friend-item .time {
+    font-weight: 700;
+    letter-spacing: 0.04em;
+}
+
+.x-containerbottom {
+    border-top: 1px solid var(--vr-border);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+/* notifications shown inside VR */
+.noty_theme__relax.noty_bar,
+.noty_theme__sunset.noty_bar {
+    border-radius: 0;
+    clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px));
+}
+
+.noty_theme__relax.noty_type__alert,
+.noty_theme__relax.noty_type__notification,
+.noty_theme__relax.noty_type__info,
+.noty_theme__relax.noty_type__information,
+.noty_theme__relax.noty_type__success,
+.noty_theme__sunset.noty_type__alert,
+.noty_theme__sunset.noty_type__notification,
+.noty_theme__sunset.noty_type__info,
+.noty_theme__sunset.noty_type__information,
+.noty_theme__sunset.noty_type__success {
+    color: #ffffff;
+    background: #07050d;
+    border: 2px solid #ff3d9a;
+}
+
+.noty_theme__relax.noty_type__warning,
+.noty_theme__sunset.noty_type__warning {
+    color: #ffffff;
+    background: #07050d;
+    border: 2px solid #ff7ac2;
+}
+
+.noty_theme__relax.noty_type__error,
+.noty_theme__sunset.noty_type__error {
+    color: #ffffff;
+    background: #1a0510;
+    border: 2px solid #ff2c2c;
+}
+
+.noty_theme__relax.noty_bar .noty_body,
+.noty_theme__sunset.noty_bar .noty_body {
+    text-shadow: none;
+}
+
+/* the HUD feed over the game view */
+.hud-feed .item {
+    color: #ffffff;
+    text-shadow: 0 0 6px #ff3d9a, 0 0 3px #000, 0 0 3px #000, 0 0 3px #000;
 }

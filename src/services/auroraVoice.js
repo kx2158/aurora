@@ -102,41 +102,169 @@ async function generate(text, voice, speed, fx) {
     });
 }
 
+// ---------- pregenerated voice: every line is generated once and remembered ----------
+const memory = new Map(); // key -> { samples, rate }
+const inflight = new Map(); // key -> promise
+const MAX_STORED = 300;
+
+function cacheKey(text, voice, speed, fx) {
+    return [voice, speed, JSON.stringify(fx), text].join('|');
+}
+
+function openDb() {
+    return new Promise((resolve) => {
+        try {
+            const req = indexedDB.open('neon-voice', 1);
+            req.onupgradeneeded = () => req.result.createObjectStore('lines');
+            req.onsuccess = () => resolve(req.result);
+            req.onerror = () => resolve(null);
+        } catch {
+            resolve(null);
+        }
+    });
+}
+async function dbGet(key) {
+    const db = await openDb();
+    if (!db) return null;
+    return new Promise((resolve) => {
+        const r = db.transaction('lines').objectStore('lines').get(key);
+        r.onsuccess = () => resolve(r.result || null);
+        r.onerror = () => resolve(null);
+    });
+}
+async function dbPut(key, value) {
+    const db = await openDb();
+    if (!db) return;
+    try {
+        const store = db.transaction('lines', 'readwrite').objectStore('lines');
+        store.put(value, key);
+        const count = store.count();
+        count.onsuccess = () => {
+            if (count.result > MAX_STORED) {
+                store.openCursor().onsuccess = (e) => e.target.result?.delete(); // drop the oldest
+            }
+        };
+    } catch {
+        // storage is only a speed up
+    }
+}
+
+/** Makes sure the audio for this line exists (memory, then disk, then the model). */
+export function prepare(text, { voice = 'af_heart', speed = 1, fx = FX_PRESETS.robot } = {}) {
+    const line = String(text || '').trim();
+    if (!line) {
+        return Promise.resolve(null);
+    }
+    const key = cacheKey(line, voice, speed, fx);
+    if (memory.has(key)) {
+        return Promise.resolve(memory.get(key));
+    }
+    if (!inflight.has(key)) {
+        const job = (async () => {
+            const stored = await dbGet(key);
+            if (stored) {
+                memory.set(key, stored);
+                return stored;
+            }
+            const made = await generate(line, voice, speed, fx);
+            const entry = { samples: made.samples, rate: made.rate };
+            memory.set(key, entry);
+            dbPut(key, entry);
+            return entry;
+        })();
+        inflight.set(key, job);
+        job.finally(() => inflight.delete(key));
+    }
+    return inflight.get(key);
+}
+
+/** Generates these lines quietly in the background, one at a time, so they play instantly later. */
+export async function pregenerate(lines, opts = {}) {
+    for (const line of lines) {
+        try {
+            await prepare(line, opts);
+        } catch {
+            return; // model not available, try again later
+        }
+    }
+}
+
 let audioCtx = null;
 let currentSource = null;
 
-export async function speak(text, { voice = 'af_heart', speed = 1, volume = 0.8, fx = FX_PRESETS.robot, mood = null } = {}) {
+let playChain = Promise.resolve();
+let epoch = 0; // bumps on interrupt so older queued lines are dropped
+
+/**
+ * Speaks a line. Lines wait their turn (they never talk over each other).
+ * onStart runs the moment the sound actually begins, so the text can appear exactly then.
+ * interrupt: true cuts off whatever is playing and skips the queue.
+ */
+export function speak(text, { voice = 'af_heart', speed = 1, volume = 0.8, fx = FX_PRESETS.robot, mood = null, onStart = null, interrupt = false } = {}) {
     const line = String(text || '').trim();
     if (!line) {
-        return;
+        return Promise.resolve();
     }
-    const { samples, rate } = await generate(line, voice, speed, fx);
+    const ready = prepare(line, { voice, speed, fx }); // starts generating right away, in parallel with the queue
+    if (interrupt) {
+        epoch++;
+        stopSpeaking();
+        playChain = Promise.resolve();
+    }
+    const myEpoch = epoch;
+    let started;
+    const startedPromise = new Promise((resolve) => (started = resolve));
+    playChain = playChain
+        .then(async () => {
+            const entry = await ready;
+            if (myEpoch !== epoch) {
+                return started(); // interrupted while waiting
+            }
+            await play(entry, line, volume, mood, onStart);
+            started();
+        })
+        .catch((e) => {
+            started();
+            console.error('Neon voice failed', e);
+        });
+    return startedPromise;
+}
 
+async function play(entry, line, volume, mood, onStart) {
     audioCtx = audioCtx || new AudioContext();
     if (audioCtx.state === 'suspended') {
         await audioCtx.resume();
     }
-    const buffer = audioCtx.createBuffer(1, samples.length, rate);
-    buffer.copyToChannel(samples, 0);
-    stopSpeaking();
+    const buffer = audioCtx.createBuffer(1, entry.samples.length, entry.rate);
+    buffer.copyToChannel(entry.samples, 0);
     const gain = audioCtx.createGain();
     gain.gain.value = Math.min(1, Math.max(0, volume));
-    currentSource = audioCtx.createBufferSource();
-    currentSource.buffer = buffer;
+    const source = audioCtx.createBufferSource();
+    source.buffer = buffer;
     analyser = audioCtx.createAnalyser();
     analyser.fftSize = 256;
     levelBuf = new Uint8Array(analyser.fftSize);
-    currentSource.connect(analyser);
+    source.connect(analyser);
     analyser.connect(gain).connect(audioCtx.destination);
-    currentSource.onended = () => {
-        speaking.value = false;
-        mouthLevel.value = 0;
-        setMood('neutral');
-    };
+    currentSource = source;
     emotion.value = mood || guessEmotion(line);
     speaking.value = true;
-    currentSource.start();
+    if (onStart) {
+        onStart();
+    }
+    source.start();
     trackLevel();
+    // resolves when this line has finished, so the next one can start
+    await new Promise((resolve) => {
+        source.onended = () => {
+            if (currentSource === source) {
+                speaking.value = false;
+                mouthLevel.value = 0;
+                setMood('neutral');
+            }
+            resolve();
+        };
+    });
 }
 
 export function stopSpeaking() {

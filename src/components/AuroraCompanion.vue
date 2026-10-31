@@ -34,7 +34,7 @@
 
     import { showUserDialog } from '../coordinators/userCoordinator';
     import { clearPending, companionEnabled, initCompanion, noteReminders, pendingNotes } from '../services/auroraCompanion';
-    import { setMood, speak, speaking } from '../services/auroraVoice';
+    import { pregenerate, setMood, speak, speaking } from '../services/auroraVoice';
     import { useAuroraSettingsStore } from '../stores';
     import AuroraMascot from './AuroraMascot.vue';
 
@@ -71,18 +71,30 @@
         raf = requestAnimationFrame(step);
     }
 
-    function say(text, mood, force = false) {
-        bubble.value = text;
-        setMood(mood || 'smug', 7000);
+    function voiceOptions() {
+        return {
+            voice: settings.mascotVoice,
+            speed: settings.mascotVoiceSpeed,
+            volume: settings.mascotVoiceVolume,
+            fx: { ...settings.mascotFx }
+        };
+    }
+
+    /**
+     * Says a line. With the voice on, the text appears at the exact moment the sound starts,
+     * after the audio is ready (instant for lines she has said before).
+     */
+    function say(text, mood, force = false, interrupt = false) {
+        const show = () => {
+            bubble.value = text;
+            setMood(mood || 'smug', 7000);
+            timers.push(setTimeout(() => !current.value && (bubble.value = ''), 9000));
+        };
         if (settings.mascotVoiceEnabled || force) {
-            speak(text, {
-                voice: settings.mascotVoice,
-                speed: settings.mascotVoiceSpeed,
-                volume: settings.mascotVoiceVolume,
-                mood
-            }).catch(() => {});
+            speak(text, { ...voiceOptions(), mood, interrupt, onStart: show }).catch(() => show());
+        } else {
+            show();
         }
-        timers.push(setTimeout(() => !current.value && (bubble.value = ''), 9000));
     }
 
     function nextReminder() {
@@ -124,7 +136,7 @@
         const keys = ['poke', 'poke2', 'poke3', 'poke4'];
         const key = keys[pokeCount++ % keys.length];
         // a click is an explicit request, so she speaks even if the voice switch is off
-        say(t('view.settings.aurora.' + key), ['joy', 'smug', 'surprised'][pokeCount % 3], true);
+        say(t('view.settings.aurora.' + key), ['joy', 'smug', 'surprised'][pokeCount % 3], true, true);
     }
 
     function startDrag(e) {
@@ -155,6 +167,17 @@
         timers.push(setInterval(pickTarget, 9000));
         timers.push(setInterval(nextReminder, 20000));
         timers.push(setTimeout(nextReminder, 6000));
+        // quietly prepare the lines she repeats, so they play instantly
+        timers.push(
+            setTimeout(() => {
+                if (settings.mascotVoiceEnabled) {
+                    pregenerate(
+                        ['poke', 'poke2', 'poke3', 'poke4'].map((k) => t('view.settings.aurora.' + k)),
+                        voiceOptions()
+                    );
+                }
+            }, 12000)
+        );
     });
     onBeforeUnmount(() => {
         cancelAnimationFrame(raf);

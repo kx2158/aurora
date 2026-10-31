@@ -67,3 +67,7 @@ Settings > Aurora > Security sets a PIN (4 to 12 digits). Aurora then starts loc
 - **App lock:** see Security above.
 - **Not done / you should do:** the Windows build uses the CEF shell (C# in `Dotnet/`), which I could not compile or audit here. Run `npm audit` after `npm ci` and update flagged packages. Turn on BitLocker for the data folder. Only install builds you made yourself from this repo.
 - **VRChat rules:** Aurora only reads your logs and VRChat's normal API the way VRCX does. It has no bulk moderation, auto-kick or automation features, because automating actions against VRChat can get an account banned.
+
+## Mascot
+
+The mascot is named Aurora, like the app. Voice lines are spoken by her (Settings > Aurora). The mascot sprites (expression and mouth sheets) are not in the repo yet.

@@ -12,7 +12,7 @@
 /* ---------- sidebar: pill buttons, neon marker on the active page ---------- */
 :root[data-theme='aurora'] [data-slot='sidebar-menu-button'],
 :root[data-theme='auroralight'] [data-slot='sidebar-menu-button'] {
-    border-radius: 999px;
+    border-radius: 0;
     position: relative;
     transition:
         background-color 0.18s ease,
@@ -39,7 +39,7 @@
     top: 22%;
     bottom: 22%;
     width: 3px;
-    border-radius: 3px;
+    border-radius: 0;
     background: var(--neon);
     box-shadow: 0 0 10px var(--neon-glow);
 }
@@ -55,7 +55,7 @@
 :root[data-theme='aurora'] [data-slot='popover-content'],
 :root[data-theme='auroralight'] [data-slot='popover-content'] {
     border-color: var(--neon-soft);
-    border-radius: 1.1rem;
+    border-radius: 0;
     box-shadow:
         0 0 0 1px var(--neon-soft),
         0 18px 50px -18px var(--neon-glow);
@@ -64,7 +64,7 @@
 /* ---------- buttons and badges ---------- */
 :root[data-theme='aurora'] [data-slot='button'],
 :root[data-theme='auroralight'] [data-slot='button'] {
-    border-radius: 999px;
+    border-radius: 0;
 }
 :root[data-theme='aurora'] [data-slot='button']:not(:disabled):hover,
 :root[data-theme='auroralight'] [data-slot='button']:not(:disabled):hover {
@@ -72,7 +72,7 @@
 }
 :root[data-theme='aurora'] [data-slot='badge'],
 :root[data-theme='auroralight'] [data-slot='badge'] {
-    border-radius: 999px;
+    border-radius: 0;
     border-color: var(--neon-soft);
     letter-spacing: 0.02em;
 }
@@ -102,7 +102,7 @@
 :root[data-theme='auroralight'] [data-slot='input'],
 :root[data-theme='aurora'] [data-slot='select-trigger'],
 :root[data-theme='auroralight'] [data-slot='select-trigger'] {
-    border-radius: 999px;
+    border-radius: 0;
 }
 
 /* ---------- soft scanlines over the background (very faint, never blocks clicks) ---------- */
@@ -162,4 +162,52 @@
     [data-slot='sidebar-menu-button']:hover {
         transform: none !important;
     }
+}
+
+
+/* ---------- Neon cyberpunk layer: sharp corners, cut corners, grid, hazard stripe ---------- */
+:root[data-theme='aurora'],
+:root[data-theme='auroralight'] {
+    --radius: 0.125rem;
+}
+
+:root[data-theme='aurora'] [data-slot='card'],
+:root[data-theme='auroralight'] [data-slot='card'] {
+    clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px));
+}
+
+:root[data-theme='aurora'] [data-slot='button'],
+:root[data-theme='auroralight'] [data-slot='button'] {
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+}
+
+:root[data-theme='aurora'] [data-slot='sidebar-inset'],
+:root[data-theme='auroralight'] [data-slot='sidebar-inset'] {
+    position: relative;
+    background-image:
+        linear-gradient(var(--neon-soft) 1px, transparent 1px),
+        linear-gradient(90deg, var(--neon-soft) 1px, transparent 1px);
+    background-size: 48px 48px;
+    background-position: -1px -1px;
+}
+:root[data-theme='aurora'] [data-slot='sidebar-inset']::before,
+:root[data-theme='auroralight'] [data-slot='sidebar-inset']::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 5px;
+    z-index: 40;
+    pointer-events: none;
+    background: repeating-linear-gradient(135deg, var(--neon) 0 10px, #05030a 10px 20px);
+}
+
+/* title bar style headings in settings and dialogs */
+:root[data-theme='aurora'] [data-slot='dialog-title'],
+:root[data-theme='auroralight'] [data-slot='dialog-title'] {
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
 }

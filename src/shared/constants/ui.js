@@ -2,6 +2,13 @@ import { toolNavDefinitions } from './tools';
 
 const navDefinitions = [
     {
+        key: 'home',
+        icon: 'ri-home-4-line',
+        tooltip: 'nav_tooltip.home',
+        labelKey: 'nav_tooltip.home',
+        routeName: 'home'
+    },
+    {
         key: 'feed',
         icon: 'ri-rss-line',
         tooltip: 'nav_tooltip.feed',

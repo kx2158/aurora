@@ -84,7 +84,8 @@
         "expand_menu": "Expand Menu",
         "collapse_menu": "Collapse Menu",
         "expand_sidebar": "Expand Sidebar",
-        "toggle_theme": "Toggle Theme"
+        "toggle_theme": "Toggle Theme",
+        "home": "Home"
     },
     "nav_menu": {
         "resources": "RESOURCES",
@@ -1468,6 +1469,27 @@
                 },
                 "tagline": "Your mascot, Neon. She glows when she talks."
             }
+        },
+        "home": {
+            "morning": "Good morning",
+            "afternoon": "Good afternoon",
+            "evening": "Good evening",
+            "night": "Late night",
+            "online_line": "{n} friends are online right now",
+            "recent_feed": "Recent feed",
+            "friends_online": "Friends online",
+            "no_notes": "Friends without notes",
+            "no_notes_desc": "New friends you have not written a note for yet",
+            "all_noted": "Every new friend has a note.",
+            "empty": "Nothing yet. Activity shows up here.",
+            "nobody": "Nobody is online right now.",
+            "tile_online": "Friends online",
+            "tile_here": "Players here",
+            "tile_notes": "Need a note",
+            "tile_world": "Current world",
+            "min_ago": "added {n} min ago",
+            "hour_ago": "added {n} h ago",
+            "day_ago": "added {n} days ago"
         }
     },
     "dialog": {

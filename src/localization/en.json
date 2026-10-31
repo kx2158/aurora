@@ -1392,7 +1392,35 @@
                 "downsample": "Sample crush",
                 "ringHz": "Ring mod (Hz)",
                 "ringMix": "Ring mod mix",
-                "glitch": "Stutter chance"
+                "glitch": "Stutter chance",
+                "lock": {
+                    "title": "Aurora is locked",
+                    "placeholder": "PIN",
+                    "unlock": "Unlock",
+                    "wrong": "Wrong PIN.",
+                    "wait": "Too many tries. Wait {seconds}s."
+                },
+                "security": {
+                    "header": "Security",
+                    "status": "App lock",
+                    "desc": "Asks for a PIN when Aurora starts and after being idle. It keeps people out of the app. It does not encrypt your data files on disk.",
+                    "on": "On",
+                    "off": "Off",
+                    "current_pin": "Current PIN",
+                    "new_pin": "New PIN",
+                    "pin_rule": "4 to 12 digits",
+                    "actions": "PIN",
+                    "enable": "Turn on",
+                    "change": "Change PIN",
+                    "save": "Save new PIN",
+                    "disable": "Turn off",
+                    "lock_now": "Lock now",
+                    "auto_lock": "Auto lock after",
+                    "never": "never",
+                    "enabled_toast": "App lock is on.",
+                    "changed_toast": "PIN changed.",
+                    "disabled_toast": "App lock is off."
+                }
             }
         }
     },

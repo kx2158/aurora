@@ -54,3 +54,7 @@ These edits were made without being able to build the app here (the project's de
 ## Icon
 
 The app icon is `images/aurora/icon.png`. The files `images/VRCX.png`, `VRCX.ico`, `VRCX_notify.png` and `VRCX_notify.ico` are exports of it (same names on purpose, so the build keeps working). To change it, replace that PNG and re-export.
+
+## Security (app lock)
+
+Settings > Aurora > Security sets a PIN (4 to 12 digits). Aurora then starts locked and re-locks after the idle time you choose. Only a salted PBKDF2 hash is stored. Repeated wrong PINs add growing waits. This keeps people out of the app. It does not encrypt the database or config files on disk, so use Windows disk encryption (BitLocker) for that. The updater and crash reporter stay off, so the app makes no calls to the original project.

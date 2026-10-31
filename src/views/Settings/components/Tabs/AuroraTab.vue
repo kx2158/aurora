@@ -86,12 +86,71 @@
                 </Button>
             </SettingsItem>
         </SettingsGroup>
+
+        <SettingsGroup :title="t('view.settings.aurora.security.header')">
+            <SettingsItem
+                :label="t('view.settings.aurora.security.status')"
+                :description="t('view.settings.aurora.security.desc')">
+                <span class="text-sm" :class="appLockEnabled ? 'text-primary' : 'text-muted-foreground'">
+                    {{ appLockEnabled ? t('view.settings.aurora.security.on') : t('view.settings.aurora.security.off') }}
+                </span>
+            </SettingsItem>
+
+            <SettingsItem v-if="appLockEnabled" :label="t('view.settings.aurora.security.current_pin')">
+                <Input v-model="currentPin" type="password" inputmode="numeric" maxlength="12" class="h-8 w-40" />
+            </SettingsItem>
+            <SettingsItem
+                v-if="!appLockEnabled || changing"
+                :label="t('view.settings.aurora.security.new_pin')"
+                :description="t('view.settings.aurora.security.pin_rule')">
+                <Input v-model="newPin" type="password" inputmode="numeric" maxlength="12" class="h-8 w-40" />
+            </SettingsItem>
+
+            <SettingsItem :label="t('view.settings.aurora.security.actions')">
+                <div class="flex gap-2">
+                    <Button v-if="!appLockEnabled" size="sm" :disabled="!isValidPin(newPin)" @click="enableLock">
+                        {{ t('view.settings.aurora.security.enable') }}
+                    </Button>
+                    <template v-else>
+                        <Button v-if="!changing" size="sm" variant="outline" @click="changing = true">
+                            {{ t('view.settings.aurora.security.change') }}
+                        </Button>
+                        <Button v-else size="sm" :disabled="!isValidPin(newPin)" @click="changeLock">
+                            {{ t('view.settings.aurora.security.save') }}
+                        </Button>
+                        <Button size="sm" variant="outline" :disabled="currentPin.length < 4" @click="disableLock">
+                            {{ t('view.settings.aurora.security.disable') }}
+                        </Button>
+                        <Button size="sm" variant="outline" @click="lockNow">
+                            {{ t('view.settings.aurora.security.lock_now') }}
+                        </Button>
+                    </template>
+                </div>
+            </SettingsItem>
+
+            <SettingsItem
+                v-if="appLockEnabled"
+                :label="
+                    t('view.settings.aurora.security.auto_lock') +
+                    ' ' +
+                    (autoLockMinutes === 0 ? t('view.settings.aurora.security.never') : autoLockMinutes + ' min')
+                ">
+                <Slider
+                    class="w-48"
+                    :model-value="[autoLockMinutes]"
+                    :min="0"
+                    :max="60"
+                    :step="5"
+                    @update:modelValue="(v) => setAutoLockMinutes(v[0])" />
+            </SettingsItem>
+        </SettingsGroup>
     </div>
 </template>
 
 <script setup>
     import { ref } from 'vue';
     import { Button } from '@/components/ui/button';
+    import { Input } from '@/components/ui/input';
     import { Switch } from '@/components/ui/switch';
     import { Slider } from '@/components/ui/slider';
     import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -101,13 +160,14 @@
 
     import { useAuroraSettingsStore } from '@/stores';
     import { speak, VOICES } from '@/services/auroraVoice';
+    import { isValidPin } from '@/services/auroraSecurity';
 
     import SettingsGroup from '../SettingsGroup.vue';
     import SettingsItem from '../SettingsItem.vue';
 
     const { t } = useI18n();
     const store = useAuroraSettingsStore();
-    const { mascotVoiceEnabled, mascotVoice, mascotVoiceSpeed, mascotVoiceVolume, mascotFxPreset, mascotFx } =
+    const { mascotVoiceEnabled, mascotVoice, mascotVoiceSpeed, mascotVoiceVolume, mascotFxPreset, mascotFx, appLockEnabled, autoLockMinutes } =
         storeToRefs(store);
     const {
         setMascotVoiceEnabled,
@@ -115,8 +175,41 @@
         setMascotVoiceSpeed,
         setMascotVoiceVolume,
         setMascotFxPreset,
-        setMascotFxValue
+        setMascotFxValue,
+        setAutoLockMinutes,
+        lockNow
     } = store;
+
+    const currentPin = ref('');
+    const newPin = ref('');
+    const changing = ref(false);
+
+    function resetPinFields() {
+        currentPin.value = '';
+        newPin.value = '';
+        changing.value = false;
+    }
+    async function enableLock() {
+        await store.setPin(newPin.value);
+        resetPinFields();
+        toast.success(t('view.settings.aurora.security.enabled_toast'));
+    }
+    async function changeLock() {
+        if (await store.changePin(currentPin.value, newPin.value)) {
+            toast.success(t('view.settings.aurora.security.changed_toast'));
+            resetPinFields();
+        } else {
+            toast.error(t('view.settings.aurora.lock.wrong'));
+        }
+    }
+    async function disableLock() {
+        if (await store.removePin(currentPin.value)) {
+            toast.success(t('view.settings.aurora.security.disabled_toast'));
+            resetPinFields();
+        } else {
+            toast.error(t('view.settings.aurora.lock.wrong'));
+        }
+    }
 
     const fxSliders = [
         { key: 'bitDepth', min: 2, max: 16, step: 1 },

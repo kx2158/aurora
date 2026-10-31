@@ -16,6 +16,7 @@
             <DatabaseUpgradeDialog></DatabaseUpgradeDialog>
 
             <VRCXUpdateDialog></VRCXUpdateDialog>
+            <AuroraLockScreen></AuroraLockScreen>
         </div>
         <div id="x-dialog-portal" class="x-dialog-portal"></div>
     </TooltipProvider>
@@ -35,6 +36,7 @@
     import { createGlobalStores } from './stores';
     import { initNoty } from './plugins/noty';
 
+    import AuroraLockScreen from './components/AuroraLockScreen.vue';
     import AlertDialogModal from './components/ui/alert-dialog/AlertDialogModal.vue';
     import DatabaseUpgradeDialog from './components/dialogs/DatabaseUpgradeDialog.vue';
     import MacOSTitleBar from './components/MacOSTitleBar.vue';

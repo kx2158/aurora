@@ -1502,7 +1502,9 @@
             "send_now": "Send now",
             "manual_ph": "Type a message and press Enter",
             "send": "Send",
-            "game_off": "VRChat is not running."
+            "game_off": "VRChat is not running.",
+            "afk_minutes": "AFK after (minutes idle)",
+            "pulsoid": "Heart rate (Pulsoid token)"
         }
     },
     "dialog": {

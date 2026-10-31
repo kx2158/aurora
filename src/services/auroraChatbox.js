@@ -16,6 +16,13 @@ export const chatboxPreview = ref('');
 /** Pages rotate every interval, like a slideshow of lines. */
 export const chatboxPages = ref(['{time} | {world} | {friends} friends online']);
 export const chatboxPageIndex = ref(0);
+/** Latest snapshot from the PC: window, app, music, cpu, ram, battery, idleSeconds. */
+export const sysInfo = ref({});
+export const pulsoidToken = ref('');
+export const afkMinutes = ref(5);
+const heartRate = ref(0);
+let sysTimer = null;
+let hrTimer = null;
 const startedAt = Date.now();
 
 let loaded = false;
@@ -37,7 +44,12 @@ export async function initChatbox() {
     } catch {
         chatboxPages.value = [chatboxTemplate.value];
     }
+    pulsoidToken.value = await configRepository.getString('Neon_pulsoidToken', '');
+    afkMinutes.value = await configRepository.getInt('Neon_afkMinutes', 5);
     watch([chatboxEnabled, chatboxInterval], restart);
+    watch(pulsoidToken, startHeartRate);
+    startSysInfo();
+    startHeartRate();
     restart();
 }
 
@@ -83,6 +95,49 @@ export function setTyping(on) {
     }
 }
 
+export function setPulsoidToken(v) {
+    pulsoidToken.value = String(v || '').trim();
+    configRepository.setString('Neon_pulsoidToken', pulsoidToken.value);
+}
+export function setAfkMinutes(v) {
+    afkMinutes.value = Math.min(120, Math.max(1, Number(v) || 5));
+    configRepository.setInt('Neon_afkMinutes', afkMinutes.value);
+}
+
+async function refreshSysInfo() {
+    try {
+        sysInfo.value = JSON.parse((await AppApi.GetNeonSystemInfo()) || '{}');
+    } catch {
+        sysInfo.value = {};
+    }
+}
+function startSysInfo() {
+    clearInterval(sysTimer);
+    refreshSysInfo();
+    sysTimer = setInterval(refreshSysInfo, 3000);
+}
+
+/** Heart rate from Pulsoid (needs your own Pulsoid token). */
+async function pollHeartRate() {
+    try {
+        const res = await fetch('https://dev.pulsoid.net/api/v1/data/heart_rate/latest', {
+            headers: { Authorization: 'Bearer ' + pulsoidToken.value }
+        });
+        const json = await res.json();
+        heartRate.value = json?.data?.heart_rate || 0;
+    } catch {
+        heartRate.value = 0;
+    }
+}
+function startHeartRate() {
+    clearInterval(hrTimer);
+    heartRate.value = 0;
+    if (pulsoidToken.value) {
+        pollHeartRate();
+        hrTimer = setInterval(pollHeartRate, 5000);
+    }
+}
+
 export function setChatboxNotify(v) {
     chatboxNotify.value = v;
     configRepository.setBool('Neon_chatboxNotify', v);
@@ -103,7 +158,17 @@ export function renderChatbox(template) {
         world: loc?.name || 'offline',
         players: String(loc?.playerList?.size ?? 0),
         friends: String(useFriendStore().onlineFriendCount ?? 0),
-        uptime: formatUptime(Date.now() - startedAt)
+        uptime: formatUptime(Date.now() - startedAt),
+        window: String(sysInfo.value.window || '').slice(0, 40),
+        app: sysInfo.value.app || '',
+        song: sysInfo.value.song || '',
+        artist: sysInfo.value.artist || '',
+        music: sysInfo.value.musicPlaying && sysInfo.value.song ? `\u266a ${sysInfo.value.artist ? sysInfo.value.artist + ' - ' : ''}${sysInfo.value.song}` : '',
+        cpu: sysInfo.value.cpu != null ? `${sysInfo.value.cpu}%` : '',
+        ram: sysInfo.value.ram != null ? `${sysInfo.value.ram}%` : '',
+        battery: sysInfo.value.battery != null ? `${sysInfo.value.battery}%${sysInfo.value.charging ? '+' : ''}` : '',
+        afk: (sysInfo.value.idleSeconds || 0) >= afkMinutes.value * 60 ? 'AFK' : '',
+        heart: heartRate.value ? `\u2665 ${heartRate.value}` : ''
     };
     return String(template).replace(/\{(\w+)\}/g, (m, key) => (key in values ? values[key] : m)).slice(0, 144);
 }

@@ -32,6 +32,10 @@
                 </div>
 
                 <div class="nx-opts">
+                    <label class="nx-meta">{{ t('view.chatbox.afk_minutes') }}</label>
+                    <Input type="number" min="1" max="120" :model-value="afkMinutes" class="nx-small" @update:modelValue="setAfkMinutes" />
+                    <label class="nx-meta">{{ t('view.chatbox.pulsoid') }}</label>
+                    <Input type="password" :model-value="pulsoidToken" class="nx-small nx-wide" placeholder="Pulsoid token" @update:modelValue="setPulsoidToken" />
                     <label class="nx-meta">{{ t('view.settings.aurora.chatbox_interval') }}</label>
                     <Input
                         type="number"
@@ -77,25 +81,29 @@
     import { Input } from '@/components/ui/input';
     import { Switch } from '@/components/ui/switch';
     import {
+        afkMinutes,
         chatboxEnabled,
         chatboxInterval,
         chatboxNotify,
         chatboxPageIndex,
         chatboxPages,
         initChatbox,
+        pulsoidToken,
         renderChatbox,
         sendChatboxNow,
         setChatboxEnabled,
         setChatboxInterval,
         setChatboxNotify,
+        setAfkMinutes,
         setChatboxPages,
+        setPulsoidToken,
         setTyping
     } from '@/services/auroraChatbox';
     import { useGameStore } from '@/stores';
 
     const { t } = useI18n();
     const game = useGameStore();
-    const tokens = ['time', 'date', 'world', 'players', 'friends', 'uptime'];
+    const tokens = ['time', 'date', 'world', 'players', 'friends', 'uptime', 'window', 'app', 'music', 'song', 'artist', 'cpu', 'ram', 'battery', 'afk', 'heart'];
     const focused = ref(0);
     const manual = ref('');
 
@@ -263,6 +271,9 @@
     }
     .nx-small {
         width: 90px;
+    }
+    .nx-wide {
+        width: 180px;
     }
     .nx-bubble {
         padding: 14px 18px;

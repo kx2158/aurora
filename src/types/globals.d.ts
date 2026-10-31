@@ -273,6 +273,9 @@ declare global {
         CancelUpdate(): Promise<void>;
         CheckUpdateProgress(): Promise<number>;
 
+        // Neon: window, music and system info (Windows build)
+        GetNeonSystemInfo(): Promise<string>;
+
         // OSC chatbox
         SendOscChatbox(text: string, sendImmediately?: boolean, notify?: boolean, port?: number): Promise<void>;
         SendOscTyping(typing: boolean, port?: number): Promise<void>;

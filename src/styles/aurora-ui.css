@@ -211,3 +211,8 @@
     text-transform: uppercase;
     letter-spacing: 0.1em;
 }
+
+:root[data-theme='aurora'] [data-slot='sidebar-inset'],
+:root[data-theme='auroralight'] [data-slot='sidebar-inset'] {
+    padding-bottom: 22px;
+}

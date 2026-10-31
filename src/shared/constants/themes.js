@@ -20,6 +20,11 @@ export const THEME_CONFIG = {
         isDark: true,
         name: 'Aurora',
         file: 'aurora.css'
+    },
+    auroralight: {
+        isDark: false,
+        name: 'Aurora Light',
+        file: 'aurora-light.css'
     }
 };
 

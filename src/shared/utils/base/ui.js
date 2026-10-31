@@ -246,7 +246,8 @@ function applyAppCjkFontPack(packKey) {
 function changeAppThemeStyle(themeMode) {
     let isSystemMode = themeMode === 'system';
     if (isSystemMode) {
-        themeMode = systemIsDarkMode() ? 'dark' : 'light';
+        // follow Windows: Aurora at night, Aurora Light by day
+        themeMode = systemIsDarkMode() ? 'aurora' : 'auroralight';
     }
 
     let themeConfig = THEME_CONFIG[themeMode];
@@ -489,6 +490,8 @@ async function getThemeMode(configRepository) {
         isDarkMode = false;
     } else if (initThemeMode === 'system') {
         isDarkMode = systemIsDarkMode();
+    } else if (THEME_CONFIG[initThemeMode]?.isDark === false) {
+        isDarkMode = false;
     } else {
         isDarkMode = true;
     }

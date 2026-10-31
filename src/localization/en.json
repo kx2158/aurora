@@ -785,7 +785,7 @@
                 "vr": "VR",
                 "media": "Media",
                 "integrations": "Integrations",
-                "aurora": "Aurora"
+                "aurora": "Neon"
             },
             "social": {
                 "interaction": {
@@ -949,8 +949,8 @@
                     "theme_mode_light": "Light",
                     "theme_mode_dark": "Dark",
                     "theme_mode_midnight": "Midnight",
-                    "theme_mode_aurora": "Aurora",
-                    "theme_mode_auroralight": "Aurora Light",
+                    "theme_mode_aurora": "Neon",
+                    "theme_mode_auroralight": "Neon Light",
                     "theme_mode_blue": "Blue",
                     "theme_mode_darkblue": "Dark Blue",
                     "theme_mode_amoled": "Amoled",
@@ -1403,7 +1403,7 @@
                 "ringMix": "Ring mod mix",
                 "glitch": "Stutter chance",
                 "lock": {
-                    "title": "Aurora is locked",
+                    "title": "Neon is locked",
                     "placeholder": "PIN",
                     "unlock": "Unlock",
                     "wrong": "Wrong PIN.",
@@ -1412,7 +1412,7 @@
                 "security": {
                     "header": "Security",
                     "status": "App lock",
-                    "desc": "Asks for a PIN when Aurora starts and after being idle. It keeps people out of the app. It does not encrypt your data files on disk.",
+                    "desc": "Asks for a PIN when Neon starts and after being idle. It keeps people out of the app. It does not encrypt your data files on disk.",
                     "on": "On",
                     "off": "Off",
                     "current_pin": "Current PIN",

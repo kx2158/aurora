@@ -297,7 +297,7 @@ ipcMain.handle('app:setThemeSource', (_event, source) => {
 nativeTheme.on('updated', sendSystemTheme);
 
 /**
- * Aurora hardening: the app never opens extra windows, never navigates away from its own pages,
+ * Neon hardening: the app never opens extra windows, never navigates away from its own pages,
  * and only hands plain http(s) links to the system browser.
  */
 function hardenWebContents(contents) {
@@ -627,7 +627,7 @@ async function installVRCX() {
     if (!hasAskedToMoveAppImage && appImagePath !== appImageHomePath) {
         const result = dialog.showMessageBoxSync(mainWindow, {
             type: 'question',
-            title: 'Aurora',
+            title: 'Neon',
             message: 'Do you want to install VRCX?',
             detail: 'VRCX will be moved to your ~/Applications folder.',
             buttons: ['No', 'Yes']

@@ -5,7 +5,7 @@ This is a personal fork of VRCX (MIT licensed). It is the full VRCX code, with a
 ## What is already changed
 
 - **No calls home.** The updater and the crash reporter are switched off in `src/shared/constants/fork.js`. Without this, the app would check the original project's servers and offer to replace your fork with stock VRCX. Flip `updaterEnabled` or `telemetryEnabled` to `true` there if you ever want them back.
-- **Your name.** Run `node build-scripts/set-app-name.js "Your Name"` to change the name shown in window titles and the installer. It is set to `Aurora`. Run it again any time with another name.
+- **Your name.** Run `node build-scripts/set-app-name.js "Your Name"` to change the name shown in window titles and the installer. It is set to `Neon`. Run it again any time with another name.
 - **Your data stays compatible.** The data folder is still `%APPDATA%\VRCX`, so a fork that you run on the same PC picks up your existing VRCX history, favorites and settings. Do not run it and stock VRCX at the same time, they would fight over the same database. To keep the fork's data completely separate, start it with `--config="C:\MyVRCXData\"`.
 
 ## Things you asked for that VRCX already does
@@ -57,7 +57,7 @@ The app icon is `images/aurora/icon.png`. The files `images/VRCX.png`, `VRCX.ico
 
 ## Security (app lock)
 
-Settings > Aurora > Security sets a PIN (4 to 12 digits). Aurora then starts locked and re-locks after the idle time you choose. Only a salted PBKDF2 hash is stored. Repeated wrong PINs add growing waits. This keeps people out of the app. It does not encrypt the database or config files on disk, so use Windows disk encryption (BitLocker) for that. The updater and crash reporter stay off, so the app makes no calls to the original project.
+Settings > Neon > Security sets a PIN (4 to 12 digits). Neon then starts locked and re-locks after the idle time you choose. Only a salted PBKDF2 hash is stored. Repeated wrong PINs add growing waits. This keeps people out of the app. It does not encrypt the database or config files on disk, so use Windows disk encryption (BitLocker) for that. The updater and crash reporter stay off, so the app makes no calls to the original project.
 
 ## Hardening (what was done, what was not)
 
@@ -66,8 +66,8 @@ Settings > Aurora > Security sets a PIN (4 to 12 digits). Aurora then starts loc
 - **Page policy:** `object-src 'none'`, `base-uri 'self'`, `frame-ancestors 'none'` in `src/index.html`. A stricter script policy was left out on purpose because it can break the Vite build and VRCX's many image hosts.
 - **App lock:** see Security above.
 - **Not done / you should do:** the Windows build uses the CEF shell (C# in `Dotnet/`), which I could not compile or audit here. Run `npm audit` after `npm ci` and update flagged packages. Turn on BitLocker for the data folder. Only install builds you made yourself from this repo.
-- **VRChat rules:** Aurora only reads your logs and VRChat's normal API the way VRCX does. It has no bulk moderation, auto-kick or automation features, because automating actions against VRChat can get an account banned.
+- **VRChat rules:** Neon only reads your logs and VRChat's normal API the way VRCX does. It has no bulk moderation, auto-kick or automation features, because automating actions against VRChat can get an account banned.
 
 ## Mascot
 
-The mascot is named Neon. Voice lines are spoken by her (Settings > Aurora). The mascot sprites (expression and mouth sheets) are not in the repo yet.
+The mascot is named Neon. Voice lines are spoken by her (Settings > Neon). The mascot sprites (expression and mouth sheets) are not in the repo yet.

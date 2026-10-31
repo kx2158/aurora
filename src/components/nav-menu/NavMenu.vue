@@ -3,7 +3,7 @@
         <SidebarHeader class="px-2 pt-3 pb-1">
             <div class="aurora-brand" :class="{ 'justify-center': isCollapsed }">
                 <AuroraMascot :size="isCollapsed ? 28 : 36" />
-                <span v-show="!isCollapsed" class="aurora-brand-name">Auro<b>ra</b></span>
+                <span v-show="!isCollapsed" class="aurora-brand-name">NE<b>ON</b></span>
             </div>
         </SidebarHeader>
         <SidebarHeader v-if="showNewDashboardButton" class="px-2 py-2">

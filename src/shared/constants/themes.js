@@ -18,12 +18,12 @@ export const THEME_CONFIG = {
     },
     aurora: {
         isDark: true,
-        name: 'Aurora',
+        name: 'Neon',
         file: 'aurora.css'
     },
     auroralight: {
         isDark: false,
-        name: 'Aurora Light',
+        name: 'Neon Light',
         file: 'aurora-light.css'
     }
 };

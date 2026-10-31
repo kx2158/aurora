@@ -17,7 +17,7 @@
     VIProductVersion "${PRODUCT_VERSION}"
     VIFileVersion "${VERSION}"
     VIAddVersionKey "FileVersion" "${VERSION}"
-    VIAddVersionKey "ProductName" "Aurora"
+    VIAddVersionKey "ProductName" "Neon"
     VIAddVersionKey "ProductVersion" "${PRODUCT_VERSION}"
     VIAddVersionKey "LegalCopyright" "Copyright vrcx-team, pypy, natsumi"
     VIAddVersionKey "FileDescription" "Friendship management tool for VRChat"
@@ -35,8 +35,8 @@
     SetCompressor /SOLID lzma
     SetCompressorDictSize 16
     Unicode True
-    Name "Aurora"
-    OutFile "Aurora_Setup_x64.exe"
+    Name "Neon"
+    OutFile "Neon_Setup_x64.exe"
     InstallDir "$PROGRAMFILES64\VRCX"
     InstallDirRegKey HKLM "Software\VRCX" "InstallDir"
     RequestExecutionLevel admin
@@ -74,7 +74,7 @@
 
     ; Checkbox to launch VRCX.
     !define MUI_FINISHPAGE_RUN
-    !define MUI_FINISHPAGE_RUN_TEXT "Launch Aurora"
+    !define MUI_FINISHPAGE_RUN_TEXT "Launch Neon"
     !define MUI_FINISHPAGE_RUN_FUNCTION launchVRCX
 
     ; Checkbox to create desktop shortcut.
@@ -120,7 +120,7 @@ Function .onInit
     nsProcess::_FindProcess "$1"
     Pop $R1
     ${If} $R1 = 0
-        MessageBox MB_OKCANCEL|MB_ICONEXCLAMATION "Aurora is still running. $\n$\nClick `OK` to kill the running process or `Cancel` to cancel this installer." /SD IDOK IDCANCEL cancel
+        MessageBox MB_OKCANCEL|MB_ICONEXCLAMATION "Neon is still running. $\n$\nClick `OK` to kill the running process or `Cancel` to cancel this installer." /SD IDOK IDCANCEL cancel
             nsExec::ExecToStack "taskkill /IM VRCX.exe"
     ${Else}
         Goto done
@@ -140,7 +140,7 @@ Function .onInstSuccess
 FunctionEnd
 
 Function createDesktopShortcut
-    CreateShortcut "$DESKTOP\Aurora.lnk" "$INSTDIR\VRCX.exe"
+    CreateShortcut "$DESKTOP\Neon.lnk" "$INSTDIR\VRCX.exe"
 FunctionEnd
 
 Function launchVRCX
@@ -165,10 +165,10 @@ Section "Install" SecInstall
 
     afterUpgrade:
 
-    ; Safety copy of your VRCX/Aurora data (history, favorites, settings). The data itself is never touched.
+    ; Safety copy of your VRCX/Neon data (history, favorites, settings). The data itself is never touched.
     IfFileExists "$APPDATA\VRCX\*.*" 0 noBackup
-        DetailPrint "Backing up your data to Documents\Aurora-backups ..."
-        nsExec::ExecToLog 'robocopy "$APPDATA\VRCX" "$DOCUMENTS\Aurora-backups\VRCX-data-before-aurora" /E /R:1 /W:1 /NFL /NDL /NJH /NJS'
+        DetailPrint "Backing up your data to Documents\Neon-backups ..."
+        nsExec::ExecToLog 'robocopy "$APPDATA\VRCX" "$DOCUMENTS\Neon-backups\VRCX-data-before-aurora" /E /R:1 /W:1 /NFL /NDL /NJH /NJS'
         Pop $0
     noBackup:
 
@@ -178,8 +178,8 @@ Section "Install" SecInstall
 
     WriteRegStr HKLM "Software\VRCX" "InstallDir" $INSTDIR
     WriteUninstaller "$INSTDIR\Uninstall.exe"
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\VRCX" "DisplayName" "Aurora"
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\VRCX" "Publisher" "Aurora (fork of VRCX, MIT)"
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\VRCX" "DisplayName" "Neon"
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\VRCX" "Publisher" "Neon (fork of VRCX, MIT)"
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\VRCX" "DisplayVersion" "${VERSION}"
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\VRCX" "DisplayArch" "x64"
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\VRCX" "InstallLocation" "$INSTDIR"
@@ -195,9 +195,11 @@ Section "Install" SecInstall
     StrCmp $3 "true" noShortcut
         Delete "$SMPROGRAMS\VRCX.lnk"
         Delete "$DESKTOP\VRCX.lnk"
-        CreateShortCut "$SMPROGRAMS\Aurora.lnk" "$INSTDIR\VRCX.exe"
-        ApplicationID::Set "$SMPROGRAMS\Aurora.lnk" "VRCX"
-        CreateShortCut "$DESKTOP\Aurora.lnk" "$INSTDIR\VRCX.exe"
+        Delete "$SMPROGRAMS\Aurora.lnk"
+        Delete "$DESKTOP\Aurora.lnk"
+        CreateShortCut "$SMPROGRAMS\Neon.lnk" "$INSTDIR\VRCX.exe"
+        ApplicationID::Set "$SMPROGRAMS\Neon.lnk" "VRCX"
+        CreateShortCut "$DESKTOP\Neon.lnk" "$INSTDIR\VRCX.exe"
     noShortcut:
 
     WriteRegStr HKCU "Software\Classes\vrcx" "" "URL:vrcx"
@@ -218,7 +220,7 @@ Section "Uninstall"
     nsProcess::_FindProcess "$1"
     Pop $R1
     ${If} $R1 = 0
-        MessageBox MB_OK|MB_ICONEXCLAMATION "Aurora is still running. Cannot uninstall this software.$\nPlease close Aurora and try again." /SD IDOK
+        MessageBox MB_OK|MB_ICONEXCLAMATION "Neon is still running. Cannot uninstall this software.$\nPlease close Neon and try again." /SD IDOK
         Abort
     ${EndIf}
 
@@ -231,6 +233,8 @@ Section "Uninstall"
     ${IfNot} ${Silent}
         Delete "$SMPROGRAMS\VRCX.lnk"
         Delete "$DESKTOP\VRCX.lnk"
+        Delete "$SMPROGRAMS\Neon.lnk"
+        Delete "$DESKTOP\Neon.lnk"
         Delete "$SMPROGRAMS\Aurora.lnk"
         Delete "$DESKTOP\Aurora.lnk"
     ${EndIf}

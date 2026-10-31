@@ -5,7 +5,7 @@
  */
 import { ref } from 'vue';
 
-import { applyVoiceFx, FX_PRESETS } from './auroraVoiceFx';
+import { FX_PRESETS } from './auroraVoiceFx';
 
 /** True while the mascot is talking. The mascot component listens to this. */
 export const speaking = ref(false);
@@ -62,21 +62,44 @@ function trackLevel() {
     levelRaf = requestAnimationFrame(tick);
 }
 
-let ttsPromise = null;
+let worker = null;
+let seq = 0;
+const pending = new Map();
 
-async function loadModel() {
-    if (!ttsPromise) {
-        ttsPromise = import('kokoro-js').then(({ KokoroTTS }) =>
-            KokoroTTS.from_pretrained('onnx-community/Kokoro-82M-v1.0-ONNX', {
-                dtype: 'q8', // small and CPU friendly
-                device: 'wasm' // CPU only, keeps the GPU free for VRChat
-            })
-        );
-        ttsPromise.catch(() => {
-            ttsPromise = null; // allow a retry after a failed download
-        });
+/** The model lives in a worker so generating speech never blocks the interface. */
+async function getWorker() {
+    if (!worker) {
+        const { default: TtsWorker } = await import('../workers/auroraTtsWorker.js?worker');
+        worker = new TtsWorker();
+        worker.onmessage = (event) => {
+            const { id, samples, rate, error } = event.data;
+            const job = pending.get(id);
+            if (!job) {
+                return;
+            }
+            pending.delete(id);
+            if (error) {
+                job.reject(new Error(error));
+            } else {
+                job.resolve({ samples, rate });
+            }
+        };
+        worker.onerror = () => {
+            worker = null; // recreate on the next line
+            pending.forEach((job) => job.reject(new Error('voice worker crashed')));
+            pending.clear();
+        };
     }
-    return ttsPromise;
+    return worker;
+}
+
+async function generate(text, voice, speed, fx) {
+    const w = await getWorker();
+    return new Promise((resolve, reject) => {
+        const id = ++seq;
+        pending.set(id, { resolve, reject });
+        w.postMessage({ id, text, voice, speed, fx: JSON.parse(JSON.stringify(fx)) });
+    });
 }
 
 let audioCtx = null;
@@ -87,15 +110,13 @@ export async function speak(text, { voice = 'af_heart', speed = 1, volume = 0.8,
     if (!line) {
         return;
     }
-    const tts = await loadModel();
-    const raw = await tts.generate(line, { voice, speed });
-    const samples = applyVoiceFx(raw.audio, raw.sampling_rate, fx);
+    const { samples, rate } = await generate(line, voice, speed, fx);
 
     audioCtx = audioCtx || new AudioContext();
     if (audioCtx.state === 'suspended') {
         await audioCtx.resume();
     }
-    const buffer = audioCtx.createBuffer(1, samples.length, raw.sampling_rate);
+    const buffer = audioCtx.createBuffer(1, samples.length, rate);
     buffer.copyToChannel(samples, 0);
     stopSpeaking();
     const gain = audioCtx.createGain();

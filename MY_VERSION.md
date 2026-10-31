@@ -53,4 +53,4 @@ These edits were made without being able to build the app here (the project's de
 
 ## Icon
 
-The app icon is `images/aurora/icon.svg`. The files `images/VRCX.png`, `VRCX.ico`, `VRCX_notify.png` and `VRCX_notify.ico` are exports of it (same names on purpose, so the build keeps working). To change it, edit the SVG and re-export.
+The app icon is `images/aurora/icon.png`. The files `images/VRCX.png`, `VRCX.ico`, `VRCX_notify.png` and `VRCX_notify.ico` are exports of it (same names on purpose, so the build keeps working). To change it, replace that PNG and re-export.

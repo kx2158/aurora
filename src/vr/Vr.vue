@@ -1,6 +1,7 @@
 <template>
     <div id="x-app" class="flex w-screen h-screen overflow-hidden cursor-default x-app-type">
         <div class="wrist" :class="{ background: config && config.backgroundEnabled }">
+            <div v-if="alarmBanner" class="neon-alarm">ALARM {{ alarmBanner.time }} - {{ alarmBanner.label }}</div>
             <div class="neon-clock">
                 <img class="neon-face" :class="{ pop: neon.pop }" :src="neonFace" alt="" />
                 <div class="neon-clock-day">{{ clock.day }}</div>
@@ -1505,7 +1506,7 @@
         X,
         XCircle
     } from 'lucide-vue-next';
-    import { computed, nextTick, onBeforeUnmount, onMounted, reactive, toRefs } from 'vue';
+    import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, toRefs } from 'vue';
     import { useI18n } from 'vue-i18n';
 
     import MarqueeText from 'vue-marquee-text-component';
@@ -1536,6 +1537,25 @@
         neonBySlug[path.split('/').pop().replace('.png', '')] = url;
     }
     const neon = reactive({ face: 'neutral', pop: false });
+    const alarmBanner = ref(null);
+    let alarmTimer = null;
+    function neonAlarm(json) {
+        const data = JSON.parse(json);
+        alarmBanner.value = data;
+        neon.face = 'surprised';
+        neon.pop = true;
+        const notes = [];
+        for (let i = 0; i < 6; i++) {
+            notes.push([880, 0.14], [1175, 0.14]);
+        }
+        blip(notes);
+        clearTimeout(alarmTimer);
+        alarmTimer = setTimeout(() => {
+            alarmBanner.value = null;
+            neon.face = 'neutral';
+            neon.pop = false;
+        }, 20000);
+    }
     const neonFace = computed(() => neonBySlug[neon.face] || neonBySlug.neutral);
     let neonTimer = null;
     let neonLastKey = '';
@@ -1577,6 +1597,7 @@
         neon.face = r.face;
         neon.pop = true;
         clearTimeout(neonTimer);
+        clearTimeout(alarmTimer);
         neonTimer = setTimeout(() => {
             neon.face = 'neutral';
             neon.pop = false;
@@ -1653,6 +1674,7 @@
         window.$vr.nowPlayingUpdate = nowPlayingUpdate;
         window.$vr.lastLocationUpdate = lastLocationUpdate;
         window.$vr.wristFeedUpdate = wristFeedUpdate;
+        window.$vr.neonAlarm = neonAlarm;
         window.$vr.refreshCustomScript = refreshCustomScript;
         window.$vr.playNoty = playNoty;
         window.$vr.statusClass = statusClass;

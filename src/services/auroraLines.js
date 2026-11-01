@@ -76,6 +76,12 @@ export const LINES = {
         'Past bedtime, I think. Just saying.',
         'The night is long, but your eyes are not unlimited.'
     ],
+    alarm: [
+        'Hey. Your reminder is going off.',
+        'Time is up. This is your reminder.',
+        'Beep beep. You asked me to nudge you.',
+        'Reminder time. I did not forget, I never forget.'
+    ],
     gameStart: [
         'VRChat is up. Have fun out there.',
         'Game detected. I will keep watch from here.',

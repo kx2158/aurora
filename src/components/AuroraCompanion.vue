@@ -120,8 +120,8 @@
                 : item.title && item.text && item.title !== item.text
                   ? `${item.title}. ${item.text}`
                   : item.title || item.text;
-        const category = item.kind === 'update' ? 'update' : item.kind === 'event' ? 'event' : 'announcement';
-        say(String(shown).slice(0, 200), item.kind === 'update' ? 'joy' : 'surprised', false, false, pickLine(category));
+        const category = item.kind === 'update' ? 'update' : item.kind === 'event' ? 'event' : item.kind === 'alarm' ? 'alarm' : 'announcement';
+        say(item.kind === 'alarm' ? `Reminder ${item.title}: ${item.text}` : String(shown).slice(0, 200), item.kind === 'update' ? 'joy' : 'surprised', false, false, pickLine(category));
     }
 
     function nextReminder() {

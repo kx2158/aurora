@@ -1476,7 +1476,12 @@
                 "pack": "Voice pack",
                 "pack_desc": "Neon's lines are rendered once and saved in the app, so they play instantly and cost almost no CPU later. It builds quietly in the background and pauses while VRChat runs.",
                 "pack_build": "Build now",
-                "pack_running": "Building..."
+                "pack_running": "Building...",
+                "alarms": "Alarms",
+                "alarm_label": "What should Neon remind you about?",
+                "alarm_daily": "Daily",
+                "alarm_add": "Add alarm",
+                "alarm_test": "Test sound"
             }
         },
         "home": {

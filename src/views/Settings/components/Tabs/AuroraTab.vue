@@ -39,6 +39,22 @@
                 <span class="text-xs text-muted-foreground">{{ chatboxPreview || '...' }}</span>
             </SettingsItem>
         </SettingsGroup>
+        <SettingsGroup :title="t('view.settings.aurora.alarms')">
+            <div class="flex flex-col gap-2">
+                <div v-for="a in alarms" :key="a.id" class="flex items-center gap-2">
+                    <Input v-model="a.time" type="time" class="w-28" />
+                    <Input v-model="a.label" :placeholder="t('view.settings.aurora.alarm_label')" class="flex-1" maxlength="60" />
+                    <span class="text-xs text-muted-foreground">{{ t('view.settings.aurora.alarm_daily') }}</span>
+                    <Switch :model-value="a.daily" @update:modelValue="(v) => (a.daily = v)" />
+                    <Switch :model-value="a.enabled" @update:modelValue="(v) => (a.enabled = v)" />
+                    <Button size="sm" variant="outline" @click="removeAlarm(a.id)">x</Button>
+                </div>
+                <div class="flex gap-2">
+                    <Button size="sm" variant="outline" @click="addAlarm">+ {{ t('view.settings.aurora.alarm_add') }}</Button>
+                    <Button size="sm" variant="outline" @click="ringAlarm">{{ t('view.settings.aurora.alarm_test') }}</Button>
+                </div>
+            </div>
+        </SettingsGroup>
         <SettingsGroup :title="t('view.settings.aurora.companion')">
             <SettingsItem
                 :label="t('view.settings.aurora.companion')"
@@ -306,6 +322,7 @@
         setChatboxNotify,
         setChatboxTemplate
     } from '@/services/auroraChatbox';
+    import { addAlarm, alarms, removeAlarm, ringAlarm } from '@/services/auroraAlarms';
     import { buildVoicePack, pack } from '@/services/auroraLines';
     import { Slider } from '@/components/ui/slider';
     import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';

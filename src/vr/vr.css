@@ -790,3 +790,25 @@ i.x-user-status.busy {
         transform: scale(1) rotate(0);
     }
 }
+
+.neon-alarm {
+    position: relative;
+    z-index: 4;
+    margin: 10px 14px 0;
+    padding: 6px 12px;
+    font-family: 'Share Tech Mono', ui-monospace, monospace;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #05030a;
+    background: #ff3d9a;
+    box-shadow: 0 0 24px #ff3d9a;
+    animation: neon-blink 0.7s steps(2) infinite;
+}
+@keyframes neon-blink {
+    50% {
+        background: #ffffff;
+        box-shadow: 0 0 24px #ffffff;
+    }
+}

@@ -38,7 +38,8 @@
     import { createGlobalStores } from './stores';
     import { initNoty } from './plugins/noty';
     import { initChatbox } from './services/auroraChatbox';
-    import { initIntegrations } from './services/auroraIntegrations';
+    import { initAlarms } from './services/auroraAlarms';
+import { initIntegrations } from './services/auroraIntegrations';
 
     import NeonDock from './components/NeonDock.vue';
     import AuroraCompanion from './components/AuroraCompanion.vue';
@@ -64,6 +65,7 @@
     initNoty();
     initChatbox();
     initIntegrations();
+    initAlarms();
 
     const store = createGlobalStores();
 

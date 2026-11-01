@@ -76,6 +76,18 @@ export const LINES = {
         'Past bedtime, I think. Just saying.',
         'The night is long, but your eyes are not unlimited.'
     ],
+    gameStart: [
+        'VRChat is up. Have fun out there.',
+        'Game detected. I will keep watch from here.',
+        'Off you go. I will hold the fort.',
+        'Headset time. Try not to walk into a wall.'
+    ],
+    gameEnd: [
+        'VRChat closed. Welcome back to the real world.',
+        'Done for now? I will keep tracking.',
+        'That was a good session. I think.',
+        'Back on the desktop. I missed you.'
+    ],
     welcome: [
         'Neon online. Tracking is running.',
         'Good to see you. Systems are up.',

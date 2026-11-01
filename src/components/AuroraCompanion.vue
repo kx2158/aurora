@@ -193,6 +193,15 @@
         timers.push(setInterval(nextReminder, 20000));
         timers.push(setInterval(announceNews, 4000));
         watch(companionHome, pickTarget);
+        watch(
+            () => game.isGameRunning,
+            (running, was) => {
+                if (was === undefined || !settings.mascotVoiceEnabled) {
+                    return;
+                }
+                say(running ? 'VRChat started.' : 'VRChat closed.', running ? 'joy' : 'sleepy', false, false, pickLine(running ? 'gameStart' : 'gameEnd'));
+            }
+        );
         timers.push(setTimeout(nextReminder, 6000));
         // build the whole voice pack once, quietly. It pauses while VRChat runs and is saved for good.
         timers.push(
@@ -210,10 +219,20 @@
                 }
                 const hour = new Date().getHours();
                 const late = hour >= 1 && hour < 5;
-                if (Math.random() < 0.35) {
+                if (Math.random() < 0.55) {
                     say(pickLine(late ? 'lateNight' : 'idle'), late ? 'sleepy' : ['smug', 'neutral', 'joy'][Math.floor(Math.random() * 3)]);
                 }
-            }, 150000)
+            }, 70000)
+        );
+        // silent idle life: she changes her face now and then so she never just sits there
+        timers.push(
+            setInterval(() => {
+                if (speaking.value || current.value) {
+                    return;
+                }
+                const faces = ['smug', 'joy', 'surprised', 'sleepy', 'neutral', 'smug', 'joy'];
+                setMood(faces[Math.floor(Math.random() * faces.length)], 3500 + Math.random() * 2500);
+            }, 14000)
         );
     });
     onBeforeUnmount(() => {

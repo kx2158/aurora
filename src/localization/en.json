@@ -1496,7 +1496,11 @@
                 "mm_refresh": "Refresh lists",
                 "mm_none": "(none)",
                 "mm_mute": "Mute mic",
-                "mm_unmute": "Unmute mic"
+                "mm_unmute": "Unmute mic",
+                "mm_latency": "Delay",
+                "mm_lat_low": "Lowest (about 10 ms, may crackle)",
+                "mm_lat_mid": "Balanced (about 30 ms)",
+                "mm_lat_safe": "Safe (about 80 ms)"
             }
         },
         "home": {

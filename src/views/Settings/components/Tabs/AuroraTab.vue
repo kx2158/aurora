@@ -64,6 +64,14 @@
                     </select>
                 </label>
                 <label class="flex items-center gap-2 text-sm">
+                    <span class="w-56">{{ t('view.settings.aurora.mm_latency') }}</span>
+                    <select class="nx-sel" :value="mm.latency" @change="(e) => setMm('latency', Number(e.target.value))">
+                        <option :value="10">{{ t('view.settings.aurora.mm_lat_low') }}</option>
+                        <option :value="30">{{ t('view.settings.aurora.mm_lat_mid') }}</option>
+                        <option :value="80">{{ t('view.settings.aurora.mm_lat_safe') }}</option>
+                    </select>
+                </label>
+                <label class="flex items-center gap-2 text-sm">
                     <span class="w-56">{{ t('view.settings.aurora.mm_music_vol') }} {{ Math.round(mm.musicVol * 100) }}%</span>
                     <input type="range" min="0" max="1.5" step="0.05" :value="mm.musicVol" class="flex-1" @input="(e) => setMm('musicVol', Number(e.target.value))" />
                 </label>

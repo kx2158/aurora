@@ -14,6 +14,7 @@ export const mm = ref({
     musicVol: 0.8,
     micVol: 1,
     micMuted: false,
+    latency: 30,
     error: '',
     micPeak: 0,
     musicPeak: 0,
@@ -39,8 +40,8 @@ export async function initMusicMic() {
 }
 
 function save() {
-    const { app, mic, out, musicVol, micVol } = mm.value;
-    configRepository.setString('Neon_musicMic', JSON.stringify({ app, mic, out, musicVol, micVol }));
+    const { app, mic, out, musicVol, micVol, latency } = mm.value;
+    configRepository.setString('Neon_musicMic', JSON.stringify({ app, mic, out, musicVol, micVol, latency }));
 }
 
 export async function refreshAudioLists() {
@@ -69,7 +70,7 @@ export function setMm(key, value) {
     save();
     if (mm.value.running && (key === 'musicVol' || key === 'micVol')) {
         sendVolumes();
-    } else if (mm.value.running && (key === 'app' || key === 'mic' || key === 'out')) {
+    } else if (mm.value.running && (key === 'app' || key === 'mic' || key === 'out' || key === 'latency')) {
         // changing what is shared restarts the mix, an empty app means microphone only
         startMusicMic();
     }

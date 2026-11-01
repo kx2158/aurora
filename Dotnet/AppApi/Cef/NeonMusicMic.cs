@@ -82,7 +82,7 @@ namespace VRCX
                 var r = doc.RootElement;
                 string Str(string k) => r.TryGetProperty(k, out var v) ? v.GetString() ?? "" : "";
                 double Num(string k, double d) => r.TryGetProperty(k, out var v) && v.TryGetDouble(out var n) ? n : d;
-                var mix = new NeonMusicMic(Str("app"), Str("loopDevice"), Str("mic"), Str("out"), (float)Num("musicVol", 0.8), (float)Num("micVol", 1.0));
+                var mix = new NeonMusicMic(Str("app"), Str("loopDevice"), Str("mic"), Str("out"), (float)Num("musicVol", 0.8), (float)Num("micVol", 1.0), (int)Num("latency", 30));
                 // audio objects must live in a multi-threaded apartment, the browser thread may not be one
                 Exception failure = null;
                 var starter = new Thread(() =>
@@ -148,11 +148,13 @@ namespace VRCX
         private VolumeSampleProvider _musicVol, _micVol;
         private float _musicStart, _micStart;
         private int _rate = 48000, _outChannels = 2;
+        private readonly int _latency;
         public volatile float MicPeak, MusicPeak, OutPeak;
         public string Info = "";
 
-        public NeonMusicMic(string app, string loopDevice, string mic, string output, float musicVol, float micVol)
+        public NeonMusicMic(string app, string loopDevice, string mic, string output, float musicVol, float micVol, int latency)
         {
+            _latency = Math.Clamp(latency, 8, 200);
             _app = app; _loopDevice = loopDevice; _mic = mic; _out = output;
             _musicStart = musicVol; _micStart = micVol;
         }
@@ -199,9 +201,9 @@ namespace VRCX
             if (!string.IsNullOrEmpty(_mic))
             {
                 var micDevice = en.GetDevice(_mic);
-                try { _micCapture = new WasapiCapture(micDevice, true, 20); }
+                try { _micCapture = new WasapiCapture(micDevice, true, Math.Max(8, _latency / 2)); }
                 catch { _micCapture = new WasapiCapture(micDevice); }
-                var micBuf = new BufferedWaveProvider(Standard(_micCapture.WaveFormat)) { DiscardOnBufferOverflow = true, ReadFully = true, BufferDuration = TimeSpan.FromMilliseconds(160) };
+                var micBuf = new BufferedWaveProvider(Standard(_micCapture.WaveFormat)) { DiscardOnBufferOverflow = true, ReadFully = true, BufferDuration = TimeSpan.FromMilliseconds(Math.Max(50, _latency * 4)) };
                 _micCapture.DataAvailable += (s, e) => { try { micBuf.AddSamples(e.Buffer, 0, e.BytesRecorded); } catch { } };
                 _micCapture.RecordingStopped += (s, e) => { if (e.Exception != null) Log.Error(e.Exception, "Microphone stopped"); };
                 _micCapture.StartRecording();
@@ -214,9 +216,21 @@ namespace VRCX
             Info = (_micCapture != null ? "mic " + _micCapture.WaveFormat + " | " : "") + "out " + outDev.FriendlyName + " " + outDev.AudioClient.MixFormat;
             if (_outChannels == 1)
                 final = new StereoToMonoSampleProvider(final);
-            _output = new WasapiOut(outDev, AudioClientShareMode.Shared, false, 40);
-            _output.Init(final.ToWaveProvider());
-            _output.Play();
+            var wave = final.ToWaveProvider();
+            try
+            {
+                // event driven output gives the lowest delay, fall back to the polling mode if the device refuses
+                _output = new WasapiOut(outDev, AudioClientShareMode.Shared, _latency <= 25, _latency);
+                _output.Init(wave);
+                _output.Play();
+            }
+            catch
+            {
+                _output?.Dispose();
+                _output = new WasapiOut(outDev, AudioClientShareMode.Shared, false, Math.Max(_latency, 40));
+                _output.Init(wave);
+                _output.Play();
+            }
         }
 
         public void SetVolumes(float music, float mic)

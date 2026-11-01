@@ -216,3 +216,69 @@
 :root[data-theme='auroralight'] [data-slot='sidebar-inset'] {
     padding-bottom: 22px;
 }
+
+/* ---------- mockup pass: page titles, panel rows, cut inputs, square badges ---------- */
+:root[data-theme='aurora'] [data-slot='sidebar-inset'] h1,
+:root[data-theme='auroralight'] [data-slot='sidebar-inset'] h1 {
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 800;
+    text-shadow: 2px 0 var(--neon), -2px 0 color-mix(in oklch, var(--foreground) 60%, transparent);
+}
+
+:root[data-theme='aurora'] [data-slot='input'],
+:root[data-theme='auroralight'] [data-slot='input'],
+:root[data-theme='aurora'] [data-slot='select-trigger'],
+:root[data-theme='auroralight'] [data-slot='select-trigger'] {
+    clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+    border-color: var(--neon-soft);
+}
+:root[data-theme='aurora'] [data-slot='input']:focus-visible,
+:root[data-theme='auroralight'] [data-slot='input']:focus-visible {
+    border-color: var(--neon);
+    box-shadow: 0 0 12px var(--neon-soft);
+}
+
+:root[data-theme='aurora'] [data-slot='badge'],
+:root[data-theme='auroralight'] [data-slot='badge'] {
+    border-radius: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 700;
+}
+
+/* feed and tables: every row is its own panel with a glowing tag edge */
+:root[data-theme='aurora'] [data-slot='table-row'],
+:root[data-theme='auroralight'] [data-slot='table-row'] {
+    position: relative;
+    border-left: 3px solid transparent;
+}
+:root[data-theme='aurora'] [data-slot='table-row']:hover,
+:root[data-theme='auroralight'] [data-slot='table-row']:hover {
+    border-left-color: var(--neon);
+    background: color-mix(in oklch, var(--neon) 8%, transparent);
+    box-shadow: -6px 0 14px -6px var(--neon);
+}
+
+:root[data-theme='aurora'] [data-slot='tabs-trigger'],
+:root[data-theme='auroralight'] [data-slot='tabs-trigger'] {
+    border-radius: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 600;
+}
+:root[data-theme='aurora'] [data-slot='tabs-trigger'][data-state='active'],
+:root[data-theme='auroralight'] [data-slot='tabs-trigger'][data-state='active'] {
+    background: var(--neon);
+    color: var(--primary-foreground);
+    box-shadow: 0 0 14px var(--neon-soft);
+}
+
+:root[data-theme='aurora'] [data-slot='dialog-content'],
+:root[data-theme='auroralight'] [data-slot='dialog-content'],
+:root[data-theme='aurora'] [data-slot='popover-content'],
+:root[data-theme='auroralight'] [data-slot='popover-content'] {
+    border: 1px solid var(--neon);
+    box-shadow: 0 0 22px var(--neon-soft);
+    clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px));
+}

@@ -24,6 +24,8 @@ namespace VRCX
             try { AddWindow(result); } catch { }
             try { AddSystem(result); } catch { }
             try { AddMedia(result); } catch { }
+            try { AddNetwork(result); } catch { }
+            try { AddGpu(result); } catch { }
             return JsonSerializer.Serialize(result);
         }
 
@@ -79,6 +81,86 @@ namespace VRCX
             result["song"] = props.Title ?? "";
             result["artist"] = props.Artist ?? "";
             result["musicApp"] = session.SourceAppUserModelId ?? "";
+
+            // every media session (Spotify, Chrome, Brave...) so the chatbox can pick between them
+            var list = new List<Dictionary<string, object>>();
+            foreach (var s in _neonMedia.GetSessions())
+            {
+                try
+                {
+                    var p = s.TryGetMediaPropertiesAsync().GetAwaiter().GetResult();
+                    list.Add(new Dictionary<string, object>
+                    {
+                        ["id"] = s.SourceAppUserModelId ?? "",
+                        ["title"] = p.Title ?? "",
+                        ["artist"] = p.Artist ?? "",
+                        ["playing"] = s.GetPlaybackInfo().PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing
+                    });
+                }
+                catch { }
+            }
+            result["sessions"] = list;
+        }
+
+        private static long _neonNetBytesDown, _neonNetBytesUp, _neonNetTicks;
+        private static double _neonDownKb, _neonUpKb;
+
+        private static void AddNetwork(Dictionary<string, object> result)
+        {
+            long down = 0, up = 0;
+            foreach (var nic in System.Net.NetworkInformation.NetworkInterface.GetAllNetworkInterfaces())
+            {
+                if (nic.OperationalStatus != System.Net.NetworkInformation.OperationalStatus.Up
+                    || nic.NetworkInterfaceType == System.Net.NetworkInformation.NetworkInterfaceType.Loopback)
+                    continue;
+                var stats = nic.GetIPv4Statistics();
+                down += stats.BytesReceived;
+                up += stats.BytesSent;
+            }
+            var now = Environment.TickCount64;
+            if (_neonNetTicks != 0 && now > _neonNetTicks)
+            {
+                var seconds = (now - _neonNetTicks) / 1000.0;
+                _neonDownKb = (down - _neonNetBytesDown) / 1024.0 / seconds;
+                _neonUpKb = (up - _neonNetBytesUp) / 1024.0 / seconds;
+            }
+            _neonNetBytesDown = down; _neonNetBytesUp = up; _neonNetTicks = now;
+            result["netDownKb"] = (int)Math.Max(0, _neonDownKb);
+            result["netUpKb"] = (int)Math.Max(0, _neonUpKb);
+        }
+
+        private static long _neonGpuChecked;
+        private static int _neonGpu = -1, _neonVram = -1;
+
+        // Reads NVIDIA GPU load through nvidia-smi (only if it is installed). Checked every 5 seconds.
+        private static void AddGpu(Dictionary<string, object> result)
+        {
+            var now = Environment.TickCount64;
+            if (now - _neonGpuChecked > 5000)
+            {
+                _neonGpuChecked = now;
+                try
+                {
+                    var psi = new ProcessStartInfo("nvidia-smi", "--query-gpu=utilization.gpu,memory.used,memory.total --format=csv,noheader,nounits")
+                    {
+                        RedirectStandardOutput = true,
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    };
+                    using var proc = Process.Start(psi);
+                    if (proc != null && proc.WaitForExit(1500))
+                    {
+                        var parts = proc.StandardOutput.ReadLine()?.Split(',');
+                        if (parts != null && parts.Length >= 3)
+                        {
+                            _neonGpu = int.Parse(parts[0].Trim());
+                            _neonVram = (int)Math.Round(100.0 * double.Parse(parts[1].Trim()) / double.Parse(parts[2].Trim()));
+                        }
+                    }
+                }
+                catch { _neonGpu = -1; _neonVram = -1; }
+            }
+            if (_neonGpu >= 0) { result["gpu"] = _neonGpu; result["vram"] = _neonVram; }
         }
 
         private static ulong ToU64(FILETIME t) => ((ulong)t.dwHighDateTime << 32) | t.dwLowDateTime;

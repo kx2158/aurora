@@ -1499,7 +1499,7 @@
         "chatbox": {
             "title": "Chatbox",
             "subtitle": "Live text in your VRChat chatbox. OSC must be on in the VRChat action menu.",
-            "pages": "Pages (they rotate)",
+            "pages": "Personal status pages (they rotate)",
             "add_page": "Add page",
             "insert": "Insert live value",
             "preview": "Preview",
@@ -1508,7 +1508,12 @@
             "send": "Send",
             "game_off": "VRChat is not running.",
             "afk_minutes": "AFK after (minutes idle)",
-            "pulsoid": "Heart rate (Pulsoid token)"
+            "pulsoid": "Heart rate (Pulsoid token)",
+            "integrations": "Integrations",
+            "customize": "Customize",
+            "soon": "Not built yet.",
+            "status_hint": "Your status uses the pages below. Pages rotate and can hold live values.",
+            "no_media": "Nothing is playing. Start music or a video and it shows up here."
         },
         "dock": {
             "title": "DOCK",

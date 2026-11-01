@@ -20,7 +20,12 @@ export const chatboxPageIndex = ref(0);
 export const sysInfo = ref({});
 export const pulsoidToken = ref('');
 export const afkMinutes = ref(5);
-const heartRate = ref(0);
+export const heartRate = ref(0);
+let composer = null;
+/** The integrations module plugs itself in here so this file does not import it back. */
+export function registerComposer(fn) {
+    composer = fn;
+}
 let sysTimer = null;
 let hrTimer = null;
 const startedAt = Date.now();
@@ -176,7 +181,8 @@ export function renderChatbox(template) {
 function tick() {
     const pages = chatboxPages.value;
     const template = pages[chatboxPageIndex.value % pages.length] || '';
-    chatboxPreview.value = renderChatbox(template);
+    // with integrations plugged in, the text is built from every enabled one
+    chatboxPreview.value = composer ? composer(renderChatbox(template)) : renderChatbox(template);
     if (chatboxEnabled.value && pages.length > 1) {
         chatboxPageIndex.value = (chatboxPageIndex.value + 1) % pages.length;
     }

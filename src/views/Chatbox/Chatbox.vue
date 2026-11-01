@@ -11,6 +11,73 @@
             </div>
         </div>
 
+        <h2 class="nx-h2">{{ t('view.chatbox.integrations') }}</h2>
+        <div class="nx-ints">
+            <div v-for="def in INTEGRATIONS" :key="def.id" class="nx-int nx-card" :class="{ on: state[def.id]?.enabled }">
+                <div class="nx-int-main">
+                    <i :class="['nx-int-icon', def.icon]"></i>
+                    <div class="nx-int-text">
+                        <b>{{ def.name }}</b>
+                        <span class="nx-meta">{{ def.desc }}</span>
+                    </div>
+                    <button
+                        v-if="def.options || def.id === 'pulsoid' || def.id === 'medialink' || def.id === 'status'"
+                        type="button"
+                        class="nx-custom"
+                        @click="toggleOpen(def.id)">
+                        {{ t('view.chatbox.customize') }} {{ open[def.id] ? 'v' : '>' }}
+                    </button>
+                    <span class="nx-badge" :class="{ off: !def.desktop }">DESKTOP</span>
+                    <span class="nx-badge" :class="{ off: !def.vr }">VR</span>
+                    <Switch
+                        :model-value="state[def.id]?.enabled"
+                        :ariaLabel="def.name"
+                        @update:modelValue="(v) => setEnabled(def.id, v)" />
+                </div>
+                <div v-if="open[def.id]" class="nx-int-opts">
+                    <template v-for="opt in def.options || []" :key="opt.key">
+                        <label class="nx-meta">{{ opt.label }}</label>
+                        <Switch
+                            v-if="opt.type === 'bool'"
+                            :model-value="!!state[def.id][opt.key]"
+                            :ariaLabel="opt.label"
+                            @update:modelValue="(v) => setOption(def.id, opt.key, v)" />
+                        <Input
+                            v-else
+                            :type="opt.type === 'number' ? 'number' : 'text'"
+                            :model-value="state[def.id][opt.key]"
+                            class="nx-wide"
+                            @update:modelValue="(v) => setOption(def.id, opt.key, v)" />
+                    </template>
+                    <template v-if="def.id === 'pulsoid'">
+                        <label class="nx-meta">{{ t('view.chatbox.pulsoid') }}</label>
+                        <Input type="password" :model-value="pulsoidToken" class="nx-wide" @update:modelValue="setPulsoidToken" />
+                    </template>
+                    <p v-if="def.id === 'status'" class="nx-meta nx-full">{{ t('view.chatbox.status_hint') }}</p>
+                    <div v-if="def.id === 'medialink'" class="nx-full nx-sessions">
+                        <p v-if="!mediaSessions.length" class="nx-meta">{{ t('view.chatbox.no_media') }}</p>
+                        <div v-for="m in mediaSessions" :key="m.id" class="nx-session">
+                            <b>{{ friendlyApp(m.id) }}</b>
+                            <span class="nx-meta nx-trunc">{{ m.title }}{{ m.artist ? ' - ' + m.artist : '' }}</span>
+                            <button type="button" class="nx-pill" :class="{ on: !state.medialink.noArtist[m.id] }" @click="flip('noArtist', m.id)">ARTIST</button>
+                            <button type="button" class="nx-pill" :class="{ on: !state.medialink.noTitle[m.id] }" @click="flip('noTitle', m.id)">TITLE</button>
+                            <button type="button" class="nx-pill" :class="{ on: !state.medialink.hidden[m.id] }" @click="flip('hidden', m.id, true)">SHOW</button>
+                            <span class="nx-meta">{{ m.playing ? 'PLAYING' : 'PAUSED' }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div v-for="name in COMING_SOON" :key="name" class="nx-int nx-card soon">
+                <div class="nx-int-main">
+                    <i class="nx-int-icon ri-time-line"></i>
+                    <div class="nx-int-text">
+                        <b>{{ name }}</b>
+                        <span class="nx-meta">{{ t('view.chatbox.soon') }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="nx-cols">
             <div class="nx-card nx-panel">
                 <h2 class="nx-h2">{{ t('view.chatbox.pages') }}</h2>
@@ -75,7 +142,7 @@
 </template>
 
 <script setup>
-    import { computed, onMounted, ref } from 'vue';
+    import { computed, onMounted, reactive, ref } from 'vue';
     import { useI18n } from 'vue-i18n';
 
     import { Input } from '@/components/ui/input';
@@ -99,6 +166,7 @@
         setPulsoidToken,
         setTyping
     } from '@/services/auroraChatbox';
+    import { COMING_SOON, friendlyApp, initIntegrations, INTEGRATIONS, mediaSessions, setEnabled, setOption, state } from '@/services/auroraIntegrations';
     import { useGameStore } from '@/stores';
 
     const { t } = useI18n();
@@ -107,7 +175,19 @@
     const focused = ref(0);
     const manual = ref('');
 
-    onMounted(initChatbox);
+    onMounted(() => {
+        initChatbox();
+        initIntegrations();
+    });
+
+    const open = reactive({});
+    function toggleOpen(id) {
+        open[id] = !open[id];
+    }
+    // the per-session buttons store true for "off" (hidden, noArtist, noTitle)
+    function flip(group, id) {
+        state.medialink[group][id] = !state.medialink[group][id];
+    }
 
     const pages = computed(() => chatboxPages.value);
     const activeIndex = computed(() => chatboxPageIndex.value % Math.max(1, pages.value.length));
@@ -268,6 +348,106 @@
         align-items: center;
         gap: 10px;
         margin-top: 8px;
+    }
+    .nx-ints {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    .nx-int {
+        padding: 12px 16px;
+        opacity: 0.85;
+    }
+    .nx-int.on {
+        opacity: 1;
+        border-color: var(--primary);
+    }
+    .nx-int.soon {
+        opacity: 0.45;
+    }
+    .nx-int-main {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+    .nx-int-icon {
+        font-size: 26px;
+        color: var(--primary);
+        width: 34px;
+        text-align: center;
+    }
+    .nx-int-text {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+    }
+    .nx-int-text b {
+        font-size: 1.05rem;
+    }
+    .nx-custom {
+        height: 26px;
+        padding: 0 12px;
+        font-size: 12px;
+        color: var(--foreground);
+        border: 1px solid var(--border);
+    }
+    .nx-custom:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+    }
+    .nx-badge {
+        padding: 2px 10px;
+        font-family: 'Share Tech Mono', ui-monospace, monospace;
+        font-size: 11px;
+        color: var(--primary-foreground);
+        background: var(--primary);
+    }
+    .nx-badge.off {
+        color: var(--muted-foreground);
+        background: transparent;
+        border: 1px solid var(--border);
+    }
+    .nx-int-opts {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: center;
+        gap: 10px;
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px solid var(--border);
+    }
+    .nx-full {
+        grid-column: 1 / -1;
+    }
+    .nx-sessions {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    .nx-session {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .nx-trunc {
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .nx-pill {
+        padding: 2px 10px;
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--muted-foreground);
+        border: 1px solid var(--border);
+    }
+    .nx-pill.on {
+        color: var(--primary-foreground);
+        background: var(--primary);
+        border-color: var(--primary);
     }
     .nx-small {
         width: 90px;

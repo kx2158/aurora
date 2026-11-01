@@ -2,6 +2,7 @@
     <div id="x-app" class="flex w-screen h-screen overflow-hidden cursor-default x-app-type">
         <div class="wrist" :class="{ background: config && config.backgroundEnabled }">
             <div class="neon-clock">
+                <img class="neon-face" :class="{ pop: neon.pop }" :src="neonFace" alt="" />
                 <div class="neon-clock-day">{{ clock.day }}</div>
                 <div class="neon-clock-time">
                     {{ clock.hm }}<span class="neon-clock-sec">{{ clock.sec }}</span>
@@ -1504,7 +1505,7 @@
         X,
         XCircle
     } from 'lucide-vue-next';
-    import { nextTick, onBeforeUnmount, onMounted, reactive, toRefs } from 'vue';
+    import { computed, nextTick, onBeforeUnmount, onMounted, reactive, toRefs } from 'vue';
     import { useI18n } from 'vue-i18n';
 
     import MarqueeText from 'vue-marquee-text-component';
@@ -1527,6 +1528,60 @@
         name: 'vr'
     });
 
+
+    // Neon in the headset: one small picture, a tiny synth blip, a short pop. No voice model here, so it stays light.
+    const neonSprites = import.meta.glob('../../images/aurora/mascot/*.png', { eager: true, import: 'default' });
+    const neonBySlug = {};
+    for (const [path, url] of Object.entries(neonSprites)) {
+        neonBySlug[path.split('/').pop().replace('.png', '')] = url;
+    }
+    const neon = reactive({ face: 'neutral', pop: false });
+    const neonFace = computed(() => neonBySlug[neon.face] || neonBySlug.neutral);
+    let neonTimer = null;
+    let neonLastKey = '';
+    let audioCtx = null;
+    function blip(notes) {
+        try {
+            audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+            let t = audioCtx.currentTime;
+            for (const [freq, len] of notes) {
+                const o = audioCtx.createOscillator();
+                const g = audioCtx.createGain();
+                o.type = 'square';
+                o.frequency.value = freq;
+                g.gain.setValueAtTime(0.0001, t);
+                g.gain.exponentialRampToValueAtTime(0.05, t + 0.01);
+                g.gain.exponentialRampToValueAtTime(0.0001, t + len);
+                o.connect(g).connect(audioCtx.destination);
+                o.start(t);
+                o.stop(t + len + 0.02);
+                t += len;
+            }
+        } catch {
+            // no audio available, the animation still plays
+        }
+    }
+    const NEON_REACTIONS = {
+        OnPlayerJoined: { face: 'joy', notes: [[660, 0.07], [880, 0.1]] },
+        OnPlayerLeft: { face: 'sad', notes: [[520, 0.08], [380, 0.12]] },
+        Online: { face: 'joy', notes: [[740, 0.06], [988, 0.06], [1240, 0.1]] },
+        Offline: { face: 'sleepy', notes: [[420, 0.1], [300, 0.14]] },
+        GPS: { face: 'surprised', notes: [[600, 0.05], [600, 0.05]] }
+    };
+    function neonReact(type) {
+        const r = NEON_REACTIONS[type];
+        if (!r) {
+            return;
+        }
+        blip(r.notes);
+        neon.face = r.face;
+        neon.pop = true;
+        clearTimeout(neonTimer);
+        neonTimer = setTimeout(() => {
+            neon.face = 'neutral';
+            neon.pop = false;
+        }, 2200);
+    }
 
     const clock = reactive({ day: '', date: '', hm: '', sec: '' });
     let clockTimer = null;
@@ -1631,6 +1686,7 @@
     onBeforeUnmount(() => {
         isUnmounted = true;
         clearInterval(clockTimer);
+        clearTimeout(neonTimer);
 
         if (updateStatsLoopTimeoutId !== null) {
             workerTimers.clearTimeout(updateStatsLoopTimeoutId);
@@ -1753,6 +1809,14 @@
      */
     function wristFeedUpdate(json) {
         vrState.wristFeed = JSON.parse(json);
+        const top = vrState.wristFeed[0];
+        if (top) {
+            const key = `${top.type}|${top.created_at}|${top.displayName}`;
+            if (neonLastKey && key !== neonLastKey) {
+                neonReact(top.type);
+            }
+            neonLastKey = key;
+        }
         updateFeedLength();
     }
 

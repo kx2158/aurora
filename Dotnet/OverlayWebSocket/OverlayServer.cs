@@ -164,6 +164,11 @@ public class OverlayServer
                     MainForm.Instance.Browser.ExecuteScriptAsync("window?.$bridge?.updateIsHmdAfk", isHmdAfk);
                 break;
 
+            case OverlayMessageType.NeonCommand:
+                if (MainForm.Instance?.Browser != null && !MainForm.Instance.Browser.IsLoading && MainForm.Instance.Browser.CanExecuteJavascriptInMainFrame)
+                    MainForm.Instance.Browser.ExecuteScriptAsync("window?.$bridge?.neonCommand", message.Data);
+                break;
+
             case OverlayMessageType.JsFunctionCall:
             case OverlayMessageType.UpdateVars:
             default:

@@ -11,6 +11,15 @@
                 <div class="neon-clock-date">{{ clock.date }}</div>
                 <div class="neon-clock-bar"></div>
             </div>
+            <div class="neon-chips">
+                <span class="neon-chip" :class="{ on: neonState.chatbox }">CHAT {{ neonState.chatbox ? 'ON' : 'OFF' }}</span>
+                <span class="neon-chip">FRIENDS {{ onlineFriendCount }}</span>
+                <span class="neon-chip">PLAYERS {{ lastLocation.playerList.length }}</span>
+                <span v-if="neonState.nextAlarm" class="neon-chip on">ALARM {{ neonState.nextAlarm }}</span>
+            </div>
+            <div class="neon-ticker">
+                <span>NEON//SYS ONLINE</span><span>LINK STABLE</span><span>NIGHT CITY TIME {{ clock.hm }}</span>
+            </div>
             <div class="x-container" style="flex: 1">
                 <div class="x-friend-list" ref="list" style="color: var(--vr-text-secondary)">
                     <template v-if="config && config.minimalFeed">
@@ -1338,6 +1347,31 @@
                 <span style="display: inline-block; margin-left: 5px">{{ customInfo }}</span>
             </div>
         </div>
+        <!-- Neon SteamVR dashboard: big buttons for the laser pointer -->
+        <div class="neon-dash">
+            <div class="neon-dash-head">
+                <span class="neon-dash-title">NEON//CONTROL</span>
+                <span class="neon-dash-clock">{{ clock.hm }}<small>{{ clock.sec }}</small></span>
+            </div>
+            <div class="neon-dash-sub">
+                <span>{{ clock.day }} {{ clock.date }}</span>
+                <span v-if="neonState.nextAlarm">NEXT ALARM {{ neonState.nextAlarm }}</span>
+            </div>
+            <div class="neon-dash-grid">
+                <button
+                    v-for="b in dashButtons"
+                    :key="b.cmd"
+                    type="button"
+                    class="neon-tile"
+                    :class="{ on: b.on, warn: b.warn }"
+                    @click="dashPress(b.cmd)">
+                    <span class="neon-tile-icon">{{ b.icon }}</span>
+                    <span class="neon-tile-label">{{ b.label }}</span>
+                    <span v-if="b.state !== undefined" class="neon-tile-state">{{ b.state }}</span>
+                </button>
+            </div>
+            <div class="neon-dash-bubble">&gt; {{ neonState.preview || 'chatbox is empty' }}</div>
+        </div>
         <!-- HMD Overlay -->
         <div class="hmd">
             <svg class="np-progress-circle">
@@ -1537,6 +1571,39 @@
         neonBySlug[path.split('/').pop().replace('.png', '')] = url;
     }
     const neon = reactive({ face: 'neutral', pop: false });
+    const neonState = reactive({ chatbox: false, voice: true, sounds: true, afk: false, music: false, preview: '', nextAlarm: '' });
+    function neonStateUpdate(json) {
+        Object.assign(neonState, JSON.parse(json));
+    }
+    function dashPress(cmd) {
+        try {
+            AppApiVr.NeonCommand(cmd);
+        } catch (e) {
+            console.error(e);
+        }
+        blip([[900, 0.05]]);
+    }
+    const onOff = (v) => (v ? 'ON' : 'OFF');
+    const dashButtons = computed(() => [
+        { cmd: 'chatbox', icon: '\u2709', label: 'CHATBOX', state: onOff(neonState.chatbox), on: neonState.chatbox },
+        { cmd: 'brb', icon: '\u23F3', label: 'SEND BRB' },
+        { cmd: 'clear', icon: '\u2716', label: 'CLEAR TEXT' },
+        { cmd: 'afk', icon: '\u263E', label: 'AFK TAG', state: onOff(neonState.afk), on: neonState.afk },
+        { cmd: 'timer5', icon: '\u23F0', label: '5 MIN' },
+        { cmd: 'timer15', icon: '\u23F0', label: '15 MIN' },
+        { cmd: 'timer30', icon: '\u23F0', label: '30 MIN' },
+        { cmd: 'timer60', icon: '\u23F0', label: '1 HOUR' },
+        { cmd: 'stopAlarm', icon: '\u25A0', label: 'STOP ALARM', warn: true },
+        { cmd: 'music', icon: '\u266A', label: 'MUSIC LINE', state: onOff(neonState.music), on: neonState.music },
+        { cmd: 'voice', icon: '\u263A', label: 'NEON VOICE', state: onOff(neonState.voice), on: neonState.voice },
+        { cmd: 'sounds', icon: '\u266B', label: 'VR BEEPS', state: onOff(neonState.sounds), on: neonState.sounds }
+    ]);
+    function neonAlarmStop() {
+        alarmBanner.value = null;
+        clearTimeout(alarmTimer);
+        neon.face = 'neutral';
+        neon.pop = false;
+    }
     const alarmBanner = ref(null);
     let alarmTimer = null;
     function neonAlarm(json) {
@@ -1561,6 +1628,9 @@
     let neonLastKey = '';
     let audioCtx = null;
     function blip(notes) {
+        if (neonState.sounds === false) {
+            return;
+        }
         try {
             audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
             let t = audioCtx.currentTime;
@@ -1675,6 +1745,8 @@
         window.$vr.lastLocationUpdate = lastLocationUpdate;
         window.$vr.wristFeedUpdate = wristFeedUpdate;
         window.$vr.neonAlarm = neonAlarm;
+        window.$vr.neonState = neonStateUpdate;
+        window.$vr.neonAlarmStop = neonAlarmStop;
         window.$vr.refreshCustomScript = refreshCustomScript;
         window.$vr.playNoty = playNoty;
         window.$vr.statusClass = statusClass;

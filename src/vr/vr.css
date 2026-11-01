@@ -236,7 +236,7 @@ button {
 
 .x-app-type {
     color: #fff;
-    width: 1024px;
+    width: 2048px;
     height: 1536px;
     position: relative;
     overflow: hidden;
@@ -811,4 +811,180 @@ i.x-user-status.busy {
         background: #ffffff;
         box-shadow: 0 0 24px #ffffff;
     }
+}
+
+/* ---- Neon SteamVR dashboard: big laser-friendly tiles, right of the HMD/wrist column ---- */
+.neon-dash {
+    position: absolute;
+    left: 1024px;
+    top: 0;
+    width: 1024px;
+    height: 1024px;
+    box-sizing: border-box;
+    padding: 28px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    color: #fff;
+    font-family: 'Share Tech Mono', ui-monospace, monospace;
+    background:
+        linear-gradient(rgba(255, 61, 154, 0.07) 1px, transparent 1px) 0 0 / 48px 48px,
+        linear-gradient(90deg, rgba(255, 61, 154, 0.07) 1px, transparent 1px) 0 0 / 48px 48px,
+        linear-gradient(180deg, #0b0614, #05030a);
+    border: 3px solid #ff3d9a;
+    box-shadow: inset 0 0 60px rgba(255, 61, 154, 0.25);
+    clip-path: polygon(0 0, calc(100% - 40px) 0, 100% 40px, 100% 100%, 40px 100%, 0 calc(100% - 40px));
+}
+.neon-dash::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 12px;
+    background: repeating-linear-gradient(135deg, #ff3d9a 0, #ff3d9a 20px, #000 20px, #000 40px);
+}
+.neon-dash-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-top: 10px;
+}
+.neon-dash-title {
+    font-size: 54px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: #fff;
+    text-shadow: 4px 0 #ff3d9a, -4px 0 rgba(255, 255, 255, 0.4);
+}
+.neon-dash-clock {
+    font-size: 64px;
+    text-shadow: 0 0 20px #ff3d9a;
+}
+.neon-dash-clock small {
+    font-size: 30px;
+    color: #ff7fbf;
+}
+.neon-dash-sub {
+    display: flex;
+    justify-content: space-between;
+    font-size: 26px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #ff7fbf;
+}
+.neon-dash-grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 16px;
+}
+.neon-tile {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    color: #fff;
+    font: inherit;
+    cursor: pointer;
+    background: rgba(255, 61, 154, 0.08);
+    border: 2px solid rgba(255, 61, 154, 0.6);
+    clip-path: polygon(0 0, calc(100% - 22px) 0, 100% 22px, 100% 100%, 22px 100%, 0 calc(100% - 22px));
+    transition:
+        background 0.08s,
+        transform 0.08s;
+}
+.neon-tile:hover {
+    background: rgba(255, 61, 154, 0.35);
+    border-color: #fff;
+    box-shadow: 0 0 30px #ff3d9a;
+    transform: scale(1.04);
+}
+.neon-tile:active {
+    background: #ff3d9a;
+    color: #05030a;
+}
+.neon-tile.on {
+    background: rgba(255, 61, 154, 0.28);
+    border-color: #ff3d9a;
+}
+.neon-tile.warn {
+    border-color: #ffffff;
+    background: rgba(255, 255, 255, 0.1);
+}
+.neon-tile-icon {
+    font-size: 78px;
+    line-height: 1;
+    text-shadow: 0 0 18px #ff3d9a;
+}
+.neon-tile-label {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+}
+.neon-tile-state {
+    font-size: 24px;
+    padding: 0 12px;
+    background: #ff3d9a;
+    color: #05030a;
+    font-weight: 700;
+}
+.neon-tile:not(.on) .neon-tile-state {
+    background: transparent;
+    color: #ff7fbf;
+    border: 1px solid #ff7fbf;
+}
+.neon-dash-bubble {
+    min-height: 54px;
+    padding: 10px 16px;
+    font-size: 26px;
+    background: #05030a;
+    border: 2px solid #ff3d9a;
+    color: #fff;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+/* wrist extras: status chips, ticker, corner brackets */
+.neon-chips {
+    position: relative;
+    z-index: 3;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 4px 14px 0;
+}
+.neon-chip {
+    padding: 1px 10px;
+    font-family: 'Share Tech Mono', ui-monospace, monospace;
+    font-size: 15px;
+    letter-spacing: 0.08em;
+    color: #ff7fbf;
+    border: 1px solid rgba(255, 61, 154, 0.6);
+    background: rgba(255, 61, 154, 0.08);
+}
+.neon-chip.on {
+    color: #05030a;
+    background: #ff3d9a;
+    box-shadow: 0 0 10px rgba(255, 61, 154, 0.8);
+}
+.neon-ticker {
+    position: relative;
+    z-index: 3;
+    display: flex;
+    justify-content: space-between;
+    margin: 6px 14px 0;
+    padding-top: 3px;
+    border-top: 1px dashed rgba(255, 61, 154, 0.5);
+    font-family: 'Share Tech Mono', ui-monospace, monospace;
+    font-size: 12px;
+    letter-spacing: 0.2em;
+    color: rgba(255, 255, 255, 0.55);
+}
+.wrist .x-friend-item {
+    background: linear-gradient(90deg, rgba(255, 61, 154, 0.1), transparent 70%);
 }

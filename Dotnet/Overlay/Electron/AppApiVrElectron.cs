@@ -15,6 +15,10 @@ namespace VRCX
         {
         }
 
+        public override void NeonCommand(string command)
+        {
+        }
+
         public override void VrInit()
         {
         }

@@ -30,6 +30,22 @@ export async function initAlarms() {
 export function addAlarm() {
     alarms.value = [...alarms.value, { id: Date.now(), time: '09:00', label: '', enabled: true, daily: true }].slice(0, 20);
 }
+/** Quick timer: rings once, in this many minutes. */
+export function addTimer(minutes) {
+    const d = new Date(Date.now() + minutes * 60000);
+    const time = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+    alarms.value = [...alarms.value, { id: Date.now(), time, label: `Timer ${minutes} min`, enabled: true, daily: false }].slice(0, 20);
+}
+
+/** Switches off every alarm that is ringing and clears the VR banner. */
+export function stopRinging() {
+    try {
+        AppApi.ExecuteVrOverlayFunction('neonAlarmStop', '{}');
+    } catch {
+        // VR is not running
+    }
+}
+
 export function removeAlarm(id) {
     alarms.value = alarms.value.filter((a) => a.id !== id);
 }

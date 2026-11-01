@@ -28,6 +28,15 @@ namespace VRCX
             OverlayClient.SendMessage(message);
         }
 
+        public override void NeonCommand(string command)
+        {
+            OverlayClient.SendMessage(new OverlayMessage
+            {
+                Type = OverlayMessageType.NeonCommand,
+                Data = command
+            });
+        }
+
         public override void ToggleSystemMonitor(bool enabled)
         {
             SystemMonitorCef.Instance.Start(enabled);

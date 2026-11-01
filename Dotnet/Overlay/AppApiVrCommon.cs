@@ -13,5 +13,6 @@ public abstract partial class AppApiVr
     public abstract double GetUptime();
     public abstract string CurrentCulture();
     public abstract string CustomVrScript();
+    public abstract void NeonCommand(string command);
     public abstract List<KeyValuePair<string, string>> GetExecuteVrOverlayFunctionQueue();
 }

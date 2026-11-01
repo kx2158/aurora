@@ -39,6 +39,7 @@
     import { initNoty } from './plugins/noty';
     import { initChatbox } from './services/auroraChatbox';
     import { initAlarms } from './services/auroraAlarms';
+import { initVrBridge, neonCommand } from './services/auroraVrBridge';
 import { initIntegrations } from './services/auroraIntegrations';
 
     import NeonDock from './components/NeonDock.vue';
@@ -66,6 +67,7 @@ import { initIntegrations } from './services/auroraIntegrations';
     initChatbox();
     initIntegrations();
     initAlarms();
+    initVrBridge();
 
     const store = createGlobalStores();
 
@@ -74,6 +76,7 @@ import { initIntegrations } from './services/auroraIntegrations';
         window.$bridge = {
             updateIsGameRunning: runUpdateIsGameRunningFlow,
             updateIsHmdAfk: runUpdateIsHmdAfkFlow,
+            neonCommand,
             addGameLogEvent
         };
     }

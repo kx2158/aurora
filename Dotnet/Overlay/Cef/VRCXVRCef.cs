@@ -46,7 +46,9 @@ namespace VRCX
 
         private const int HMD_HEIGHT = 1024;
         private const int WRIST_SIZE = 512;
-        private const int TOTAL_WIDTH = 1024;
+        private const int DASH_SIZE = 1024; // Neon dashboard panel sits to the right of the HMD/wrist column
+        private const int TOTAL_WIDTH = 1024 + DASH_SIZE;
+        private const int COLUMN_WIDTH = 1024;
         private const int TOTAL_HEIGHT = HMD_HEIGHT + WRIST_SIZE; // 1024 + 512 = 1536
 
         private DXGI _dxgi;
@@ -249,14 +251,14 @@ namespace VRCX
                         if (overlay != null)
                         {
                             var dashboardVisible = overlay.IsDashboardVisible();
-                            // var err = ProcessDashboard(overlay, ref dashboardHandle, dashboardVisible);
-                            // if (err != EVROverlayError.None &&
-                            //     dashboardHandle != 0)
-                            // {
-                            //     overlay.DestroyOverlay(dashboardHandle);
-                            //     dashboardHandle = 0;
-                            //     logger.Error(err);
-                            // }
+                            var dashErr = ProcessDashboard(overlay, ref dashboardHandle, dashboardVisible);
+                            if (dashErr != EVROverlayError.None &&
+                                dashboardHandle != 0)
+                            {
+                                overlay.DestroyOverlay(dashboardHandle);
+                                dashboardHandle = 0;
+                                logger.Error(dashErr);
+                            }
 
                             if (_wristOverlayActive)
                             {
@@ -545,7 +547,7 @@ namespace VRCX
 
             if (dashboardHandle == 0)
             {
-                err = overlay.FindOverlay("VRCX", ref dashboardHandle);
+                err = overlay.FindOverlay("neon.dashboard", ref dashboardHandle);
                 if (err != EVROverlayError.None)
                 {
                     if (err != EVROverlayError.UnknownOverlay)
@@ -554,20 +556,19 @@ namespace VRCX
                     }
 
                     ulong thumbnailHandle = 0;
-                    err = overlay.CreateDashboardOverlay("VRCX", "VRCX", ref dashboardHandle, ref thumbnailHandle);
+                    err = overlay.CreateDashboardOverlay("neon.dashboard", "Neon", ref dashboardHandle, ref thumbnailHandle);
                     if (err != EVROverlayError.None)
                     {
                         return err;
                     }
 
                     var iconPath = Path.Join(Program.BaseDirectory, "VRCX.png");
-                    err = overlay.SetOverlayFromFile(thumbnailHandle, iconPath);
-                    if (err != EVROverlayError.None)
+                    if (File.Exists(iconPath))
                     {
-                        return err;
+                        overlay.SetOverlayFromFile(thumbnailHandle, iconPath);
                     }
 
-                    err = overlay.SetOverlayWidthInMeters(dashboardHandle, 1.5f);
+                    err = overlay.SetOverlayWidthInMeters(dashboardHandle, 1.6f);
                     if (err != EVROverlayError.None)
                     {
                         return err;
@@ -579,7 +580,8 @@ namespace VRCX
                         return err;
                     }
 
-                    err = overlay.SetOverlayFlag(dashboardHandle, VROverlayFlags.NoDashboardTab, true);
+                    var mouseScale = new HmdVector2_t { v0 = DASH_SIZE, v1 = DASH_SIZE };
+                    err = overlay.SetOverlayMouseScale(dashboardHandle, ref mouseScale);
                     if (err != EVROverlayError.None)
                     {
                         return err;
@@ -587,7 +589,33 @@ namespace VRCX
                 }
             }
 
+            // controller pointer -> mouse events for the Neon page
             var e = new VREvent_t();
+            var host = _sharedOverlay?.GetBrowserHost();
+            while (overlay.PollNextOverlayEvent(dashboardHandle, ref e, (uint)Marshal.SizeOf(e)))
+            {
+                if (host == null)
+                    continue;
+
+                var type = (EVREventType)e.eventType;
+                // OpenVR mouse origin is the lower left, the page origin is the upper left
+                var px = (int)e.data.mouse.x + COLUMN_WIDTH;
+                var py = DASH_SIZE - (int)e.data.mouse.y;
+                var mouse = new MouseEvent(px, py, CefEventFlags.None);
+                switch (type)
+                {
+                    case EVREventType.VREvent_MouseMove:
+                        host.SendMouseMoveEvent(mouse, false);
+                        break;
+                    case EVREventType.VREvent_MouseButtonDown:
+                        host.SendMouseMoveEvent(mouse, false);
+                        host.SendMouseClickEvent(mouse, MouseButtonType.Left, false, 1);
+                        break;
+                    case EVREventType.VREvent_MouseButtonUp:
+                        host.SendMouseClickEvent(mouse, MouseButtonType.Left, true, 1);
+                        break;
+                }
+            }
 
             if (dashboardVisible)
             {
@@ -599,10 +627,10 @@ namespace VRCX
                     };
                     var bounds = new VRTextureBounds_t
                     {
-                        uMin = 0f,
+                        uMin = (float)COLUMN_WIDTH / TOTAL_WIDTH,
                         uMax = 1f,
-                        vMin = (float)(TOTAL_HEIGHT - HMD_HEIGHT) / TOTAL_HEIGHT,
-                        vMax = 1f
+                        vMin = 0f,
+                        vMax = (float)DASH_SIZE / TOTAL_HEIGHT
                     };
                     overlay.SetOverlayTextureBounds(dashboardHandle, ref bounds);
                     err = overlay.SetOverlayTexture(dashboardHandle, ref texture);
@@ -702,7 +730,7 @@ namespace VRCX
                 var bounds = new VRTextureBounds_t
                 {
                     uMin = 0f,
-                    uMax = 0.5f,
+                    uMax = (float)(COLUMN_WIDTH / 2) / TOTAL_WIDTH,
                     vMin = 0f,
                     vMax = (float)WRIST_SIZE / TOTAL_HEIGHT
                 };
@@ -806,7 +834,7 @@ namespace VRCX
                 var bounds = new VRTextureBounds_t
                 {
                     uMin = 0f,
-                    uMax = 1f,
+                    uMax = (float)COLUMN_WIDTH / TOTAL_WIDTH,
                     vMin = (float)(TOTAL_HEIGHT - HMD_HEIGHT) / TOTAL_HEIGHT,
                     vMax = 1f
                 };

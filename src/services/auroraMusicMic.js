@@ -13,7 +13,11 @@ export const mm = ref({
     out: '',
     musicVol: 0.8,
     micVol: 1,
-    error: ''
+    error: '',
+    micPeak: 0,
+    musicPeak: 0,
+    outPeak: 0,
+    info: ''
 });
 export const audioApps = ref([]);
 export const audioDevices = ref({ render: [], capture: [] });
@@ -99,3 +103,19 @@ export async function nextMusicSource() {
 export function nudgeMusicVolume(delta) {
     setMm('musicVol', Math.min(1.5, Math.max(0, Math.round((mm.value.musicVol + delta) * 100) / 100)));
 }
+
+// while the mix runs, show what is actually coming in so problems are easy to find
+setInterval(async () => {
+    if (!mm.value.running) {
+        return;
+    }
+    try {
+        const st = JSON.parse(await AppApi.NeonMusicMicStatus());
+        mm.value.micPeak = st.micPeak || 0;
+        mm.value.musicPeak = st.musicPeak || 0;
+        mm.value.outPeak = st.outPeak || 0;
+        mm.value.info = st.info || '';
+    } catch {
+        // ignore
+    }
+}, 400);

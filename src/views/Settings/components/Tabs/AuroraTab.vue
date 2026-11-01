@@ -76,6 +76,15 @@
                     <Button size="sm" variant="outline" @click="refreshAudioLists">{{ t('view.settings.aurora.mm_refresh') }}</Button>
                     <span v-if="mm.error" class="text-xs text-destructive">{{ mm.error }}</span>
                 </div>
+                <div v-if="mm.running" class="flex flex-col gap-1 text-xs">
+                    <div v-for="m in meters" :key="m.key" class="flex items-center gap-2">
+                        <span class="w-16">{{ m.label }}</span>
+                        <div class="h-2 flex-1 bg-muted">
+                            <div class="h-2 bg-primary" :style="{ width: Math.min(100, mm[m.key] * 140) + '%' }"></div>
+                        </div>
+                    </div>
+                    <span class="text-muted-foreground">{{ mm.info }}</span>
+                </div>
             </div>
         </SettingsGroup>
         <SettingsGroup :title="t('view.settings.aurora.accent')">
@@ -503,6 +512,12 @@
             busy.value = false;
         }
     }
+
+    const meters = [
+        { key: 'micPeak', label: 'MIC' },
+        { key: 'musicPeak', label: 'MUSIC' },
+        { key: 'outPeak', label: 'OUT' }
+    ];
 
     function startPack() {
         buildVoicePack({

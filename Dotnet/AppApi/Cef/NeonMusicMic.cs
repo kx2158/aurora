@@ -128,7 +128,12 @@ namespace VRCX
             return JsonSerializer.Serialize(new Dictionary<string, object>
             {
                 ["running"] = _neonMusicMic != null,
-                ["error"] = _neonMusicMicError
+                ["error"] = _neonMusicMicError,
+                ["micPeak"] = _neonMusicMic?.MicPeak ?? 0f,
+                ["musicPeak"] = _neonMusicMic?.MusicPeak ?? 0f,
+                ["outPeak"] = _neonMusicMic?.OutPeak ?? 0f,
+                ["info"] = _neonMusicMic?.Info ?? ""
+
             });
         }
     }
@@ -143,6 +148,8 @@ namespace VRCX
         private VolumeSampleProvider _musicVol, _micVol;
         private float _musicStart, _micStart;
         private int _rate = 48000, _outChannels = 2;
+        public volatile float MicPeak, MusicPeak, OutPeak;
+        public string Info = "";
 
         public NeonMusicMic(string app, string loopDevice, string mic, string output, float musicVol, float micVol)
         {
@@ -169,7 +176,7 @@ namespace VRCX
             else if (!string.IsNullOrEmpty(_loopDevice))
             {
                 _loopCapture = new WasapiLoopbackCapture(en.GetDevice(_loopDevice));
-                musicBuf = new BufferedWaveProvider(_loopCapture.WaveFormat) { DiscardOnBufferOverflow = true, ReadFully = true };
+                musicBuf = new BufferedWaveProvider(Standard(_loopCapture.WaveFormat)) { DiscardOnBufferOverflow = true, ReadFully = true };
                 _loopCapture.DataAvailable += (s, e) => { try { musicBuf.AddSamples(e.Buffer, 0, e.BytesRecorded); } catch { } };
                 _loopCapture.RecordingStopped += (s, e) => { if (e.Exception != null) Log.Error(e.Exception, "Loopback stopped"); };
                 _loopCapture.StartRecording();
@@ -184,7 +191,7 @@ namespace VRCX
 
             if (musicBuf != null)
             {
-                _musicVol = new VolumeSampleProvider(To48kStereo(musicBuf.ToSampleProvider())) { Volume = _musicStart };
+                _musicVol = new VolumeSampleProvider(Meter(To48kStereo(musicBuf.ToSampleProvider()), v => MusicPeak = v)) { Volume = _musicStart };
                 mixer.AddMixerInput(_musicVol);
             }
 
@@ -192,18 +199,19 @@ namespace VRCX
             if (!string.IsNullOrEmpty(_mic))
             {
                 _micCapture = new WasapiCapture(en.GetDevice(_mic));
-                var micBuf = new BufferedWaveProvider(_micCapture.WaveFormat) { DiscardOnBufferOverflow = true, ReadFully = true };
+                var micBuf = new BufferedWaveProvider(Standard(_micCapture.WaveFormat)) { DiscardOnBufferOverflow = true, ReadFully = true };
                 _micCapture.DataAvailable += (s, e) => { try { micBuf.AddSamples(e.Buffer, 0, e.BytesRecorded); } catch { } };
                 _micCapture.RecordingStopped += (s, e) => { if (e.Exception != null) Log.Error(e.Exception, "Microphone stopped"); };
                 _micCapture.StartRecording();
-                _micVol = new VolumeSampleProvider(To48kStereo(micBuf.ToSampleProvider())) { Volume = _micStart };
+                _micVol = new VolumeSampleProvider(Meter(To48kStereo(micBuf.ToSampleProvider()), v => MicPeak = v)) { Volume = _micStart };
                 mixer.AddMixerInput(_micVol);
             }
 
             // the mix goes to the chosen output (the virtual cable)
-            ISampleProvider final = mixer;
+            ISampleProvider final = Meter(mixer, v => OutPeak = v);
+            Info = (_micCapture != null ? "mic " + _micCapture.WaveFormat + " | " : "") + "out " + outDev.FriendlyName + " " + outDev.AudioClient.MixFormat;
             if (_outChannels == 1)
-                final = new StereoToMonoSampleProvider(mixer);
+                final = new StereoToMonoSampleProvider(final);
             _output = new WasapiOut(outDev, AudioClientShareMode.Shared, false, 100);
             _output.Init(final.ToWaveProvider());
             _output.Play();
@@ -213,6 +221,26 @@ namespace VRCX
         {
             if (_musicVol != null) _musicVol.Volume = Math.Clamp(music, 0f, 2f);
             if (_micVol != null) _micVol.Volume = Math.Clamp(mic, 0f, 2f);
+        }
+
+        // some devices (like the Steam streaming microphone) report an "extensible" format that
+        // the converters do not understand, so turn it into the plain PCM / float version first
+        private static WaveFormat Standard(WaveFormat f)
+        {
+            return f is WaveFormatExtensible ext ? ext.ToStandardWaveFormat() : f;
+        }
+
+        private static ISampleProvider Meter(ISampleProvider input, Action<float> peak)
+        {
+            var m = new MeteringSampleProvider(input, 4800);
+            m.StreamVolume += (s, e) =>
+            {
+                var max = 0f;
+                foreach (var v in e.MaxSampleValues)
+                    if (v > max) max = v;
+                peak(max);
+            };
+            return m;
         }
 
         private ISampleProvider To48kStereo(ISampleProvider input)

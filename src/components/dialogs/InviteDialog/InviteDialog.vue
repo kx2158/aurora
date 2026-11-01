@@ -25,6 +25,9 @@
                     @click="addFriendsInInstanceToInvite"
                     >{{ t('dialog.invite.add_friends_in_instance') }}</Button
                 >
+                <Button size="sm" class="mr-2 mt-2" variant="outline" @click="addAllOnlineFriendsToInvite">{{
+                    t('dialog.invite.add_all_online')
+                }}</Button>
                 <DropdownMenu>
                     <DropdownMenuTrigger as-child>
                         <Button
@@ -364,6 +367,15 @@
 
         for (const userId of userIds) {
             const ctx = friends.value.get(userId);
+            if (ctx && ctx.state === 'online' && !D.userIds.includes(userId)) {
+                D.userIds.push(userId);
+            }
+        }
+    }
+
+    function addAllOnlineFriendsToInvite() {
+        const D = props.inviteDialog;
+        for (const [userId, ctx] of friends.value) {
             if (ctx && ctx.state === 'online' && !D.userIds.includes(userId)) {
                 D.userIds.push(userId);
             }

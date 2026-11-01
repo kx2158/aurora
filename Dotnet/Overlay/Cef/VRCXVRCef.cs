@@ -580,14 +580,13 @@ namespace VRCX
                         return err;
                     }
 
-                    var mouseScale = new HmdVector2_t { v0 = DASH_SIZE, v1 = DASH_SIZE };
-                    err = overlay.SetOverlayMouseScale(dashboardHandle, ref mouseScale);
-                    if (err != EVROverlayError.None)
-                    {
-                        return err;
-                    }
                 }
             }
+
+            // OpenVR reports pointer positions over the WHOLE texture (not just the part we show),
+            // so the scale is the full texture size and the page position is used as is.
+            var mouseScale = new HmdVector2_t { v0 = TOTAL_WIDTH, v1 = TOTAL_HEIGHT };
+            overlay.SetOverlayMouseScale(dashboardHandle, ref mouseScale);
 
             // controller pointer -> mouse events for the Neon page
             var e = new VREvent_t();
@@ -599,8 +598,8 @@ namespace VRCX
 
                 var type = (EVREventType)e.eventType;
                 // OpenVR mouse origin is the lower left, the page origin is the upper left
-                var px = (int)e.data.mouse.x + COLUMN_WIDTH;
-                var py = DASH_SIZE - (int)e.data.mouse.y;
+                var px = (int)e.data.mouse.x;
+                var py = TOTAL_HEIGHT - (int)e.data.mouse.y;
                 var mouse = new MouseEvent(px, py, CefEventFlags.None);
                 switch (type)
                 {

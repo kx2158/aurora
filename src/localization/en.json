@@ -1494,7 +1494,9 @@
                 "mm_start": "Start",
                 "mm_stop": "Stop",
                 "mm_refresh": "Refresh lists",
-                "mm_none": "(none)"
+                "mm_none": "(none)",
+                "mm_mute": "Mute mic",
+                "mm_unmute": "Unmute mic"
             }
         },
         "home": {

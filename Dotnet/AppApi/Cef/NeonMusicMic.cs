@@ -176,7 +176,7 @@ namespace VRCX
             else if (!string.IsNullOrEmpty(_loopDevice))
             {
                 _loopCapture = new WasapiLoopbackCapture(en.GetDevice(_loopDevice));
-                musicBuf = new BufferedWaveProvider(Standard(_loopCapture.WaveFormat)) { DiscardOnBufferOverflow = true, ReadFully = true };
+                musicBuf = new BufferedWaveProvider(Standard(_loopCapture.WaveFormat)) { DiscardOnBufferOverflow = true, ReadFully = true, BufferDuration = TimeSpan.FromMilliseconds(300) };
                 _loopCapture.DataAvailable += (s, e) => { try { musicBuf.AddSamples(e.Buffer, 0, e.BytesRecorded); } catch { } };
                 _loopCapture.RecordingStopped += (s, e) => { if (e.Exception != null) Log.Error(e.Exception, "Loopback stopped"); };
                 _loopCapture.StartRecording();
@@ -198,8 +198,10 @@ namespace VRCX
             // your real microphone
             if (!string.IsNullOrEmpty(_mic))
             {
-                _micCapture = new WasapiCapture(en.GetDevice(_mic));
-                var micBuf = new BufferedWaveProvider(Standard(_micCapture.WaveFormat)) { DiscardOnBufferOverflow = true, ReadFully = true };
+                var micDevice = en.GetDevice(_mic);
+                try { _micCapture = new WasapiCapture(micDevice, true, 20); }
+                catch { _micCapture = new WasapiCapture(micDevice); }
+                var micBuf = new BufferedWaveProvider(Standard(_micCapture.WaveFormat)) { DiscardOnBufferOverflow = true, ReadFully = true, BufferDuration = TimeSpan.FromMilliseconds(160) };
                 _micCapture.DataAvailable += (s, e) => { try { micBuf.AddSamples(e.Buffer, 0, e.BytesRecorded); } catch { } };
                 _micCapture.RecordingStopped += (s, e) => { if (e.Exception != null) Log.Error(e.Exception, "Microphone stopped"); };
                 _micCapture.StartRecording();
@@ -212,7 +214,7 @@ namespace VRCX
             Info = (_micCapture != null ? "mic " + _micCapture.WaveFormat + " | " : "") + "out " + outDev.FriendlyName + " " + outDev.AudioClient.MixFormat;
             if (_outChannels == 1)
                 final = new StereoToMonoSampleProvider(final);
-            _output = new WasapiOut(outDev, AudioClientShareMode.Shared, false, 100);
+            _output = new WasapiOut(outDev, AudioClientShareMode.Shared, false, 40);
             _output.Init(final.ToWaveProvider());
             _output.Play();
         }
@@ -299,7 +301,7 @@ namespace VRCX
         private ProcessLoopback(AudioClient client, WaveFormat format)
         {
             _client = client;
-            Buffer = new BufferedWaveProvider(format) { DiscardOnBufferOverflow = true, ReadFully = true };
+            Buffer = new BufferedWaveProvider(format) { DiscardOnBufferOverflow = true, ReadFully = true, BufferDuration = TimeSpan.FromMilliseconds(300) };
             _thread = new Thread(Loop) { IsBackground = true, Name = "NeonProcessLoopback" };
         }
 

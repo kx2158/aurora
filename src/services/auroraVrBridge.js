@@ -6,7 +6,7 @@ import { watch } from 'vue';
 
 import { accent } from './auroraAccent';
 import { sysInfo } from './auroraChatbox';
-import { mm, nextMusicSource, nudgeMusicVolume, toggleMusicMic } from './auroraMusicMic';
+import { mm, nextMusicSource, nudgeMusicVolume, toggleMicMute, toggleMusicMic } from './auroraMusicMic';
 import { addTimer, alarms, stopRinging } from './auroraAlarms';
 import configRepository from './config';
 import { chatboxEnabled, chatboxPreview, sendChatboxNow, setChatboxEnabled } from './auroraChatbox';
@@ -36,6 +36,7 @@ function pushState() {
                 playing: !!sysInfo.value.musicPlaying,
                 mm: mm.value.running,
                 mmApp: mm.value.app,
+                mmMuted: mm.value.micMuted,
                 mmVol: Math.round(mm.value.musicVol * 100)
             })
         );
@@ -89,6 +90,9 @@ export function neonCommand(command) {
             break;
         case 'mmToggle':
             toggleMusicMic();
+            break;
+        case 'mmMute':
+            toggleMicMute();
             break;
         case 'mmSource':
             nextMusicSource();

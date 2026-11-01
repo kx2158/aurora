@@ -73,6 +73,9 @@
                 </label>
                 <div class="flex items-center gap-2">
                     <Button size="sm" @click="toggleMusicMic">{{ mm.running ? t('view.settings.aurora.mm_stop') : t('view.settings.aurora.mm_start') }}</Button>
+                    <Button size="sm" :variant="mm.micMuted ? 'destructive' : 'outline'" @click="toggleMicMute">{{
+                        mm.micMuted ? t('view.settings.aurora.mm_unmute') : t('view.settings.aurora.mm_mute')
+                    }}</Button>
                     <Button size="sm" variant="outline" @click="refreshAudioLists">{{ t('view.settings.aurora.mm_refresh') }}</Button>
                     <span v-if="mm.error" class="text-xs text-destructive">{{ mm.error }}</span>
                 </div>
@@ -385,7 +388,7 @@
         setChatboxNotify,
         setChatboxTemplate
     } from '@/services/auroraChatbox';
-    import { audioApps, audioDevices, mm, refreshAudioLists, setMm, toggleMusicMic } from '@/services/auroraMusicMic';
+    import { audioApps, audioDevices, mm, refreshAudioLists, setMm, toggleMicMute, toggleMusicMic } from '@/services/auroraMusicMic';
     import { ACCENT_PRESETS, accent, setAccent } from '@/services/auroraAccent';
     import { addAlarm, alarms, removeAlarm, ringAlarm } from '@/services/auroraAlarms';
     import { buildVoicePack, pack } from '@/services/auroraLines';

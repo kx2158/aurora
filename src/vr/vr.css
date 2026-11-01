@@ -883,7 +883,7 @@ i.x-user-status.busy {
     flex: 1;
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    grid-template-rows: repeat(4, 1fr);
+    grid-template-rows: repeat(5, 1fr);
     gap: 12px;
 }
 .neon-tile {
@@ -922,18 +922,18 @@ i.x-user-status.busy {
     background: rgba(255, 255, 255, 0.1);
 }
 .neon-tile-icon {
-    font-size: 54px;
+    font-size: 40px;
     line-height: 1;
     text-shadow: 0 0 18px var(--vr-accent);
 }
 .neon-tile-label {
-    font-size: 22px;
+    font-size: 19px;
     font-weight: 700;
     letter-spacing: 0.1em;
 }
 .neon-tile-state {
-    font-size: 20px;
-    padding: 0 10px;
+    font-size: 17px;
+    padding: 0 8px;
     background: var(--vr-accent);
     color: #05030a;
     font-weight: 700;

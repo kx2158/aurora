@@ -13,6 +13,7 @@ export const mm = ref({
     out: '',
     musicVol: 0.8,
     micVol: 1,
+    micMuted: false,
     error: '',
     micPeak: 0,
     musicPeak: 0,
@@ -51,11 +52,23 @@ export async function refreshAudioLists() {
     }
 }
 
+function sendVolumes() {
+    AppApi.NeonMusicMicVolume(mm.value.musicVol, mm.value.micMuted ? 0 : mm.value.micVol);
+}
+
+/** Mutes your microphone in the mix, the music keeps playing. */
+export function toggleMicMute() {
+    mm.value.micMuted = !mm.value.micMuted;
+    if (mm.value.running) {
+        sendVolumes();
+    }
+}
+
 export function setMm(key, value) {
     mm.value[key] = value;
     save();
     if (mm.value.running && (key === 'musicVol' || key === 'micVol')) {
-        AppApi.NeonMusicMicVolume(mm.value.musicVol, mm.value.micVol);
+        sendVolumes();
     } else if (mm.value.running && (key === 'app' || key === 'mic' || key === 'out')) {
         // changing what is shared restarts the mix, an empty app means microphone only
         startMusicMic();

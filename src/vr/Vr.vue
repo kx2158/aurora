@@ -2242,7 +2242,6 @@
 
     const {
         config,
-        clock,
         wristFeed,
         devices,
         nowPlaying,

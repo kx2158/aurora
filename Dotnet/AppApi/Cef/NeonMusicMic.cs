@@ -82,12 +82,29 @@ namespace VRCX
                 var r = doc.RootElement;
                 string Str(string k) => r.TryGetProperty(k, out var v) ? v.GetString() ?? "" : "";
                 double Num(string k, double d) => r.TryGetProperty(k, out var v) && v.TryGetDouble(out var n) ? n : d;
-                _neonMusicMic = new NeonMusicMic(Str("app"), Str("loopDevice"), Str("mic"), Str("out"), (float)Num("musicVol", 0.8), (float)Num("micVol", 1.0));
-                _neonMusicMic.Start();
+                var mix = new NeonMusicMic(Str("app"), Str("loopDevice"), Str("mic"), Str("out"), (float)Num("musicVol", 0.8), (float)Num("micVol", 1.0));
+                // audio objects must live in a multi-threaded apartment, the browser thread may not be one
+                Exception failure = null;
+                var starter = new Thread(() =>
+                {
+                    try { mix.Start(); }
+                    catch (Exception e) { failure = e; }
+                });
+                starter.SetApartmentState(ApartmentState.MTA);
+                starter.Start();
+                starter.Join();
+                if (failure != null)
+                {
+                    mix.Dispose();
+                    throw failure;
+                }
+
+                _neonMusicMic = mix;
                 return true;
             }
             catch (Exception e)
             {
+                NeonMusicMic.Log.Error(e, "Music to mic failed to start");
                 _neonMusicMicError = e.Message;
                 _neonMusicMic?.Dispose();
                 _neonMusicMic = null;
@@ -118,12 +135,14 @@ namespace VRCX
 
     internal sealed class NeonMusicMic : IDisposable
     {
+        internal static readonly NLog.Logger Log = NLog.LogManager.GetCurrentClassLogger();
         private readonly string _app, _loopDevice, _mic, _out;
         private ProcessLoopback _appCapture;
         private WasapiCapture _micCapture, _loopCapture;
         private WasapiOut _output;
         private VolumeSampleProvider _musicVol, _micVol;
         private float _musicStart, _micStart;
+        private int _rate = 48000, _outChannels = 2;
 
         public NeonMusicMic(string app, string loopDevice, string mic, string output, float musicVol, float micVol)
         {
@@ -134,10 +153,14 @@ namespace VRCX
         public void Start()
         {
             using var en = new MMDeviceEnumerator();
-            var mixer = new MixingSampleProvider(WaveFormat.CreateIeeeFloatWaveFormat(48000, 2)) { ReadFully = true };
+            // mix at the output device's own sample rate so Windows never has to convert
+            var outDev = string.IsNullOrEmpty(_out) ? en.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia) : en.GetDevice(_out);
+            _rate = outDev.AudioClient.MixFormat.SampleRate;
+            _outChannels = outDev.AudioClient.MixFormat.Channels;
+            var mixer = new MixingSampleProvider(WaveFormat.CreateIeeeFloatWaveFormat(_rate, 2)) { ReadFully = true };
 
             // music: one app (process loopback) or a whole output device
-            BufferedWaveProvider musicBuf;
+            BufferedWaveProvider musicBuf = null;
             if (!string.IsNullOrEmpty(_app))
             {
                 _appCapture = ProcessLoopback.Start(FindProcess(_app));
@@ -147,32 +170,42 @@ namespace VRCX
             {
                 _loopCapture = new WasapiLoopbackCapture(en.GetDevice(_loopDevice));
                 musicBuf = new BufferedWaveProvider(_loopCapture.WaveFormat) { DiscardOnBufferOverflow = true, ReadFully = true };
-                _loopCapture.DataAvailable += (s, e) => musicBuf.AddSamples(e.Buffer, 0, e.BytesRecorded);
+                _loopCapture.DataAvailable += (s, e) => { try { musicBuf.AddSamples(e.Buffer, 0, e.BytesRecorded); } catch { } };
+                _loopCapture.RecordingStopped += (s, e) => { if (e.Exception != null) Log.Error(e.Exception, "Loopback stopped"); };
                 _loopCapture.StartRecording();
             }
             else
             {
-                throw new InvalidOperationException("Pick an app to share first.");
+                musicBuf = null; // no app picked: just your microphone through the cable
             }
 
-            _musicVol = new VolumeSampleProvider(To48kStereo(musicBuf.ToSampleProvider())) { Volume = _musicStart };
-            mixer.AddMixerInput(_musicVol);
+            if (musicBuf == null && string.IsNullOrEmpty(_mic))
+                throw new InvalidOperationException("Pick an app to share, a microphone, or both.");
+
+            if (musicBuf != null)
+            {
+                _musicVol = new VolumeSampleProvider(To48kStereo(musicBuf.ToSampleProvider())) { Volume = _musicStart };
+                mixer.AddMixerInput(_musicVol);
+            }
 
             // your real microphone
             if (!string.IsNullOrEmpty(_mic))
             {
                 _micCapture = new WasapiCapture(en.GetDevice(_mic));
                 var micBuf = new BufferedWaveProvider(_micCapture.WaveFormat) { DiscardOnBufferOverflow = true, ReadFully = true };
-                _micCapture.DataAvailable += (s, e) => micBuf.AddSamples(e.Buffer, 0, e.BytesRecorded);
+                _micCapture.DataAvailable += (s, e) => { try { micBuf.AddSamples(e.Buffer, 0, e.BytesRecorded); } catch { } };
+                _micCapture.RecordingStopped += (s, e) => { if (e.Exception != null) Log.Error(e.Exception, "Microphone stopped"); };
                 _micCapture.StartRecording();
                 _micVol = new VolumeSampleProvider(To48kStereo(micBuf.ToSampleProvider())) { Volume = _micStart };
                 mixer.AddMixerInput(_micVol);
             }
 
             // the mix goes to the chosen output (the virtual cable)
-            var outDev = string.IsNullOrEmpty(_out) ? en.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia) : en.GetDevice(_out);
-            _output = new WasapiOut(outDev, AudioClientShareMode.Shared, true, 80);
-            _output.Init(mixer.ToWaveProvider());
+            ISampleProvider final = mixer;
+            if (_outChannels == 1)
+                final = new StereoToMonoSampleProvider(mixer);
+            _output = new WasapiOut(outDev, AudioClientShareMode.Shared, false, 100);
+            _output.Init(final.ToWaveProvider());
             _output.Play();
         }
 
@@ -182,12 +215,12 @@ namespace VRCX
             if (_micVol != null) _micVol.Volume = Math.Clamp(mic, 0f, 2f);
         }
 
-        private static ISampleProvider To48kStereo(ISampleProvider input)
+        private ISampleProvider To48kStereo(ISampleProvider input)
         {
             if (input.WaveFormat.Channels == 1)
                 input = new MonoToStereoSampleProvider(input);
-            if (input.WaveFormat.SampleRate != 48000)
-                input = new WdlResamplingSampleProvider(input, 48000);
+            if (input.WaveFormat.SampleRate != _rate)
+                input = new WdlResamplingSampleProvider(input, _rate);
             return input;
         }
 
@@ -259,13 +292,24 @@ namespace VRCX
 
         private void Loop()
         {
-            var capture = _client.AudioCaptureClient;
-            var blockAlign = Buffer.WaveFormat.BlockAlign;
+            AudioCaptureClient capture;
+            int blockAlign;
+            try
+            {
+                capture = _client.AudioCaptureClient;
+                blockAlign = Buffer.WaveFormat.BlockAlign;
+            }
+            catch (Exception e)
+            {
+                NeonMusicMic.Log.Error(e, "App capture could not start");
+                return;
+            }
+
             while (_run)
             {
-                _event.WaitOne(100);
                 try
                 {
+                    _event.WaitOne(100);
                     var next = capture.GetNextPacketSize();
                     while (next > 0 && _run)
                     {

@@ -1494,7 +1494,7 @@
                 "mm_start": "Start",
                 "mm_stop": "Stop",
                 "mm_refresh": "Refresh lists",
-                "mm_none": "(pick one)"
+                "mm_none": "(none)"
             }
         },
         "home": {

@@ -52,6 +52,9 @@ export function setMm(key, value) {
     save();
     if (mm.value.running && (key === 'musicVol' || key === 'micVol')) {
         AppApi.NeonMusicMicVolume(mm.value.musicVol, mm.value.micVol);
+    } else if (mm.value.running && (key === 'app' || key === 'mic' || key === 'out')) {
+        // changing what is shared restarts the mix, an empty app means microphone only
+        startMusicMic();
     }
 }
 

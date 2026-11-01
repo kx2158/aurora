@@ -1,6 +1,14 @@
 <template>
     <div id="x-app" class="flex w-screen h-screen overflow-hidden cursor-default x-app-type">
         <div class="wrist" :class="{ background: config && config.backgroundEnabled }">
+            <div class="neon-clock">
+                <div class="neon-clock-day">{{ clock.day }}</div>
+                <div class="neon-clock-time">
+                    {{ clock.hm }}<span class="neon-clock-sec">{{ clock.sec }}</span>
+                </div>
+                <div class="neon-clock-date">{{ clock.date }}</div>
+                <div class="neon-clock-bar"></div>
+            </div>
             <div class="x-container" style="flex: 1">
                 <div class="x-friend-list" ref="list" style="color: var(--vr-text-secondary)">
                     <template v-if="config && config.minimalFeed">
@@ -1519,6 +1527,18 @@
         name: 'vr'
     });
 
+
+    const clock = reactive({ day: '', date: '', hm: '', sec: '' });
+    let clockTimer = null;
+    function tickClock() {
+        const now = new Date();
+        clock.day = now.toLocaleDateString(undefined, { weekday: 'long' });
+        clock.date = now.toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' });
+        clock.hm = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+        clock.sec = ':' + String(now.getSeconds()).padStart(2, '0');
+    }
+
+
     const { t, locale } = useI18n();
 
     const vrState = reactive({
@@ -1570,6 +1590,8 @@
     let cleanHudFeedLoopTimeoutId = null;
 
     onMounted(() => {
+        tickClock();
+        clockTimer = setInterval(tickClock, 1000);
         window.$vr = {};
         window.$vr.configUpdate = configUpdate;
         window.$vr.updateOnlineFriendCount = updateOnlineFriendCount;
@@ -1608,6 +1630,7 @@
 
     onBeforeUnmount(() => {
         isUnmounted = true;
+        clearInterval(clockTimer);
 
         if (updateStatsLoopTimeoutId !== null) {
             workerTimers.clearTimeout(updateStatsLoopTimeoutId);
@@ -1737,16 +1760,8 @@
         if (vrState.wristFeed.length === 0) {
             return;
         }
-        let length = 19;
-        if (!vrState.config.hideDevicesFromFeed) {
-            length -= 2;
-            if (vrState.deviceCount > 8) {
-                length -= 1;
-            }
-        }
-        if (vrState.nowPlaying.playing) {
-            length -= 1;
-        }
+        // Neon wrist: the clock takes the top, only the 5 most recent events fit under it
+        const length = 5;
         if (length < vrState.wristFeed.length) {
             vrState.wristFeed.length = length;
         }
@@ -2227,6 +2242,7 @@
 
     const {
         config,
+        clock,
         wristFeed,
         devices,
         nowPlaying,

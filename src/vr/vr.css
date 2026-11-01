@@ -697,3 +697,67 @@ i.x-user-status.busy {
     color: #ffffff;
     text-shadow: 0 0 6px #ff3d9a, 0 0 3px #000, 0 0 3px #000, 0 0 3px #000;
 }
+
+/* ---- Neon wrist clock: glowing, see-through, day / date / time ---- */
+.wrist {
+    background: linear-gradient(180deg, rgba(10, 4, 18, 0.55), rgba(5, 3, 10, 0.78));
+}
+
+.neon-clock {
+    position: relative;
+    z-index: 3;
+    flex-shrink: 0;
+    margin: 14px 14px 4px;
+    padding: 8px 18px 12px;
+    text-align: center;
+    font-family: 'Share Tech Mono', ui-monospace, monospace;
+    color: #ffffff;
+    background: linear-gradient(180deg, rgba(255, 61, 154, 0.16), rgba(255, 61, 154, 0.03));
+    border: 1px solid rgba(255, 61, 154, 0.7);
+    box-shadow: 0 0 18px rgba(255, 61, 154, 0.45), inset 0 0 22px rgba(255, 61, 154, 0.18);
+    clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px));
+}
+
+.neon-clock-day {
+    font-size: 15px;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: #ff3d9a;
+    text-shadow: 0 0 8px rgba(255, 61, 154, 0.9);
+}
+
+.neon-clock-time {
+    font-size: 72px;
+    line-height: 1.05;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-shadow: 0 0 6px #fff, 0 0 18px #ff3d9a, 0 0 36px rgba(255, 61, 154, 0.8);
+}
+
+.neon-clock-sec {
+    font-size: 28px;
+    letter-spacing: 0.02em;
+    color: #ff7fbf;
+    text-shadow: 0 0 10px rgba(255, 61, 154, 0.9);
+}
+
+.neon-clock-date {
+    font-size: 16px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.neon-clock-bar {
+    position: absolute;
+    left: 24px;
+    right: 24px;
+    bottom: 4px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #ff3d9a, transparent);
+    box-shadow: 0 0 10px #ff3d9a;
+}
+
+.wrist .x-container {
+    padding-top: 4px;
+}

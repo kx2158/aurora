@@ -1584,7 +1584,7 @@
         neonBySlug[path.split('/').pop().replace('.png', '')] = url;
     }
     const neon = reactive({ face: 'neutral', pop: false });
-    const neonState = reactive({ accent: '#ff3d9a', song: '', artist: '', playing: false, chatbox: false, voice: true, sounds: true, afk: false, music: false, preview: '', nextAlarm: '' });
+    const neonState = reactive({ accent: '#ff3d9a', mm: false, mmApp: '', mmVol: 80, song: '', artist: '', playing: false, chatbox: false, voice: true, sounds: true, afk: false, music: false, preview: '', nextAlarm: '' });
     function neonStateUpdate(json) {
         Object.assign(neonState, JSON.parse(json));
         document.documentElement.style.setProperty('--vr-accent', neonState.accent || '#ff3d9a');
@@ -1615,6 +1615,10 @@
     }
     const onOff = (v) => (v ? 'ON' : 'OFF');
     const dashButtons = computed(() => [
+        { cmd: 'mmToggle', icon: '\u{1F399}', label: 'MUSIC > MIC', state: onOff(neonState.mm), on: neonState.mm },
+        { cmd: 'mmSource', icon: '\u21BB', label: 'SOURCE', state: neonState.mmApp ? neonState.mmApp.slice(0, 10).toUpperCase() : 'NONE' },
+        { cmd: 'mmDown', icon: '\u2212', label: 'MIC MUSIC -' },
+        { cmd: 'mmUp', icon: '+', label: 'MIC MUSIC +', state: neonState.mmVol + '%' },
         { cmd: 'chatbox', icon: '\u2709', label: 'CHATBOX', state: onOff(neonState.chatbox), on: neonState.chatbox },
         { cmd: 'brb', icon: '\u23F3', label: 'SEND BRB' },
         { cmd: 'clear', icon: '\u2716', label: 'CLEAR TEXT' },

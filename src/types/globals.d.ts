@@ -276,6 +276,12 @@ declare global {
         // Neon: window, music and system info (Windows build)
         GetNeonSystemInfo(): Promise<string>;
         NeonMediaControl(action: string): Promise<void>;
+        GetNeonAudioDevices(): Promise<string>;
+        GetNeonAudioApps(): Promise<string>;
+        NeonMusicMicStart(json: string): Promise<boolean>;
+        NeonMusicMicStop(): Promise<void>;
+        NeonMusicMicVolume(music: number, mic: number): Promise<void>;
+        NeonMusicMicStatus(): Promise<string>;
 
         // OSC chatbox
         SendOscChatbox(text: string, sendImmediately?: boolean, notify?: boolean, port?: number): Promise<void>;

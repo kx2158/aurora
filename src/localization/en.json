@@ -1483,7 +1483,18 @@
                 "alarm_add": "Add alarm",
                 "alarm_test": "Test sound",
                 "accent": "Accent colour",
-                "accent_desc": "One colour for everything: the app, the VR panels and Neon herself."
+                "accent_desc": "One colour for everything: the app, the VR panels and Neon herself.",
+                "mm": "Music to mic",
+                "mm_desc": "Share one app's sound (Spotify, Apple Music, a browser) with people in VRChat. Needs a virtual audio cable like VB-Cable: pick its input as the output here, then pick the cable's other end as your microphone in VRChat.",
+                "mm_app": "App to share",
+                "mm_mic": "Your real microphone",
+                "mm_out": "Output (the virtual cable)",
+                "mm_music_vol": "Music volume",
+                "mm_mic_vol": "Mic volume",
+                "mm_start": "Start",
+                "mm_stop": "Stop",
+                "mm_refresh": "Refresh lists",
+                "mm_none": "(pick one)"
             }
         },
         "home": {

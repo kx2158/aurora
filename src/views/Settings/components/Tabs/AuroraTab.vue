@@ -39,6 +39,45 @@
                 <span class="text-xs text-muted-foreground">{{ chatboxPreview || '...' }}</span>
             </SettingsItem>
         </SettingsGroup>
+        <SettingsGroup :title="t('view.settings.aurora.mm')">
+            <p class="mb-2 text-xs text-muted-foreground">{{ t('view.settings.aurora.mm_desc') }}</p>
+            <div class="flex flex-col gap-2">
+                <label class="flex items-center gap-2 text-sm">
+                    <span class="w-56">{{ t('view.settings.aurora.mm_app') }}</span>
+                    <select class="nx-sel" :value="mm.app" @change="(e) => setMm('app', e.target.value)">
+                        <option value="">{{ t('view.settings.aurora.mm_none') }}</option>
+                        <option v-for="a in audioApps" :key="a" :value="a">{{ a }}</option>
+                    </select>
+                </label>
+                <label class="flex items-center gap-2 text-sm">
+                    <span class="w-56">{{ t('view.settings.aurora.mm_mic') }}</span>
+                    <select class="nx-sel" :value="mm.mic" @change="(e) => setMm('mic', e.target.value)">
+                        <option value="">{{ t('view.settings.aurora.mm_none') }}</option>
+                        <option v-for="d in audioDevices.capture" :key="d.id" :value="d.id">{{ d.name }}</option>
+                    </select>
+                </label>
+                <label class="flex items-center gap-2 text-sm">
+                    <span class="w-56">{{ t('view.settings.aurora.mm_out') }}</span>
+                    <select class="nx-sel" :value="mm.out" @change="(e) => setMm('out', e.target.value)">
+                        <option value="">{{ t('view.settings.aurora.mm_none') }}</option>
+                        <option v-for="d in audioDevices.render" :key="d.id" :value="d.id">{{ d.name }}</option>
+                    </select>
+                </label>
+                <label class="flex items-center gap-2 text-sm">
+                    <span class="w-56">{{ t('view.settings.aurora.mm_music_vol') }} {{ Math.round(mm.musicVol * 100) }}%</span>
+                    <input type="range" min="0" max="1.5" step="0.05" :value="mm.musicVol" class="flex-1" @input="(e) => setMm('musicVol', Number(e.target.value))" />
+                </label>
+                <label class="flex items-center gap-2 text-sm">
+                    <span class="w-56">{{ t('view.settings.aurora.mm_mic_vol') }} {{ Math.round(mm.micVol * 100) }}%</span>
+                    <input type="range" min="0" max="1.5" step="0.05" :value="mm.micVol" class="flex-1" @input="(e) => setMm('micVol', Number(e.target.value))" />
+                </label>
+                <div class="flex items-center gap-2">
+                    <Button size="sm" @click="toggleMusicMic">{{ mm.running ? t('view.settings.aurora.mm_stop') : t('view.settings.aurora.mm_start') }}</Button>
+                    <Button size="sm" variant="outline" @click="refreshAudioLists">{{ t('view.settings.aurora.mm_refresh') }}</Button>
+                    <span v-if="mm.error" class="text-xs text-destructive">{{ mm.error }}</span>
+                </div>
+            </div>
+        </SettingsGroup>
         <SettingsGroup :title="t('view.settings.aurora.accent')">
             <SettingsItem :label="t('view.settings.aurora.accent_desc')">
                 <div class="flex flex-wrap items-center gap-2">
@@ -337,6 +376,7 @@
         setChatboxNotify,
         setChatboxTemplate
     } from '@/services/auroraChatbox';
+    import { audioApps, audioDevices, mm, refreshAudioLists, setMm, toggleMusicMic } from '@/services/auroraMusicMic';
     import { ACCENT_PRESETS, accent, setAccent } from '@/services/auroraAccent';
     import { addAlarm, alarms, removeAlarm, ringAlarm } from '@/services/auroraAlarms';
     import { buildVoicePack, pack } from '@/services/auroraLines';
@@ -473,6 +513,19 @@
     }
 
     onMounted(() => {
+        refreshAudioLists();
         initChatbox();
     });
 </script>
+
+<style scoped>
+.nx-sel {
+    flex: 1;
+    min-width: 0;
+    height: 2rem;
+    padding: 0 0.5rem;
+    color: var(--foreground);
+    background: var(--card);
+    border: 1px solid var(--border);
+}
+</style>

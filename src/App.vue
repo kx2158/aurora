@@ -38,7 +38,8 @@
     import { createGlobalStores } from './stores';
     import { initNoty } from './plugins/noty';
     import { initChatbox } from './services/auroraChatbox';
-    import { initAccent } from './services/auroraAccent';
+    import { initMusicMic } from './services/auroraMusicMic';
+import { initAccent } from './services/auroraAccent';
 import { initAlarms } from './services/auroraAlarms';
 import { initVrBridge, neonCommand } from './services/auroraVrBridge';
 import { initIntegrations } from './services/auroraIntegrations';
@@ -68,6 +69,7 @@ import { initIntegrations } from './services/auroraIntegrations';
     initChatbox();
     initIntegrations();
     initAccent();
+    initMusicMic();
     initAlarms();
     initVrBridge();
 

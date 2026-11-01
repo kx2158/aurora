@@ -3,53 +3,53 @@
  * Change --aurora-pink and --aurora-cyan to re-tint the whole theme.
  */
 :root[data-theme='aurora'] {
-    --aurora-pink: oklch(0.67 0.26 357);
-    --aurora-pink-soft: oklch(0.67 0.26 357 / 35%);
-    --aurora-cyan: oklch(0.97 0.01 340);
+    --aurora-pink: oklch(0.67 0.26 calc(var(--ah, 340) + 17));
+    --aurora-pink-soft: oklch(0.67 0.26 calc(var(--ah, 340) + 17) / 35%);
+    --aurora-cyan: oklch(0.97 0.01 var(--ah, 340));
 
     --radius: 0.75rem;
 
-    --background: oklch(0.1 0.02 320);
-    --foreground: oklch(0.97 0.01 340);
-    --card: oklch(0.14 0.03 322);
-    --card-foreground: oklch(0.97 0.01 340);
-    --profile-card: oklch(0.2 0.03 330 / 80%);
-    --popover: oklch(0.185 0.03 330);
-    --popover-foreground: oklch(0.97 0.01 340);
+    --background: oklch(0.1 0.02 calc(var(--ah, 340) + -20));
+    --foreground: oklch(0.97 0.01 var(--ah, 340));
+    --card: oklch(0.14 0.03 calc(var(--ah, 340) + -18));
+    --card-foreground: oklch(0.97 0.01 var(--ah, 340));
+    --profile-card: oklch(0.2 0.03 calc(var(--ah, 340) + -10) / 80%);
+    --popover: oklch(0.185 0.03 calc(var(--ah, 340) + -10));
+    --popover-foreground: oklch(0.97 0.01 var(--ah, 340));
     --primary: var(--aurora-pink);
-    --primary-foreground: oklch(0.14 0.03 350);
-    --secondary: oklch(0.225 0.03 330);
-    --secondary-foreground: oklch(0.97 0.01 340);
-    --muted: oklch(0.21 0.028 330);
-    --muted-foreground: oklch(0.72 0.03 340);
-    --accent: oklch(0.27 0.07 345);
-    --accent-foreground: oklch(0.97 0.01 340);
+    --primary-foreground: oklch(0.14 0.03 calc(var(--ah, 340) + 10));
+    --secondary: oklch(0.225 0.03 calc(var(--ah, 340) + -10));
+    --secondary-foreground: oklch(0.97 0.01 var(--ah, 340));
+    --muted: oklch(0.21 0.028 calc(var(--ah, 340) + -10));
+    --muted-foreground: oklch(0.72 0.03 var(--ah, 340));
+    --accent: oklch(0.27 0.07 calc(var(--ah, 340) + 5));
+    --accent-foreground: oklch(0.97 0.01 var(--ah, 340));
     --destructive: oklch(0.68 0.2 25);
-    --destructive-foreground: oklch(0.97 0.01 340);
-    --border: oklch(0.7 0.24 353 / 16%);
-    --input: oklch(0.7 0.24 353 / 22%);
+    --destructive-foreground: oklch(0.97 0.01 var(--ah, 340));
+    --border: oklch(0.7 0.24 calc(var(--ah, 340) + 13) / 16%);
+    --input: oklch(0.7 0.24 calc(var(--ah, 340) + 13) / 22%);
     --ring: var(--aurora-pink);
 
     --chart-1: var(--aurora-pink);
     --chart-2: var(--aurora-cyan);
-    --chart-3: oklch(0.72 0.18 300);
+    --chart-3: oklch(0.72 0.18 calc(var(--ah, 340) + -40));
     --chart-4: oklch(0.85 0.15 90);
     --chart-5: oklch(0.8 0.2 145);
 
-    --sidebar: oklch(0.095 0.02 320);
-    --sidebar-foreground: oklch(0.97 0.01 340);
+    --sidebar: oklch(0.095 0.02 calc(var(--ah, 340) + -20));
+    --sidebar-foreground: oklch(0.97 0.01 var(--ah, 340));
     --sidebar-primary: var(--aurora-pink);
-    --sidebar-primary-foreground: oklch(0.14 0.03 350);
-    --sidebar-accent: oklch(0.24 0.06 345);
-    --sidebar-accent-foreground: oklch(0.97 0.01 340);
-    --sidebar-border: oklch(0.7 0.24 353 / 14%);
+    --sidebar-primary-foreground: oklch(0.14 0.03 calc(var(--ah, 340) + 10));
+    --sidebar-accent: oklch(0.24 0.06 calc(var(--ah, 340) + 5));
+    --sidebar-accent-foreground: oklch(0.97 0.01 var(--ah, 340));
+    --sidebar-border: oklch(0.7 0.24 calc(var(--ah, 340) + 13) / 14%);
     --sidebar-ring: var(--aurora-pink);
 }
 
 /* soft pink and cyan glow behind the whole app */
 :root[data-theme='aurora'] body {
     background-image:
-        radial-gradient(55rem 38rem at 6% -12%, oklch(0.55 0.22 353 / 22%), transparent 60%),
+        radial-gradient(55rem 38rem at 6% -12%, oklch(0.55 0.22 calc(var(--ah, 340) + 13) / 22%), transparent 60%),
         radial-gradient(48rem 34rem at 104% 112%, oklch(0.6 0.12 205 / 14%), transparent 60%);
     background-attachment: fixed;
 }
@@ -61,7 +61,7 @@
     border-color: var(--border);
     box-shadow:
         0 1px 0 oklch(1 0 0 / 5%) inset,
-        0 0 0 1px oklch(0.7 0.24 353 / 6%),
+        0 0 0 1px oklch(0.7 0.24 calc(var(--ah, 340) + 13) / 6%),
         0 14px 36px -16px oklch(0 0 0 / 70%);
 }
 
@@ -72,7 +72,7 @@
 
 /* primary buttons glow a little */
 :root[data-theme='aurora'] .bg-primary {
-    box-shadow: 0 0 18px -5px oklch(0.7 0.24 353 / 55%);
+    box-shadow: 0 0 18px -5px oklch(0.7 0.24 calc(var(--ah, 340) + 13) / 55%);
 }
 
 :root[data-theme='aurora'] [data-slot='button'],
@@ -88,21 +88,21 @@
 :root[data-theme='aurora'] [data-slot='input']:focus-visible,
 :root[data-theme='aurora'] [data-slot='select-trigger']:focus-visible {
     border-color: var(--ring);
-    box-shadow: 0 0 0 3px oklch(0.7 0.24 353 / 28%);
+    box-shadow: 0 0 0 3px oklch(0.7 0.24 calc(var(--ah, 340) + 13) / 28%);
 }
 
 :root[data-theme='aurora'] [data-slot='table-row']:hover {
-    background-color: oklch(0.7 0.24 353 / 7%);
+    background-color: oklch(0.7 0.24 calc(var(--ah, 340) + 13) / 7%);
 }
 
 :root[data-theme='aurora'] ::selection {
-    background: oklch(0.7 0.24 353 / 40%);
+    background: oklch(0.7 0.24 calc(var(--ah, 340) + 13) / 40%);
 }
 
 :root[data-theme='aurora'] ::-webkit-scrollbar-thumb {
-    background-color: oklch(0.7 0.24 353 / 28%);
+    background-color: oklch(0.7 0.24 calc(var(--ah, 340) + 13) / 28%);
 }
 
 :root[data-theme='aurora'] ::-webkit-scrollbar-thumb:hover {
-    background-color: oklch(0.7 0.24 353 / 50%);
+    background-color: oklch(0.7 0.24 calc(var(--ah, 340) + 13) / 50%);
 }

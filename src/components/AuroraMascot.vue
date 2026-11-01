@@ -1,12 +1,13 @@
 <template>
     <div class="aurora-mascot" :class="{ speaking: isSpeaking }" :style="{ width: size + 'px', height: size + 'px' }">
-        <img :src="src" alt="Neon" draggable="false" />
+        <img :src="src" alt="Neon" draggable="false" :style="{ filter: mascotTint }" />
     </div>
 </template>
 
 <script setup>
     import { computed, ref, watch } from 'vue';
 
+    import { mascotTint } from '@/services/auroraAccent';
     import { emotion, mouthLevel, speaking } from '@/services/auroraVoice';
     import icon from '../../images/aurora/icon.png';
 

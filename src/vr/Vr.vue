@@ -3,13 +3,17 @@
         <div class="wrist" :class="{ background: config && config.backgroundEnabled }">
             <div v-if="alarmBanner" class="neon-alarm">ALARM {{ alarmBanner.time }} - {{ alarmBanner.label }}</div>
             <div class="neon-clock">
-                <img class="neon-face" :class="{ pop: neon.pop }" :src="neonFace" alt="" />
+                <img class="neon-face" :class="{ pop: neon.pop }" :src="neonFace" :style="{ filter: neonTint }" alt="" />
                 <div class="neon-clock-day">{{ clock.day }}</div>
                 <div class="neon-clock-time">
                     {{ clock.hm }}<span class="neon-clock-sec">{{ clock.sec }}</span>
                 </div>
                 <div class="neon-clock-date">{{ clock.date }}</div>
                 <div class="neon-clock-bar"></div>
+            </div>
+            <div class="neon-wmusic">
+                <span class="neon-music-eq" :class="{ live: neonState.playing }"><i></i><i></i><i></i><i></i><i></i></span>
+                <span class="neon-wmusic-text">{{ musicLine }}</span>
             </div>
             <div class="neon-chips">
                 <span class="neon-chip" :class="{ on: neonState.chatbox }">CHAT {{ neonState.chatbox ? 'ON' : 'OFF' }}</span>
@@ -1370,6 +1374,15 @@
                     <span v-if="b.state !== undefined" class="neon-tile-state">{{ b.state }}</span>
                 </button>
             </div>
+            <div class="neon-music">
+                <button type="button" class="neon-mbtn" @click="dashPress('mPrev')">&#9198;</button>
+                <button type="button" class="neon-mbtn big" @click="dashPress('mPlay')">&#9199;</button>
+                <button type="button" class="neon-mbtn" @click="dashPress('mNext')">&#9197;</button>
+                <div class="neon-music-text">
+                    <span class="neon-music-eq" :class="{ live: neonState.playing }"><i></i><i></i><i></i><i></i><i></i></span>
+                    <span class="neon-music-title">{{ musicLine }}</span>
+                </div>
+            </div>
             <div class="neon-dash-bubble">&gt; {{ neonState.preview || 'chatbox is empty' }}</div>
         </div>
         <!-- HMD Overlay -->
@@ -1571,10 +1584,27 @@
         neonBySlug[path.split('/').pop().replace('.png', '')] = url;
     }
     const neon = reactive({ face: 'neutral', pop: false });
-    const neonState = reactive({ chatbox: false, voice: true, sounds: true, afk: false, music: false, preview: '', nextAlarm: '' });
+    const neonState = reactive({ accent: '#ff3d9a', song: '', artist: '', playing: false, chatbox: false, voice: true, sounds: true, afk: false, music: false, preview: '', nextAlarm: '' });
     function neonStateUpdate(json) {
         Object.assign(neonState, JSON.parse(json));
+        document.documentElement.style.setProperty('--vr-accent', neonState.accent || '#ff3d9a');
     }
+    // turns the pink Neon picture into the accent colour
+    const neonTint = computed(() => {
+        const hex = String(neonState.accent || '#ff3d9a');
+        const n = parseInt(hex.slice(1), 16);
+        const r = ((n >> 16) & 255) / 255;
+        const g = ((n >> 8) & 255) / 255;
+        const b = (n & 255) / 255;
+        const max = Math.max(r, g, b);
+        const d = max - Math.min(r, g, b);
+        let h = 0;
+        if (d) {
+            h = max === r ? ((g - b) / d) % 6 : max === g ? (b - r) / d + 2 : (r - g) / d + 4;
+            h = (h * 60 + 360) % 360;
+        }
+        return `hue-rotate(${Math.round(h - 330)}deg)`;
+    });
     function dashPress(cmd) {
         try {
             AppApiVr.NeonCommand(cmd);
@@ -1598,6 +1628,9 @@
         { cmd: 'voice', icon: '\u263A', label: 'NEON VOICE', state: onOff(neonState.voice), on: neonState.voice },
         { cmd: 'sounds', icon: '\u266B', label: 'VR BEEPS', state: onOff(neonState.sounds), on: neonState.sounds }
     ]);
+    const musicLine = computed(() =>
+        neonState.song ? `${neonState.artist ? neonState.artist + ' - ' : ''}${neonState.song}` : 'nothing playing'
+    );
     function neonAlarmStop() {
         alarmBanner.value = null;
         clearTimeout(alarmTimer);

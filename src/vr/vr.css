@@ -1,3 +1,9 @@
+/* accent colour, changed live from the Neon settings */
+:root {
+    --vr-accent: #ff3d9a;
+    --vr-accent-light: color-mix(in srgb, var(--vr-accent) 60%, white);
+}
+
 @import 'tailwindcss';
 
 @import '../styles/noty.css';
@@ -39,12 +45,12 @@ body {
     --vr-bg-surface: #120b1d;
     --vr-text: #f6eef6;
     --vr-text-secondary: #d9b8cf;
-    --vr-text-muted: #ff3d9a;
+    --vr-text-muted: var(--vr-accent);
     --vr-text-name: #f6eef6;
     --vr-text-friend: #ffffff;
-    --vr-text-favorite: #ff7ac2;
-    --vr-border: rgba(255, 61, 154, 0.2);
-    --vr-border-strong: #ff3d9a;
+    --vr-text-favorite: var(--vr-accent-light);
+    --vr-border: color-mix(in srgb, var(--vr-accent) 20%, transparent);
+    --vr-border-strong: var(--vr-accent);
     --vr-radius: 0;
 
     --vr-font-xs: 14px;
@@ -611,7 +617,7 @@ i.x-user-status.busy {
     top: 0;
     height: 5px;
     z-index: 2;
-    background: repeating-linear-gradient(135deg, #ff3d9a 0, #ff3d9a 10px, #000 10px, #000 20px);
+    background: repeating-linear-gradient(135deg, var(--vr-accent) 0, var(--vr-accent) 10px, #000 10px, #000 20px);
 }
 
 .wrist::after {
@@ -633,7 +639,7 @@ i.x-user-status.busy {
 }
 
 .x-friend-item.friend {
-    border-left-color: #ff3d9a;
+    border-left-color: var(--vr-accent);
 }
 
 .x-friend-item.favorite {
@@ -670,14 +676,14 @@ i.x-user-status.busy {
 .noty_theme__sunset.noty_type__success {
     color: #ffffff;
     background: #07050d;
-    border: 2px solid #ff3d9a;
+    border: 2px solid var(--vr-accent);
 }
 
 .noty_theme__relax.noty_type__warning,
 .noty_theme__sunset.noty_type__warning {
     color: #ffffff;
     background: #07050d;
-    border: 2px solid #ff7ac2;
+    border: 2px solid var(--vr-accent-light);
 }
 
 .noty_theme__relax.noty_type__error,
@@ -695,7 +701,7 @@ i.x-user-status.busy {
 /* the HUD feed over the game view */
 .hud-feed .item {
     color: #ffffff;
-    text-shadow: 0 0 6px #ff3d9a, 0 0 3px #000, 0 0 3px #000, 0 0 3px #000;
+    text-shadow: 0 0 6px var(--vr-accent), 0 0 3px #000, 0 0 3px #000, 0 0 3px #000;
 }
 
 /* ---- Neon wrist clock: glowing, see-through, day / date / time ---- */
@@ -712,9 +718,9 @@ i.x-user-status.busy {
     text-align: center;
     font-family: 'Share Tech Mono', ui-monospace, monospace;
     color: #ffffff;
-    background: linear-gradient(180deg, rgba(255, 61, 154, 0.16), rgba(255, 61, 154, 0.03));
-    border: 1px solid rgba(255, 61, 154, 0.7);
-    box-shadow: 0 0 18px rgba(255, 61, 154, 0.45), inset 0 0 22px rgba(255, 61, 154, 0.18);
+    background: linear-gradient(180deg, color-mix(in srgb, var(--vr-accent) 16%, transparent), color-mix(in srgb, var(--vr-accent) 3%, transparent));
+    border: 1px solid color-mix(in srgb, var(--vr-accent) 70%, transparent);
+    box-shadow: 0 0 18px color-mix(in srgb, var(--vr-accent) 45%, transparent), inset 0 0 22px color-mix(in srgb, var(--vr-accent) 18%, transparent);
     clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px));
 }
 
@@ -722,8 +728,8 @@ i.x-user-status.busy {
     font-size: 15px;
     letter-spacing: 0.4em;
     text-transform: uppercase;
-    color: #ff3d9a;
-    text-shadow: 0 0 8px rgba(255, 61, 154, 0.9);
+    color: var(--vr-accent);
+    text-shadow: 0 0 8px color-mix(in srgb, var(--vr-accent) 90%, transparent);
 }
 
 .neon-clock-time {
@@ -731,14 +737,14 @@ i.x-user-status.busy {
     line-height: 1.05;
     font-weight: 700;
     letter-spacing: 0.06em;
-    text-shadow: 0 0 6px #fff, 0 0 18px #ff3d9a, 0 0 36px rgba(255, 61, 154, 0.8);
+    text-shadow: 0 0 6px #fff, 0 0 18px var(--vr-accent), 0 0 36px color-mix(in srgb, var(--vr-accent) 80%, transparent);
 }
 
 .neon-clock-sec {
     font-size: 28px;
     letter-spacing: 0.02em;
-    color: #ff7fbf;
-    text-shadow: 0 0 10px rgba(255, 61, 154, 0.9);
+    color: var(--vr-accent-light);
+    text-shadow: 0 0 10px color-mix(in srgb, var(--vr-accent) 90%, transparent);
 }
 
 .neon-clock-date {
@@ -754,8 +760,8 @@ i.x-user-status.busy {
     right: 24px;
     bottom: 4px;
     height: 2px;
-    background: linear-gradient(90deg, transparent, #ff3d9a, transparent);
-    box-shadow: 0 0 10px #ff3d9a;
+    background: linear-gradient(90deg, transparent, var(--vr-accent), transparent);
+    box-shadow: 0 0 10px var(--vr-accent);
 }
 
 .wrist .x-container {
@@ -770,8 +776,8 @@ i.x-user-status.busy {
     width: 64px;
     height: 64px;
     object-fit: cover;
-    border: 2px solid #ff3d9a;
-    box-shadow: 0 0 12px rgba(255, 61, 154, 0.7);
+    border: 2px solid var(--vr-accent);
+    box-shadow: 0 0 12px color-mix(in srgb, var(--vr-accent) 70%, transparent);
     clip-path: polygon(8px 0, calc(100% - 8px) 0, 100% 8px, 100% calc(100% - 8px), calc(100% - 8px) 100%, 8px 100%, 0 calc(100% - 8px), 0 8px);
 }
 .neon-face.pop {
@@ -784,7 +790,7 @@ i.x-user-status.busy {
     }
     50% {
         transform: scale(1.18) rotate(4deg);
-        box-shadow: 0 0 26px #ff3d9a;
+        box-shadow: 0 0 26px var(--vr-accent);
     }
     100% {
         transform: scale(1) rotate(0);
@@ -802,8 +808,8 @@ i.x-user-status.busy {
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: #05030a;
-    background: #ff3d9a;
-    box-shadow: 0 0 24px #ff3d9a;
+    background: var(--vr-accent);
+    box-shadow: 0 0 24px var(--vr-accent);
     animation: neon-blink 0.7s steps(2) infinite;
 }
 @keyframes neon-blink {
@@ -824,15 +830,15 @@ i.x-user-status.busy {
     padding: 28px 32px;
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 10px;
     color: #fff;
     font-family: 'Share Tech Mono', ui-monospace, monospace;
     background:
-        linear-gradient(rgba(255, 61, 154, 0.07) 1px, transparent 1px) 0 0 / 48px 48px,
-        linear-gradient(90deg, rgba(255, 61, 154, 0.07) 1px, transparent 1px) 0 0 / 48px 48px,
+        linear-gradient(color-mix(in srgb, var(--vr-accent) 7%, transparent) 1px, transparent 1px) 0 0 / 48px 48px,
+        linear-gradient(90deg, color-mix(in srgb, var(--vr-accent) 7%, transparent) 1px, transparent 1px) 0 0 / 48px 48px,
         linear-gradient(180deg, #0b0614, #05030a);
-    border: 3px solid #ff3d9a;
-    box-shadow: inset 0 0 60px rgba(255, 61, 154, 0.25);
+    border: 3px solid var(--vr-accent);
+    box-shadow: inset 0 0 60px color-mix(in srgb, var(--vr-accent) 25%, transparent);
     clip-path: polygon(0 0, calc(100% - 40px) 0, 100% 40px, 100% 100%, 40px 100%, 0 calc(100% - 40px));
 }
 .neon-dash::before {
@@ -842,7 +848,7 @@ i.x-user-status.busy {
     right: 0;
     top: 0;
     height: 12px;
-    background: repeating-linear-gradient(135deg, #ff3d9a 0, #ff3d9a 20px, #000 20px, #000 40px);
+    background: repeating-linear-gradient(135deg, var(--vr-accent) 0, var(--vr-accent) 20px, #000 20px, #000 40px);
 }
 .neon-dash-head {
     display: flex;
@@ -855,15 +861,15 @@ i.x-user-status.busy {
     font-weight: 700;
     letter-spacing: 0.12em;
     color: #fff;
-    text-shadow: 4px 0 #ff3d9a, -4px 0 rgba(255, 255, 255, 0.4);
+    text-shadow: 4px 0 var(--vr-accent), -4px 0 rgba(255, 255, 255, 0.4);
 }
 .neon-dash-clock {
     font-size: 64px;
-    text-shadow: 0 0 20px #ff3d9a;
+    text-shadow: 0 0 20px var(--vr-accent);
 }
 .neon-dash-clock small {
     font-size: 30px;
-    color: #ff7fbf;
+    color: var(--vr-accent-light);
 }
 .neon-dash-sub {
     display: flex;
@@ -871,7 +877,7 @@ i.x-user-status.busy {
     font-size: 26px;
     letter-spacing: 0.18em;
     text-transform: uppercase;
-    color: #ff7fbf;
+    color: var(--vr-accent-light);
 }
 .neon-dash-grid {
     flex: 1;
@@ -890,26 +896,26 @@ i.x-user-status.busy {
     color: #fff;
     font: inherit;
     cursor: pointer;
-    background: rgba(255, 61, 154, 0.08);
-    border: 2px solid rgba(255, 61, 154, 0.6);
+    background: color-mix(in srgb, var(--vr-accent) 8%, transparent);
+    border: 2px solid color-mix(in srgb, var(--vr-accent) 60%, transparent);
     clip-path: polygon(0 0, calc(100% - 22px) 0, 100% 22px, 100% 100%, 22px 100%, 0 calc(100% - 22px));
     transition:
         background 0.08s,
         transform 0.08s;
 }
 .neon-tile:hover {
-    background: rgba(255, 61, 154, 0.35);
+    background: color-mix(in srgb, var(--vr-accent) 35%, transparent);
     border-color: #fff;
-    box-shadow: 0 0 30px #ff3d9a;
+    box-shadow: 0 0 30px var(--vr-accent);
     transform: scale(1.04);
 }
 .neon-tile:active {
-    background: #ff3d9a;
+    background: var(--vr-accent);
     color: #05030a;
 }
 .neon-tile.on {
-    background: rgba(255, 61, 154, 0.28);
-    border-color: #ff3d9a;
+    background: color-mix(in srgb, var(--vr-accent) 28%, transparent);
+    border-color: var(--vr-accent);
 }
 .neon-tile.warn {
     border-color: #ffffff;
@@ -918,7 +924,7 @@ i.x-user-status.busy {
 .neon-tile-icon {
     font-size: 78px;
     line-height: 1;
-    text-shadow: 0 0 18px #ff3d9a;
+    text-shadow: 0 0 18px var(--vr-accent);
 }
 .neon-tile-label {
     font-size: 26px;
@@ -928,21 +934,21 @@ i.x-user-status.busy {
 .neon-tile-state {
     font-size: 24px;
     padding: 0 12px;
-    background: #ff3d9a;
+    background: var(--vr-accent);
     color: #05030a;
     font-weight: 700;
 }
 .neon-tile:not(.on) .neon-tile-state {
     background: transparent;
-    color: #ff7fbf;
-    border: 1px solid #ff7fbf;
+    color: var(--vr-accent-light);
+    border: 1px solid var(--vr-accent-light);
 }
 .neon-dash-bubble {
-    min-height: 54px;
-    padding: 10px 16px;
-    font-size: 26px;
+    min-height: 40px;
+    padding: 6px 16px;
+    font-size: 22px;
     background: #05030a;
-    border: 2px solid #ff3d9a;
+    border: 2px solid var(--vr-accent);
     color: #fff;
     overflow: hidden;
     white-space: nowrap;
@@ -963,14 +969,14 @@ i.x-user-status.busy {
     font-family: 'Share Tech Mono', ui-monospace, monospace;
     font-size: 15px;
     letter-spacing: 0.08em;
-    color: #ff7fbf;
-    border: 1px solid rgba(255, 61, 154, 0.6);
-    background: rgba(255, 61, 154, 0.08);
+    color: var(--vr-accent-light);
+    border: 1px solid color-mix(in srgb, var(--vr-accent) 60%, transparent);
+    background: color-mix(in srgb, var(--vr-accent) 8%, transparent);
 }
 .neon-chip.on {
     color: #05030a;
-    background: #ff3d9a;
-    box-shadow: 0 0 10px rgba(255, 61, 154, 0.8);
+    background: var(--vr-accent);
+    box-shadow: 0 0 10px color-mix(in srgb, var(--vr-accent) 80%, transparent);
 }
 .neon-ticker {
     position: relative;
@@ -979,12 +985,259 @@ i.x-user-status.busy {
     justify-content: space-between;
     margin: 6px 14px 0;
     padding-top: 3px;
-    border-top: 1px dashed rgba(255, 61, 154, 0.5);
+    border-top: 1px dashed color-mix(in srgb, var(--vr-accent) 50%, transparent);
     font-family: 'Share Tech Mono', ui-monospace, monospace;
     font-size: 12px;
     letter-spacing: 0.2em;
     color: rgba(255, 255, 255, 0.55);
 }
 .wrist .x-friend-item {
-    background: linear-gradient(90deg, rgba(255, 61, 154, 0.1), transparent 70%);
+    background: linear-gradient(90deg, color-mix(in srgb, var(--vr-accent) 10%, transparent), transparent 70%);
+}
+
+/* ---- bloom: everything glows like a neon sign ---- */
+.wrist {
+    background:
+        radial-gradient(120% 50% at 50% 0%, color-mix(in srgb, var(--vr-accent) 22%, transparent), transparent 70%),
+        radial-gradient(90% 40% at 50% 100%, color-mix(in srgb, var(--vr-accent) 16%, transparent), transparent 70%),
+        linear-gradient(180deg, rgba(10, 4, 18, 0.55), rgba(5, 3, 10, 0.78));
+    border: 3px solid var(--vr-accent);
+    box-shadow:
+        inset 0 0 3px #fff,
+        inset 0 0 14px var(--vr-accent),
+        inset 0 0 38px color-mix(in srgb, var(--vr-accent) 70%, transparent),
+        inset 0 0 80px color-mix(in srgb, var(--vr-accent) 35%, transparent);
+    animation: neon-border 3.2s ease-in-out infinite alternate;
+}
+@keyframes neon-border {
+    from {
+        box-shadow:
+            inset 0 0 3px #fff,
+            inset 0 0 12px var(--vr-accent),
+            inset 0 0 30px color-mix(in srgb, var(--vr-accent) 60%, transparent),
+            inset 0 0 64px color-mix(in srgb, var(--vr-accent) 28%, transparent);
+    }
+    to {
+        box-shadow:
+            inset 0 0 4px #fff,
+            inset 0 0 18px var(--vr-accent),
+            inset 0 0 46px color-mix(in srgb, var(--vr-accent) 80%, transparent),
+            inset 0 0 96px color-mix(in srgb, var(--vr-accent) 42%, transparent);
+    }
+}
+
+.neon-clock {
+    border: 2px solid var(--vr-accent);
+    box-shadow:
+        0 0 4px #fff,
+        0 0 14px var(--vr-accent),
+        0 0 34px var(--vr-accent),
+        inset 0 0 4px #fff,
+        inset 0 0 26px color-mix(in srgb, var(--vr-accent) 55%, transparent);
+}
+.neon-clock-time {
+    text-shadow:
+        0 0 2px #fff,
+        0 0 8px #fff,
+        0 0 16px var(--vr-accent),
+        0 0 32px var(--vr-accent),
+        0 0 60px var(--vr-accent),
+        0 0 100px var(--vr-accent);
+}
+.neon-clock-day {
+    text-shadow:
+        0 0 3px #fff,
+        0 0 10px var(--vr-accent),
+        0 0 24px var(--vr-accent),
+        0 0 48px var(--vr-accent);
+    animation: neon-flicker 5s linear infinite;
+}
+.neon-clock-date {
+    text-shadow:
+        0 0 4px #fff,
+        0 0 12px var(--vr-accent),
+        0 0 26px color-mix(in srgb, var(--vr-accent) 70%, transparent);
+}
+@keyframes neon-flicker {
+    0%,
+    18%,
+    22%,
+    62%,
+    64%,
+    100% {
+        opacity: 1;
+    }
+    20%,
+    63% {
+        opacity: 0.35;
+    }
+}
+.neon-clock-bar {
+    height: 3px;
+    background: linear-gradient(90deg, transparent, var(--vr-accent), #fff, var(--vr-accent), transparent);
+    background-size: 200% 100%;
+    animation: neon-sweep 2.4s linear infinite;
+    box-shadow:
+        0 0 8px var(--vr-accent),
+        0 0 22px var(--vr-accent);
+}
+@keyframes neon-sweep {
+    from {
+        background-position: 200% 0;
+    }
+    to {
+        background-position: -200% 0;
+    }
+}
+.neon-chip {
+    text-shadow: 0 0 8px var(--vr-accent);
+    box-shadow:
+        inset 0 0 8px color-mix(in srgb, var(--vr-accent) 35%, transparent),
+        0 0 8px color-mix(in srgb, var(--vr-accent) 45%, transparent);
+}
+.neon-chip.on {
+    text-shadow: none;
+    box-shadow:
+        0 0 6px var(--vr-accent),
+        0 0 18px var(--vr-accent),
+        0 0 36px color-mix(in srgb, var(--vr-accent) 70%, transparent);
+}
+.wrist .x-friend-item .time {
+    text-shadow: 0 0 10px var(--vr-accent);
+}
+.wrist .x-friend-item .name {
+    text-shadow: 0 0 8px color-mix(in srgb, var(--vr-accent) 70%, transparent);
+}
+.neon-face {
+    box-shadow:
+        0 0 6px #fff,
+        0 0 18px var(--vr-accent),
+        0 0 38px var(--vr-accent);
+}
+
+/* equalizer bars, wrist music line, dashboard music bar */
+.neon-wmusic {
+    position: relative;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 6px 14px 0;
+    padding: 3px 10px;
+    font-family: 'Share Tech Mono', ui-monospace, monospace;
+    font-size: 17px;
+    letter-spacing: 0.06em;
+    color: #fff;
+    background: color-mix(in srgb, var(--vr-accent) 10%, transparent);
+    border-left: 3px solid var(--vr-accent);
+    text-shadow: 0 0 8px var(--vr-accent);
+    overflow: hidden;
+}
+.neon-wmusic-text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.neon-music-eq {
+    display: inline-flex;
+    align-items: flex-end;
+    gap: 3px;
+    height: 20px;
+    flex-shrink: 0;
+}
+.neon-music-eq i {
+    display: block;
+    width: 4px;
+    height: 4px;
+    background: var(--vr-accent);
+    box-shadow: 0 0 8px var(--vr-accent);
+}
+.neon-music-eq.live i {
+    animation: neon-eq 0.7s ease-in-out infinite alternate;
+}
+.neon-music-eq.live i:nth-child(2) {
+    animation-duration: 0.45s;
+}
+.neon-music-eq.live i:nth-child(3) {
+    animation-duration: 0.6s;
+}
+.neon-music-eq.live i:nth-child(4) {
+    animation-duration: 0.35s;
+}
+.neon-music-eq.live i:nth-child(5) {
+    animation-duration: 0.55s;
+}
+@keyframes neon-eq {
+    from {
+        height: 3px;
+    }
+    to {
+        height: 20px;
+    }
+}
+
+.neon-music {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    height: 110px;
+    flex-shrink: 0;
+}
+.neon-mbtn {
+    width: 110px;
+    height: 100%;
+    font-size: 54px;
+    color: #fff;
+    cursor: pointer;
+    background: color-mix(in srgb, var(--vr-accent) 12%, transparent);
+    border: 2px solid var(--vr-accent);
+    text-shadow: 0 0 14px var(--vr-accent);
+    clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px));
+}
+.neon-mbtn.big {
+    width: 150px;
+    background: color-mix(in srgb, var(--vr-accent) 30%, transparent);
+}
+.neon-mbtn:hover {
+    background: color-mix(in srgb, var(--vr-accent) 45%, transparent);
+    box-shadow: 0 0 30px var(--vr-accent);
+    border-color: #fff;
+}
+.neon-mbtn:active {
+    background: var(--vr-accent);
+    color: #05030a;
+}
+.neon-music-text {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-size: 28px;
+    color: #fff;
+    text-shadow: 0 0 10px var(--vr-accent);
+}
+.neon-music-title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.neon-dash .neon-music-eq {
+    height: 46px;
+}
+.neon-dash .neon-music-eq i {
+    width: 8px;
+}
+.neon-dash-title,
+.neon-tile-icon,
+.neon-dash-clock {
+    text-shadow:
+        0 0 4px #fff,
+        0 0 16px var(--vr-accent),
+        0 0 40px var(--vr-accent);
+}
+.neon-tile {
+    box-shadow:
+        inset 0 0 18px color-mix(in srgb, var(--vr-accent) 30%, transparent),
+        0 0 10px color-mix(in srgb, var(--vr-accent) 35%, transparent);
 }

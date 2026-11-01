@@ -39,6 +39,21 @@
                 <span class="text-xs text-muted-foreground">{{ chatboxPreview || '...' }}</span>
             </SettingsItem>
         </SettingsGroup>
+        <SettingsGroup :title="t('view.settings.aurora.accent')">
+            <SettingsItem :label="t('view.settings.aurora.accent_desc')">
+                <div class="flex flex-wrap items-center gap-2">
+                    <button
+                        v-for="p in ACCENT_PRESETS"
+                        :key="p.hex"
+                        type="button"
+                        :title="p.name"
+                        class="size-7 border-2"
+                        :style="{ background: p.hex, borderColor: accent === p.hex ? '#fff' : 'transparent', boxShadow: '0 0 10px ' + p.hex }"
+                        @click="setAccent(p.hex)"></button>
+                    <input type="color" :value="accent" class="h-8 w-10 cursor-pointer bg-transparent" @input="(e) => setAccent(e.target.value)" />
+                </div>
+            </SettingsItem>
+        </SettingsGroup>
         <SettingsGroup :title="t('view.settings.aurora.alarms')">
             <div class="flex flex-col gap-2">
                 <div v-for="a in alarms" :key="a.id" class="flex items-center gap-2">
@@ -322,6 +337,7 @@
         setChatboxNotify,
         setChatboxTemplate
     } from '@/services/auroraChatbox';
+    import { ACCENT_PRESETS, accent, setAccent } from '@/services/auroraAccent';
     import { addAlarm, alarms, removeAlarm, ringAlarm } from '@/services/auroraAlarms';
     import { buildVoicePack, pack } from '@/services/auroraLines';
     import { Slider } from '@/components/ui/slider';

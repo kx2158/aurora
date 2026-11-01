@@ -29,6 +29,45 @@ namespace VRCX
             return JsonSerializer.Serialize(result);
         }
 
+        /// <summary>
+        /// Play/pause, next or previous on whatever is playing music (Spotify, Apple Music, a browser, anything
+        /// that shows up in the Windows media controls). action: mPlay, mNext or mPrev.
+        /// </summary>
+        public void NeonMediaControl(string action)
+        {
+            try
+            {
+                _neonMedia ??= GlobalSystemMediaTransportControlsSessionManager.RequestAsync().GetAwaiter().GetResult();
+                GlobalSystemMediaTransportControlsSession target = null;
+                foreach (var s in _neonMedia.GetSessions())
+                {
+                    if (s.GetPlaybackInfo().PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing)
+                    {
+                        target = s;
+                        break;
+                    }
+                }
+                target ??= _neonMedia.GetCurrentSession();
+                if (target == null)
+                    return;
+                switch (action)
+                {
+                    case "mPlay":
+                        target.TryTogglePlayPauseAsync().GetAwaiter().GetResult();
+                        break;
+                    case "mNext":
+                        target.TrySkipNextAsync().GetAwaiter().GetResult();
+                        break;
+                    case "mPrev":
+                        target.TrySkipPreviousAsync().GetAwaiter().GetResult();
+                        break;
+                }
+            }
+            catch
+            {
+            }
+        }
+
         private static void AddWindow(Dictionary<string, object> result)
         {
             var hwnd = GetForegroundWindow();

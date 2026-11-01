@@ -1481,7 +1481,9 @@
                 "alarm_label": "What should Neon remind you about?",
                 "alarm_daily": "Daily",
                 "alarm_add": "Add alarm",
-                "alarm_test": "Test sound"
+                "alarm_test": "Test sound",
+                "accent": "Accent colour",
+                "accent_desc": "One colour for everything: the app, the VR panels and Neon herself."
             }
         },
         "home": {

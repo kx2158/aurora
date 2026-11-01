@@ -4,6 +4,8 @@
  */
 import { watch } from 'vue';
 
+import { accent } from './auroraAccent';
+import { sysInfo } from './auroraChatbox';
 import { addTimer, alarms, stopRinging } from './auroraAlarms';
 import configRepository from './config';
 import { chatboxEnabled, chatboxPreview, sendChatboxNow, setChatboxEnabled } from './auroraChatbox';
@@ -26,7 +28,11 @@ function pushState() {
                 afk: !!state.afk?.enabled,
                 music: !!state.medialink?.enabled,
                 preview: String(chatboxPreview.value || '').slice(0, 144),
-                nextAlarm: next
+                nextAlarm: next,
+                accent: accent.value,
+                song: sysInfo.value.song || '',
+                artist: sysInfo.value.artist || '',
+                playing: !!sysInfo.value.musicPlaying
             })
         );
     } catch {
@@ -68,6 +74,15 @@ export function neonCommand(command) {
         case 'music':
             setEnabled('medialink', !state.medialink?.enabled);
             break;
+        case 'mPrev':
+        case 'mPlay':
+        case 'mNext':
+            try {
+                AppApi.NeonMediaControl(String(command));
+            } catch (e) {
+                console.error(e);
+            }
+            break;
         case 'brb':
             sendChatboxNow('Be right back');
             break;
@@ -87,7 +102,7 @@ export async function initVrBridge() {
     started = true;
     vrSounds = await configRepository.getBool('Neon_vrSounds', true);
     const settings = useAuroraSettingsStore();
-    watch([chatboxEnabled, chatboxPreview, () => settings.mascotVoiceEnabled, alarms], pushState, { deep: true });
+    watch([accent, chatboxEnabled, chatboxPreview, () => settings.mascotVoiceEnabled, alarms], pushState, { deep: true });
     setInterval(pushState, 5000);
     pushState();
 }

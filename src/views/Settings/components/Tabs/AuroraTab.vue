@@ -150,6 +150,15 @@
                     @update:modelValue="(v) => setMascotFxValue(s.key, v[0])" />
             </SettingsItem>
 
+            <SettingsItem :label="t('view.settings.aurora.pack')" :description="t('view.settings.aurora.pack_desc')">
+                <div class="flex items-center gap-3">
+                    <span class="text-xs text-muted-foreground">{{ pack.done }} / {{ pack.total }}</span>
+                    <Button size="sm" variant="outline" :disabled="!mascotVoiceEnabled || pack.running" @click="startPack">
+                        {{ pack.running ? t('view.settings.aurora.pack_running') : t('view.settings.aurora.pack_build') }}
+                    </Button>
+                </div>
+            </SettingsItem>
+
             <SettingsItem :label="t('view.settings.aurora.test')">
                 <Button size="sm" variant="outline" :disabled="!mascotVoiceEnabled || busy" @click="testVoice">
                     {{ t('view.settings.aurora.test') }}
@@ -297,6 +306,7 @@
         setChatboxNotify,
         setChatboxTemplate
     } from '@/services/auroraChatbox';
+    import { buildVoicePack, pack } from '@/services/auroraLines';
     import { Slider } from '@/components/ui/slider';
     import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
     import { storeToRefs } from 'pinia';
@@ -419,6 +429,14 @@
         } finally {
             busy.value = false;
         }
+    }
+
+    function startPack() {
+        buildVoicePack({
+            voice: mascotVoice.value,
+            speed: mascotVoiceSpeed.value,
+            fx: { ...mascotFx.value }
+        });
     }
 
     onMounted(() => {

@@ -5,7 +5,7 @@
 </template>
 
 <script setup>
-    import { computed } from 'vue';
+    import { computed, ref, watch } from 'vue';
 
     import { emotion, mouthLevel, speaking } from '@/services/auroraVoice';
     import icon from '../../images/aurora/icon.png';
@@ -30,19 +30,41 @@
     // emotions whose own face already shows the mood, mouth sync would hide it
     const FIXED_FACE = ['angry', 'sad', 'sleepy', 'error', 'surprised'];
 
-    function mouthFor(level, mood) {
-        if (level < 0.08) return 'm-closed';
-        if (level < 0.2) return mood === 'joy' ? 'm-happy' : 'm-small';
-        if (level < 0.38) return mood === 'joy' ? 'm-laugh' : 'm-happy';
-        if (level < 0.6) return 'm-o';
-        return mood === 'joy' ? 'm-laugh' : 'm-grin';
+    // Mouth shapes are held for a while and need a clear change in loudness to switch,
+    // otherwise the face flickers. Only three shapes are used while talking.
+    const HOLD_MS = 170;
+    const mouth = ref('m-closed');
+    let lastSwitch = 0;
+    let smooth = 0;
+
+    function shapeFor(level, mood) {
+        const open = mood === 'joy' ? 'm-laugh' : 'm-happy';
+        if (level < 0.1) return 'm-closed';
+        if (level < 0.3) return 'm-small';
+        return open;
     }
+
+    watch(mouthLevel, (v) => {
+        smooth = smooth * 0.7 + v * 0.3;
+        if (!isSpeaking.value) {
+            mouth.value = 'm-closed';
+            return;
+        }
+        const now = performance.now();
+        if (now - lastSwitch < HOLD_MS) return;
+        const mood = props.expression || emotion.value;
+        const next = shapeFor(smooth, mood);
+        if (next !== mouth.value) {
+            mouth.value = next;
+            lastSwitch = now;
+        }
+    });
 
     const src = computed(() => {
         const mood = props.expression || (props.reactive ? emotion.value : 'neutral');
         let wanted = mood;
         if (isSpeaking.value && !FIXED_FACE.includes(mood)) {
-            wanted = mouthFor(mouthLevel.value, mood);
+            wanted = mouth.value;
         }
         return bySlug[wanted] || bySlug[mood] || bySlug.neutral || icon;
     });
@@ -53,8 +75,18 @@
         position: relative;
         display: inline-block;
         transition: filter 0.2s ease;
+        animation: aurora-idle 5s ease-in-out infinite alternate;
+    }
+    @keyframes aurora-idle {
+        from {
+            transform: translateY(0) rotate(-0.6deg);
+        }
+        to {
+            transform: translateY(-1.5px) rotate(0.6deg);
+        }
     }
     .aurora-mascot img {
+        transition: opacity 0.08s linear;
         width: 100%;
         height: 100%;
         object-fit: cover;
@@ -63,14 +95,14 @@
     }
     .aurora-mascot.speaking {
         filter: drop-shadow(0 0 14px var(--aurora-pink, #ff7fb0));
-        animation: aurora-bob 0.45s ease-in-out infinite alternate;
+        animation: aurora-bob 1.1s ease-in-out infinite alternate;
     }
     @keyframes aurora-bob {
         from {
             transform: translateY(0) scale(1);
         }
         to {
-            transform: translateY(-3px) scale(1.04);
+            transform: translateY(-2px) rotate(0.8deg);
         }
     }
     @media (prefers-reduced-motion: reduce) {

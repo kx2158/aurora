@@ -34,13 +34,15 @@
 
     import { showUserDialog } from '../coordinators/userCoordinator';
     import { clearPending, companionEnabled, companionHome, initCompanion, noteReminders, pendingNotes } from '../services/auroraCompanion';
-    import { takeUnspoken, unspoken } from '../services/auroraNews';
-    import { pregenerate, setMood, speak, speaking } from '../services/auroraVoice';
-    import { useAuroraSettingsStore } from '../stores';
+    import { buildVoicePack, pickLine } from '../services/auroraLines';
+    import { takeUnspoken } from '../services/auroraNews';
+    import { setMood, speak, speaking } from '../services/auroraVoice';
+    import { useAuroraSettingsStore, useGameStore } from '../stores';
     import AuroraMascot from './AuroraMascot.vue';
 
     const { t } = useI18n();
     const settings = useAuroraSettingsStore();
+    const game = useGameStore();
 
     const pos = ref({ x: 300, y: 300 });
     const dragging = ref(false);
@@ -90,14 +92,15 @@
      * Says a line. With the voice on, the text appears at the exact moment the sound starts,
      * after the audio is ready (instant for lines she has said before).
      */
-    function say(text, mood, force = false, interrupt = false) {
+    function say(text, mood, force = false, interrupt = false, spoken = '') {
         const show = () => {
             bubble.value = text;
             setMood(mood || 'smug', 7000);
             timers.push(setTimeout(() => !current.value && (bubble.value = ''), 9000));
         };
         if (settings.mascotVoiceEnabled || force) {
-            speak(text, { ...voiceOptions(), mood, interrupt, onStart: show }).catch(() => show());
+            // she says the universal line (instant, pre-rendered); the bubble can show names
+            speak(spoken || text, { ...voiceOptions(), mood, interrupt, onStart: show }).catch(() => show());
         } else {
             show();
         }
@@ -111,13 +114,14 @@
         if (!item) {
             return;
         }
-        const line =
+        const shown =
             item.kind === 'update'
                 ? item.text
                 : item.title && item.text && item.title !== item.text
                   ? `${item.title}. ${item.text}`
                   : item.title || item.text;
-        say(String(line).slice(0, 200), item.kind === 'update' ? 'joy' : 'surprised');
+        const category = item.kind === 'update' ? 'update' : item.kind === 'event' ? 'event' : 'announcement';
+        say(String(shown).slice(0, 200), item.kind === 'update' ? 'joy' : 'surprised', false, false, pickLine(category));
     }
 
     function nextReminder() {
@@ -129,7 +133,7 @@
             return;
         }
         current.value = f;
-        say(t('view.settings.aurora.note_prompt', { name: f.name }), 'joy');
+        say(t('view.settings.aurora.note_prompt', { name: f.name }), 'joy', false, false, pickLine('newFriend'));
     }
 
     function addNote() {
@@ -156,10 +160,8 @@
         if (moved) {
             return; // that was a drag, not a click
         }
-        const keys = ['poke', 'poke2', 'poke3', 'poke4'];
-        const key = keys[pokeCount++ % keys.length];
         // a click is an explicit request, so she speaks even if the voice switch is off
-        say(t('view.settings.aurora.' + key), ['joy', 'smug', 'surprised'][pokeCount % 3], true, true);
+        say(pickLine('poke'), ['joy', 'smug', 'surprised', 'neutral'][pokeCount++ % 4], true, true);
     }
 
     function startDrag(e) {
@@ -192,16 +194,26 @@
         timers.push(setInterval(announceNews, 4000));
         watch(companionHome, pickTarget);
         timers.push(setTimeout(nextReminder, 6000));
-        // quietly prepare the lines she repeats, so they play instantly
+        // build the whole voice pack once, quietly. It pauses while VRChat runs and is saved for good.
         timers.push(
             setTimeout(() => {
                 if (settings.mascotVoiceEnabled) {
-                    pregenerate(
-                        ['poke', 'poke2', 'poke3', 'poke4'].map((k) => t('view.settings.aurora.' + k)),
-                        voiceOptions()
-                    );
+                    buildVoicePack(voiceOptions(), { canRun: () => !game.isGameRunning });
                 }
-            }, 12000)
+            }, 15000)
+        );
+        // now and then she says something small, never while busy
+        timers.push(
+            setInterval(() => {
+                if (!settings.mascotVoiceEnabled || current.value || speaking.value || bubble.value) {
+                    return;
+                }
+                const hour = new Date().getHours();
+                const late = hour >= 1 && hour < 5;
+                if (Math.random() < 0.35) {
+                    say(pickLine(late ? 'lateNight' : 'idle'), late ? 'sleepy' : ['smug', 'neutral', 'joy'][Math.floor(Math.random() * 3)]);
+                }
+            }, 150000)
         );
     });
     onBeforeUnmount(() => {

@@ -1472,7 +1472,11 @@
                 "home": "Where Neon stays",
                 "home_desc": "Float around the whole app, or rest next to the info dock (current instance and announcements).",
                 "home_roam": "Float around",
-                "home_dock": "Rest at the dock"
+                "home_dock": "Rest at the dock",
+                "pack": "Voice pack",
+                "pack_desc": "Neon's lines are rendered once and saved in the app, so they play instantly and cost almost no CPU later. It builds quietly in the background and pauses while VRChat runs.",
+                "pack_build": "Build now",
+                "pack_running": "Building..."
             }
         },
         "home": {

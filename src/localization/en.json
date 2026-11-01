@@ -1512,12 +1512,12 @@
             "send": "Send",
             "game_off": "VRChat is not running.",
             "afk_minutes": "AFK after (minutes idle)",
-            "pulsoid": "Heart rate (Pulsoid token)",
             "integrations": "Integrations",
             "customize": "Customize",
             "soon": "Not built yet.",
-            "status_hint": "Your status uses the pages below. Pages rotate and can hold live values.",
-            "no_media": "Nothing is playing. Start music or a video and it shows up here."
+            "status_hint": "Your status uses the pages below. Give each page TOP or BOTTOM to keep it always visible, or ROTATE to let it take turns.",
+            "no_media": "Nothing is playing. Start music or a video and it shows up here.",
+            "slot_hint": "TOP and BOTTOM are always shown. ROTATE lines take turns in the middle."
         },
         "dock": {
             "title": "DOCK",

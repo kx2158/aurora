@@ -21,12 +21,23 @@
                         <span class="nx-meta">{{ def.desc }}</span>
                     </div>
                     <button
-                        v-if="def.options || def.id === 'pulsoid' || def.id === 'medialink' || def.id === 'status'"
+                        v-if="def.options || def.id === 'medialink' || def.id === 'status'"
                         type="button"
                         class="nx-custom"
                         @click="toggleOpen(def.id)">
                         {{ t('view.chatbox.customize') }} {{ open[def.id] ? 'v' : '>' }}
                     </button>
+                    <span v-if="def.id !== 'status'" class="nx-slots" :title="t('view.chatbox.slot_hint')">
+                        <button
+                            v-for="sl in SLOTS"
+                            :key="sl"
+                            type="button"
+                            class="nx-pill"
+                            :class="{ on: state[def.id]?.slot === sl }"
+                            @click="setSlot(def.id, sl)">
+                            {{ sl.toUpperCase() }}
+                        </button>
+                    </span>
                     <span class="nx-badge" :class="{ off: !def.desktop }">DESKTOP</span>
                     <span class="nx-badge" :class="{ off: !def.vr }">VR</span>
                     <Switch
@@ -48,10 +59,6 @@
                             :model-value="state[def.id][opt.key]"
                             class="nx-wide"
                             @update:modelValue="(v) => setOption(def.id, opt.key, v)" />
-                    </template>
-                    <template v-if="def.id === 'pulsoid'">
-                        <label class="nx-meta">{{ t('view.chatbox.pulsoid') }}</label>
-                        <Input type="password" :model-value="pulsoidToken" class="nx-wide" @update:modelValue="setPulsoidToken" />
                     </template>
                     <p v-if="def.id === 'status'" class="nx-meta nx-full">{{ t('view.chatbox.status_hint') }}</p>
                     <div v-if="def.id === 'medialink'" class="nx-full nx-sessions">
@@ -89,6 +96,17 @@
                         class="nx-input"
                         @focus="focused = i"
                         @update:modelValue="(v) => editPage(i, v)" />
+                    <span class="nx-slots">
+                        <button
+                            v-for="sl in SLOTS"
+                            :key="sl"
+                            type="button"
+                            class="nx-pill"
+                            :class="{ on: slotOf(i) === sl }"
+                            @click="setSlotOfPage(i, sl)">
+                            {{ sl.toUpperCase() }}
+                        </button>
+                    </span>
                     <button type="button" class="nx-x" :aria-label="t('common.actions.delete')" @click="removePage(i)">x</button>
                 </div>
                 <button v-if="pages.length < 12" type="button" class="nx-add" @click="addPage">+ {{ t('view.chatbox.add_page') }}</button>
@@ -101,8 +119,6 @@
                 <div class="nx-opts">
                     <label class="nx-meta">{{ t('view.chatbox.afk_minutes') }}</label>
                     <Input type="number" min="1" max="120" :model-value="afkMinutes" class="nx-small" @update:modelValue="setAfkMinutes" />
-                    <label class="nx-meta">{{ t('view.chatbox.pulsoid') }}</label>
-                    <Input type="password" :model-value="pulsoidToken" class="nx-small nx-wide" placeholder="Pulsoid token" @update:modelValue="setPulsoidToken" />
                     <label class="nx-meta">{{ t('view.settings.aurora.chatbox_interval') }}</label>
                     <Input
                         type="number"
@@ -119,7 +135,7 @@
             <div class="nx-right">
                 <div class="nx-card nx-panel">
                     <h2 class="nx-h2">{{ t('view.chatbox.preview') }}</h2>
-                    <div class="nx-bubble">{{ preview || '...' }}</div>
+                    <div class="nx-bubble" style="white-space: pre-line">{{ preview || '...' }}</div>
                     <span class="nx-meta">{{ preview.length }} / 144</span>
                 </div>
 
@@ -153,9 +169,10 @@
         chatboxInterval,
         chatboxNotify,
         chatboxPageIndex,
+        chatboxPreview,
         chatboxPages,
+        chatboxPageSlots,
         initChatbox,
-        pulsoidToken,
         renderChatbox,
         sendChatboxNow,
         setChatboxEnabled,
@@ -163,15 +180,14 @@
         setChatboxNotify,
         setAfkMinutes,
         setChatboxPages,
-        setPulsoidToken,
         setTyping
     } from '@/services/auroraChatbox';
-    import { COMING_SOON, friendlyApp, initIntegrations, INTEGRATIONS, mediaSessions, setEnabled, setOption, state } from '@/services/auroraIntegrations';
+    import { COMING_SOON, friendlyApp, initIntegrations, INTEGRATIONS, mediaSessions, setEnabled, setOption, setSlot, state } from '@/services/auroraIntegrations';
     import { useGameStore } from '@/stores';
 
     const { t } = useI18n();
     const game = useGameStore();
-    const tokens = ['time', 'date', 'world', 'players', 'friends', 'uptime', 'window', 'app', 'music', 'song', 'artist', 'cpu', 'ram', 'battery', 'afk', 'heart'];
+    const tokens = ['time', 'date', 'world', 'players', 'friends', 'uptime', 'window', 'app', 'music', 'song', 'artist', 'cpu', 'ram', 'battery', 'afk'];
     const focused = ref(0);
     const manual = ref('');
 
@@ -192,19 +208,31 @@
     const pages = computed(() => chatboxPages.value);
     const activeIndex = computed(() => chatboxPageIndex.value % Math.max(1, pages.value.length));
     const gameRunning = computed(() => game.isGameRunning);
-    const preview = computed(() => renderChatbox(pages.value[focused.value] ?? pages.value[0] ?? ''));
+    const preview = computed(() => chatboxPreview.value || '');
 
+    const SLOTS = ['top', 'rotate', 'bottom'];
+    function slotOf(i) {
+        return chatboxPageSlots.value[i] || 'rotate';
+    }
+    function setSlotOfPage(i, sl) {
+        const slots = [...chatboxPageSlots.value];
+        slots[i] = sl;
+        setChatboxPages([...pages.value], slots);
+    }
     function editPage(i, v) {
         const next = [...pages.value];
         next[i] = v;
         setChatboxPages(next);
     }
     function addPage() {
-        setChatboxPages([...pages.value, '']);
+        setChatboxPages([...pages.value, ''], [...chatboxPageSlots.value, 'rotate']);
         focused.value = pages.value.length - 1;
     }
     function removePage(i) {
-        setChatboxPages(pages.value.filter((_, idx) => idx !== i));
+        setChatboxPages(
+            pages.value.filter((_, idx) => idx !== i),
+            chatboxPageSlots.value.filter((_, idx) => idx !== i)
+        );
         focused.value = 0;
     }
     function insertToken(tok) {
@@ -436,6 +464,10 @@
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+    }
+    .nx-slots {
+        display: inline-flex;
+        gap: 4px;
     }
     .nx-pill {
         padding: 2px 10px;

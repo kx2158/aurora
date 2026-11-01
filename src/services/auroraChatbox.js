@@ -16,18 +16,19 @@ export const chatboxPreview = ref('');
 /** Pages rotate every interval, like a slideshow of lines. */
 export const chatboxPages = ref(['{time} | {world} | {friends} friends online']);
 export const chatboxPageIndex = ref(0);
+/** Where each page sits: 'top' and 'bottom' are always shown, 'rotate' pages take turns in the middle. */
+export const chatboxPageSlots = ref(['rotate']);
+/** Counts ticks, used to pick which rotating item is shown. */
+export const rotateCounter = ref(0);
 /** Latest snapshot from the PC: window, app, music, cpu, ram, battery, idleSeconds. */
 export const sysInfo = ref({});
-export const pulsoidToken = ref('');
 export const afkMinutes = ref(5);
-export const heartRate = ref(0);
 let composer = null;
 /** The integrations module plugs itself in here so this file does not import it back. */
 export function registerComposer(fn) {
     composer = fn;
 }
 let sysTimer = null;
-let hrTimer = null;
 const startedAt = Date.now();
 
 let loaded = false;
@@ -49,12 +50,15 @@ export async function initChatbox() {
     } catch {
         chatboxPages.value = [chatboxTemplate.value];
     }
-    pulsoidToken.value = await configRepository.getString('Neon_pulsoidToken', '');
+    try {
+        const slots = JSON.parse(await configRepository.getString('Neon_chatboxPageSlots', '[]'));
+        chatboxPageSlots.value = chatboxPages.value.map((_, i) => (['top', 'bottom', 'rotate'].includes(slots?.[i]) ? slots[i] : 'rotate'));
+    } catch {
+        chatboxPageSlots.value = chatboxPages.value.map(() => 'rotate');
+    }
     afkMinutes.value = await configRepository.getInt('Neon_afkMinutes', 5);
     watch([chatboxEnabled, chatboxInterval], restart);
-    watch(pulsoidToken, startHeartRate);
     startSysInfo();
-    startHeartRate();
     restart();
 }
 
@@ -70,11 +74,14 @@ export function setChatboxInterval(v) {
     chatboxInterval.value = Math.min(60, Math.max(3, Number(v) || 5));
     configRepository.setInt('Neon_chatboxInterval', chatboxInterval.value);
 }
-export function setChatboxPages(pages) {
+export function setChatboxPages(pages, slots) {
     chatboxPages.value = pages.map((p) => String(p).slice(0, 300)).slice(0, 12);
     if (!chatboxPages.value.length) {
         chatboxPages.value = [''];
     }
+    const old = slots || chatboxPageSlots.value;
+    chatboxPageSlots.value = chatboxPages.value.map((_, i) => (['top', 'bottom', 'rotate'].includes(old[i]) ? old[i] : 'rotate'));
+    configRepository.setString('Neon_chatboxPageSlots', JSON.stringify(chatboxPageSlots.value));
     chatboxPageIndex.value = 0;
     configRepository.setString('Neon_chatboxPages', JSON.stringify(chatboxPages.value));
     lastSent = '';
@@ -100,10 +107,6 @@ export function setTyping(on) {
     }
 }
 
-export function setPulsoidToken(v) {
-    pulsoidToken.value = String(v || '').trim();
-    configRepository.setString('Neon_pulsoidToken', pulsoidToken.value);
-}
 export function setAfkMinutes(v) {
     afkMinutes.value = Math.min(120, Math.max(1, Number(v) || 5));
     configRepository.setInt('Neon_afkMinutes', afkMinutes.value);
@@ -120,27 +123,6 @@ function startSysInfo() {
     clearInterval(sysTimer);
     refreshSysInfo();
     sysTimer = setInterval(refreshSysInfo, 3000);
-}
-
-/** Heart rate from Pulsoid (needs your own Pulsoid token). */
-async function pollHeartRate() {
-    try {
-        const res = await fetch('https://dev.pulsoid.net/api/v1/data/heart_rate/latest', {
-            headers: { Authorization: 'Bearer ' + pulsoidToken.value }
-        });
-        const json = await res.json();
-        heartRate.value = json?.data?.heart_rate || 0;
-    } catch {
-        heartRate.value = 0;
-    }
-}
-function startHeartRate() {
-    clearInterval(hrTimer);
-    heartRate.value = 0;
-    if (pulsoidToken.value) {
-        pollHeartRate();
-        hrTimer = setInterval(pollHeartRate, 5000);
-    }
 }
 
 export function setChatboxNotify(v) {
@@ -172,19 +154,21 @@ export function renderChatbox(template) {
         cpu: sysInfo.value.cpu != null ? `${sysInfo.value.cpu}%` : '',
         ram: sysInfo.value.ram != null ? `${sysInfo.value.ram}%` : '',
         battery: sysInfo.value.battery != null ? `${sysInfo.value.battery}%${sysInfo.value.charging ? '+' : ''}` : '',
-        afk: (sysInfo.value.idleSeconds || 0) >= afkMinutes.value * 60 ? 'AFK' : '',
-        heart: heartRate.value ? `\u2665 ${heartRate.value}` : ''
+        afk: (sysInfo.value.idleSeconds || 0) >= afkMinutes.value * 60 ? 'AFK' : ''
     };
     return String(template).replace(/\{(\w+)\}/g, (m, key) => (key in values ? values[key] : m)).slice(0, 144);
 }
 
 function tick() {
-    const pages = chatboxPages.value;
-    const template = pages[chatboxPageIndex.value % pages.length] || '';
-    // with integrations plugged in, the text is built from every enabled one
-    chatboxPreview.value = composer ? composer(renderChatbox(template)) : renderChatbox(template);
-    if (chatboxEnabled.value && pages.length > 1) {
-        chatboxPageIndex.value = (chatboxPageIndex.value + 1) % pages.length;
+    // with integrations plugged in, pinned lines stay and the rotating ones take turns
+    if (composer) {
+        chatboxPreview.value = composer(rotateCounter.value);
+    } else {
+        const pages = chatboxPages.value;
+        chatboxPreview.value = renderChatbox(pages[rotateCounter.value % pages.length] || '');
+    }
+    if (chatboxEnabled.value) {
+        rotateCounter.value++;
     }
     if (!chatboxEnabled.value || !useGameStore().isGameRunning) {
         return;

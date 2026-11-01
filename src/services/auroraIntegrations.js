@@ -6,7 +6,7 @@
 import { reactive, ref, watch } from 'vue';
 
 import configRepository from './config';
-import { chatboxEnabled, heartRate, pulsoidToken, registerComposer, setPulsoidToken, sysInfo } from './auroraChatbox';
+import { chatboxEnabled, chatboxPages, chatboxPageSlots, registerComposer, renderChatbox, sysInfo } from './auroraChatbox';
 import { useGameStore, useLocationStore } from '../stores';
 
 const KEY = 'Neon_integrations';
@@ -59,16 +59,6 @@ export const INTEGRATIONS = [
         icon: 'ri-music-2-line',
         defaults: { enabled: false, autoswitch: true, picked: '', hidden: {}, noArtist: {}, noTitle: {} },
         options: [{ key: 'autoswitch', label: 'Switch to whatever starts playing', type: 'bool' }]
-    },
-    {
-        id: 'pulsoid',
-        name: 'Pulsoid Heart Rate',
-        desc: 'Shows your heart rate in the chatbox. Needs a Pulsoid token.',
-        desktop: true,
-        vr: true,
-        icon: 'ri-heart-pulse-line',
-        defaults: { enabled: false, format: '♥ {bpm} bpm' },
-        options: [{ key: 'format', label: 'Text ({bpm} is the number)', type: 'text' }]
     },
     {
         id: 'components',
@@ -150,7 +140,7 @@ const worldSince = { loc: '', at: Date.now() };
 
 function ensureDefaults() {
     for (const def of INTEGRATIONS) {
-        state[def.id] = { ...def.defaults, ...(state[def.id] || {}) };
+        state[def.id] = { slot: def.id === 'status' ? 'rotate' : 'top', ...def.defaults, ...(state[def.id] || {}) };
     }
 }
 
@@ -290,8 +280,6 @@ function lineFor(id, statusText) {
         }
         case 'medialink':
             return mediaLine();
-        case 'pulsoid':
-            return heartRate.value ? String(s.format).replace('{bpm}', heartRate.value) : '';
         case 'components': {
             const parts = [];
             if (s.cpu && info.cpu != null) parts.push(`CPU ${info.cpu}%`);
@@ -326,20 +314,46 @@ function lineFor(id, statusText) {
 }
 
 /** Builds the chatbox text from every enabled integration. statusText is the current Personal status page. */
-function compose(statusText) {
+/**
+ * Builds the chatbox text. Every item has a slot:
+ *  top and bottom are always shown, rotate items take turns in the middle (one at a time).
+ */
+function compose(counter = 0) {
+    const top = [];
+    const bottom = [];
+    const rotate = [];
+    const put = (slot, text) => {
+        const line = String(text || '').trim();
+        if (!line) {
+            return;
+        }
+        (slot === 'top' ? top : slot === 'bottom' ? bottom : rotate).push(line);
+    };
     if (!loaded) {
-        return statusText;
+        return renderChatbox(chatboxPages.value[counter % chatboxPages.value.length] || '');
     }
-    const lines = [];
     for (const def of INTEGRATIONS) {
-        if (state[def.id]?.enabled) {
-            const line = String(lineFor(def.id, statusText) || '').trim();
-            if (line) {
-                lines.push(line);
-            }
+        if (!state[def.id]?.enabled) {
+            continue;
+        }
+        if (def.id === 'status') {
+            chatboxPages.value.forEach((page, i) => put(chatboxPageSlots.value[i] || 'rotate', renderChatbox(page)));
+        } else {
+            put(state[def.id].slot, lineFor(def.id, ''));
         }
     }
+    const lines = [...top];
+    if (rotate.length) {
+        lines.push(rotate[counter % rotate.length]);
+    }
+    lines.push(...bottom);
     return lines.join('\n').slice(0, 144);
 }
 
-export { chatboxEnabled, pulsoidToken, setPulsoidToken };
+export function setSlot(id, slot) {
+    if (state[id] && ['top', 'bottom', 'rotate'].includes(slot)) {
+        state[id].slot = slot;
+    }
+}
+
+export { chatboxEnabled };

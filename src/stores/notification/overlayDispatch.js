@@ -76,7 +76,7 @@ export function createOverlayDispatch({
         const timeout = Math.floor(parseInt(notificationsSettingsStore.notificationTimeout.toString(), 10) / 1000);
         const opacity = parseFloat(advancedSettingsStore.notificationOpacity.toString()) / 100;
         const text = toNotificationText(result.title, result.body, noty.type);
-        AppApi.XSNotification('VRCX', text, timeout, opacity, image);
+        AppApi.XSNotification('Neon', text, timeout, opacity, image);
     }
 
     /**
@@ -95,7 +95,7 @@ export function createOverlayDispatch({
         AppApi.OVRTNotification(
             playOvrtHudNotifications,
             playOvrtWristNotifications,
-            'VRCX',
+            'Neon',
             text,
             timeout,
             opacity,

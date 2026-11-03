@@ -562,7 +562,7 @@ namespace VRCX
                         return err;
                     }
 
-                    var iconPath = Path.Join(Program.BaseDirectory, "VRCX.png");
+                    var iconPath = Path.Join(Program.BaseDirectory, "Neon.png");
                     if (File.Exists(iconPath))
                     {
                         overlay.SetOverlayFromFile(thumbnailHandle, iconPath);

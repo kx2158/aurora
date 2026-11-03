@@ -32,12 +32,12 @@ public static class OverlayClient
         {
             var client = new ClientWebSocket();
             client.Options.KeepAliveInterval = TimeSpan.FromSeconds(5);
-            client.Options.SetRequestHeader("user-agent", "VRCX Overlay Client");
+            client.Options.SetRequestHeader("user-agent", "Neon Overlay Client");
             return client;
         });
         _websocketClient = new WebsocketClient(WebsocketUri, clientFactory)
         {
-            Name = "VRCX Overlay Client",
+            Name = "Neon Overlay Client",
             ReconnectTimeout = null,
             ErrorReconnectTimeout = TimeSpan.FromMilliseconds(300)
         };
@@ -48,7 +48,7 @@ public static class OverlayClient
             var message = new OverlayMessage
             {
                 Type = OverlayMessageType.OverlayConnected,
-                Data = "VRCX Overlay Client Connected"
+                Data = "Neon Overlay Client Connected"
             };
             _websocketClient.Send(JsonSerializer.Serialize(message));
         });
@@ -70,7 +70,7 @@ public static class OverlayClient
         });
 
         _websocketClient.Start();
-        logger.Info("VRCX overlay client initialized");
+        logger.Info("Neon overlay client initialized");
     }
 
     private static void HandleMessage(OverlayMessage message)

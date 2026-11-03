@@ -100,7 +100,7 @@ namespace VRCX
             {
                 StartInfo = new ProcessStartInfo
                 {
-                    FileName = Path.Join(Program.BaseDirectory, "VRCX.exe"),
+                    FileName = Path.Join(Program.BaseDirectory, "Neon.exe"),
                     Arguments = string.Join(' ', args),
                     UseShellExecute = true,
                     WorkingDirectory = Program.BaseDirectory
@@ -165,10 +165,12 @@ namespace VRCX
                 if (enabled)
                 {
                     var path = Application.ExecutablePath;
-                    key.SetValue("VRCX", $"\"{path}\" --startup");
+                    key.DeleteValue("VRCX", false);
+                    key.SetValue("Neon", $"\"{path}\" --startup");
                 }
                 else
                 {
+                    key.DeleteValue("Neon", false);
                     key.DeleteValue("VRCX", false);
                 }
             }

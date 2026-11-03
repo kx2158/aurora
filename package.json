@@ -1,20 +1,20 @@
 {
-    "name": "vrcx",
+    "name": "neon",
     "version": "2026.09.16",
     "private": true,
     "description": "Friendship management tool for VRChat",
     "keywords": [
         "vrchat"
     ],
-    "homepage": "https://github.com/vrcx-team/VRCX#readme",
+    "homepage": "https://github.com/kx2158/aurora#readme",
     "bugs": {
-        "url": "https://github.com/vrcx-team/VRCX/issues"
+        "url": "https://github.com/kx2158/aurora/issues"
     },
     "license": "MIT",
-    "author": "VRCX Team",
+    "author": "Neon",
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/vrcx-team/VRCX.git"
+        "url": "git+https://github.com/kx2158/aurora.git"
     },
     "main": "src-electron/main.js",
     "scripts": {
@@ -138,5 +138,5 @@
         "vue-demi": true,
         "electron": true
     },
-    "desktopName": "VRCX"
+    "desktopName": "Neon"
 }

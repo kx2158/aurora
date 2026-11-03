@@ -17,7 +17,7 @@ namespace VRCX
     public class Update
     {
         private static readonly Logger logger = LogManager.GetCurrentClassLogger();
-        private static readonly string VrcxSetupExecutable = Path.Join(Program.AppDataDirectory, "VRCX_Setup.exe");
+        private static readonly string VrcxSetupExecutable = Path.Join(Program.AppDataDirectory, "Neon_Setup.exe");
         private static readonly string UpdateExecutable = Path.Join(Program.AppDataDirectory, "update.exe");
         private static readonly string TempDownload = Path.Join(Program.AppDataDirectory, "tempDownload");
         private static readonly HttpClient httpClient;
@@ -48,7 +48,7 @@ namespace VRCX
 
         public static void Check()
         {
-            if (Process.GetProcessesByName("VRCX_Setup").Length > 0)
+            if (Process.GetProcessesByName("Neon_Setup").Length > 0)
                 Environment.Exit(0);
 
             if (File.Exists(TempDownload))
@@ -125,7 +125,7 @@ namespace VRCX
                 throw new Exception($"Failed to download the file. Status code: {response.StatusCode}");
 
             var fileName = GetFileNameFromContentDisposition(response);
-            var tempPath = Path.Join(Path.GetTempPath(), "VRCX");
+            var tempPath = Path.Join(Path.GetTempPath(), "Neon");
             Directory.CreateDirectory(tempPath);
             var filePath = Path.Join(tempPath, fileName);
             await using var fileStream = File.Create(filePath);

@@ -136,7 +136,7 @@ export const useVRCXUpdaterStore = defineStore('VRCXUpdater', () => {
         if (!appVersion.value) {
             return;
         }
-        if (currentVersion.value.includes('VRCX Nightly')) {
+        if (currentVersion.value.includes('Nightly')) {
             branch.value = 'Nightly';
         } else {
             branch.value = 'Stable';
@@ -228,7 +228,7 @@ export const useVRCXUpdaterStore = defineStore('VRCXUpdater', () => {
         }
     }
     /**
-     * Compares version numbers like "Aurora 2026.10.31.7" and "VRCX 2026.09.16" by their numbers only.
+     * Compares version numbers like "Aurora 2026.10.31.7" and "Neon 2026.09.16" by their numbers only.
      * @param {string} a
      * @param {string} b
      * @returns {boolean} true when a is newer than b
@@ -287,8 +287,8 @@ export const useVRCXUpdaterStore = defineStore('VRCXUpdater', () => {
         }
         if (
             !currentVersion.value ||
-            currentVersion.value === 'VRCX Nightly Build' ||
-            currentVersion.value === 'VRCX Build'
+            currentVersion.value === 'Neon Nightly Build' ||
+            currentVersion.value === 'Neon Build'
         ) {
             // ignore custom builds
             return false;

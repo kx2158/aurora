@@ -289,7 +289,7 @@ export const useGalleryStore = defineStore('Gallery', () => {
         if (error?.message?.includes('Could not find file')) {
             modalStore
                 .confirm({
-                    description: `Windows has blocked VRCX from creating files on your system. Please allow VRCX to create files to save ${itemType}s, would you like to see instructions on how to fix this?`,
+                    description: `Windows has blocked Neon from creating files on your system. Please allow Neon to create files to save ${itemType}s, would you like to see instructions on how to fix this?`,
                     title: `Failed to create ${itemType} folder`,
                     cancelText: 'Ignore'
                 })

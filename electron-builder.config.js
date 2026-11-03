@@ -6,14 +6,14 @@
 module.exports = {
     appId: 'app.vrcx',
     productName: 'Neon',
-    icon: 'images/VRCX.png',
+    icon: 'images/Neon.png',
     files: [
         'build/html/**/*',
         'src-electron/*',
-        'images/VRCX.png',
-        'images/VRCX.ico',
-        'images/VRCX_notify.png',
-        'images/VRCX_notify.ico',
+        'images/Neon.png',
+        'images/Neon.ico',
+        'images/Neon_notify.png',
+        'images/Neon_notify.ico',
         'Version',
         'src-electron/libs/linux/libopenvr_api.so',
         '.no-updater'
@@ -58,7 +58,7 @@ module.exports = {
     linux: {
         artifactName: 'VRCX_Version.${ext}',
         target: ['AppImage'],
-        icon: 'images/VRCX.png',
+        icon: 'images/Neon.png',
         executableName: 'VRCX',
         mimeTypes: ['x-scheme-handler/vrcx'],
         desktop: {
@@ -80,7 +80,7 @@ module.exports = {
     mac: {
         artifactName: 'VRCX_Version.${ext}',
         target: ['dmg'],
-        icon: 'images/VRCX.png',
+        icon: 'images/Neon.png',
         category: 'public.app-category.utilities',
         executableName: 'VRCX',
         minimumSystemVersion: '14.0'
@@ -88,7 +88,7 @@ module.exports = {
     win: {
         artifactName: 'VRCX_Version.${ext}',
         target: ['nsis'],
-        icon: 'images/VRCX.ico'
+        icon: 'images/Neon.ico'
     },
     toolsets: {
         appimage: '1.0.3'

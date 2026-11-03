@@ -107,7 +107,7 @@ namespace VRCX
             this.MinimumSize = new Size(320, 240);
             this.Name = "MainForm";
             this.StartPosition = FormStartPosition.CenterScreen;
-            this.Text = Program.Version.Replace("VRCX", "Neon");
+            this.Text = Program.Version;
             this.FormClosing += new FormClosingEventHandler(this.MainForm_FormClosing);
             this.FormClosed += new FormClosedEventHandler(this.MainForm_FormClosed);
             this.Load += new EventHandler(this.MainForm_Load);

@@ -1,9 +1,9 @@
+const repo = 'https://github.com/kx2158/aurora';
+
 const links = {
-    wiki: 'https://github.com/vrcx-team/VRCX/wiki',
-    troubleshootingAuthUserConnectionIssues:
-        'https://github.com/vrcx-team/VRCX/wiki/Troubleshooting#401-authuser--connection-issues',
-    github: 'https://github.com/vrcx-team/VRCX',
-    discord: 'https://vrcx.app/discord'
+    wiki: repo,
+    troubleshootingAuthUserConnectionIssues: repo,
+    github: repo
 };
 
 export { links };

@@ -4,35 +4,6 @@
             <SidebarMenuItem>
                 <DropdownMenu>
                     <DropdownMenuTrigger as-child>
-                        <SidebarMenuButton :tooltip="t('nav_tooltip.help_support')">
-                            <i class="ri-question-line inline-flex size-6 items-center justify-center text-lg" />
-                            <span v-show="!isCollapsed">{{ t('nav_tooltip.help_support') }}</span>
-                        </SidebarMenuButton>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent side="right" align="start" class="w-56">
-                        <DropdownMenuItem @click="emit('show-changelog')">
-                            <span>{{ t('nav_menu.changelog') }}</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuLabel>{{ t('nav_menu.resources') }}</DropdownMenuLabel>
-                        <DropdownMenuItem @click="emit('support-link', 'wiki')">
-                            <span>{{ t('nav_menu.wiki') }}</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuLabel>{{ t('nav_menu.get_help') }}</DropdownMenuLabel>
-                        <DropdownMenuItem @click="emit('support-link', 'github')">
-                            <span>{{ t('nav_menu.github') }}</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem @click="emit('support-link', 'discord')">
-                            <span>{{ t('nav_menu.discord') }}</span>
-                        </DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
-            </SidebarMenuItem>
-
-            <SidebarMenuItem>
-                <DropdownMenu>
-                    <DropdownMenuTrigger as-child>
                         <SidebarMenuButton :tooltip="t('nav_tooltip.manage')" :is-active="isSettingsRoute">
                             <span class="relative inline-flex size-6 items-center justify-center">
                                 <i class="ri-settings-3-line text-lg" />
@@ -48,15 +19,14 @@
                             <img
                                 class="h-6 w-6 cursor-pointer"
                                 :src="vrcxLogo"
-                                alt="VRCX"
+                                alt="Neon"
                                 @click="emit('open-github')" />
                             <div class="flex min-w-0 flex-col">
                                 <button
                                     type="button"
                                     class="text-left text-sm font-medium truncate flex items-center gap-1 cursor-pointer"
                                     @click="emit('open-github')">
-                                    VRCX
-                                    <Heart class="text-primary fill-current stroke-none" />
+                                    Neon
                                 </button>
                                 <span class="text-xs text-muted-foreground">{{ version }}</span>
                             </div>
@@ -166,7 +136,6 @@
 </template>
 
 <script setup>
-    import { Heart } from 'lucide-vue-next';
     import { useI18n } from 'vue-i18n';
     import { useRouter } from 'vue-router';
     import { computed, ref, watch } from 'vue';

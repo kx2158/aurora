@@ -26,7 +26,7 @@ export function clearVRCXCache() {
     const locationStore = useLocationStore();
     const galleryStore = useGalleryStore();
 
-    console.log('Clearing VRCX cache...');
+    console.log('Clearing Neon cache...');
     failedGetRequests.clear();
     userStore.cachedUsers.forEach((ref, id) => {
         if (

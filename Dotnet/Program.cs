@@ -26,30 +26,49 @@ namespace VRCX
         private static void SetProgramDirectories()
         {
             if (string.IsNullOrEmpty(AppDataDirectory))
-                AppDataDirectory = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                    "VRCX");
+            {
+                var roaming = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+                var neonDirectory = Path.Join(roaming, "Neon");
+                var legacyDirectory = Path.Join(roaming, "VRCX");
+
+                // data from before the rename: move the whole folder over so nothing is lost
+                if (!Directory.Exists(neonDirectory) && Directory.Exists(legacyDirectory))
+                {
+                    try
+                    {
+                        Directory.Move(legacyDirectory, neonDirectory);
+                    }
+                    catch
+                    {
+                        neonDirectory = legacyDirectory;
+                    }
+                }
+
+                AppDataDirectory = neonDirectory;
+            }
 
             BaseDirectory = AppDomain.CurrentDomain.BaseDirectory;
-            ConfigLocation = Path.Join(AppDataDirectory, "VRCX.sqlite3");
+            RenameLegacyFiles();
+            ConfigLocation = Path.Join(AppDataDirectory, "Neon.sqlite3");
 
             if (!Directory.Exists(AppDataDirectory))
             {
                 Directory.CreateDirectory(AppDataDirectory);
 
                 // Migrate config to AppData
-                if (File.Exists(Path.Join(BaseDirectory, "VRCX.json")))
+                if (File.Exists(Path.Join(BaseDirectory, "Neon.json")))
                 {
-                    File.Move(Path.Join(BaseDirectory, "VRCX.json"), Path.Join(AppDataDirectory, "VRCX.json"));
-                    File.Copy(Path.Join(AppDataDirectory, "VRCX.json"),
-                        Path.Join(AppDataDirectory, "VRCX-backup.json"));
+                    File.Move(Path.Join(BaseDirectory, "Neon.json"), Path.Join(AppDataDirectory, "Neon.json"));
+                    File.Copy(Path.Join(AppDataDirectory, "Neon.json"),
+                        Path.Join(AppDataDirectory, "Neon-backup.json"));
                 }
 
-                if (File.Exists(Path.Join(BaseDirectory, "VRCX.sqlite3")))
+                if (File.Exists(Path.Join(BaseDirectory, "Neon.sqlite3")))
                 {
-                    File.Move(Path.Join(BaseDirectory, "VRCX.sqlite3"),
-                        Path.Join(AppDataDirectory, "VRCX.sqlite3"));
-                    File.Copy(Path.Join(AppDataDirectory, "VRCX.sqlite3"),
-                        Path.Join(AppDataDirectory, "VRCX-backup.sqlite3"));
+                    File.Move(Path.Join(BaseDirectory, "Neon.sqlite3"),
+                        Path.Join(AppDataDirectory, "Neon.sqlite3"));
+                    File.Copy(Path.Join(AppDataDirectory, "Neon.sqlite3"),
+                        Path.Join(AppDataDirectory, "Neon-backup.sqlite3"));
                 }
             }
 
@@ -63,6 +82,28 @@ namespace VRCX
             }
         }
 
+        /// <summary>Gives the data files their new names (history, settings and their backups).</summary>
+        private static void RenameLegacyFiles()
+        {
+            try
+            {
+                if (!Directory.Exists(AppDataDirectory))
+                    return;
+
+                foreach (var file in Directory.GetFiles(AppDataDirectory, "VRCX*"))
+                {
+                    var name = Path.GetFileName(file);
+                    var target = Path.Join(AppDataDirectory, "Neon" + name.Substring(4));
+                    if (!File.Exists(target))
+                        File.Move(file, target);
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.Warn(ex, "Could not rename old data files");
+            }
+        }
+
         private static void GetVersion()
         {
             try
@@ -72,22 +113,22 @@ namespace VRCX
                 // look for trailing git hash "-22bcd96" to indicate nightly build
                 var version = versionFile.Split('-');
                 if (version.Length > 0 && version[^1].Length == 7)
-                    Version = $"VRCX Nightly {versionFile}";
+                    Version = $"Neon Nightly {versionFile}";
                 else
-                    Version = $"VRCX {versionFile}";
+                    Version = $"Neon {versionFile}";
             }
             catch (Exception ex)
             {
                 logger.Error(ex, "Failed to read version file");
-                Version = "VRCX Nightly Build";
+                Version = "Neon Nightly Build";
             }
         }
 
         private static void ConfigureLogger()
         {
-            var fileName = Path.Join(AppDataDirectory, "logs", "VRCX.log");
+            var fileName = Path.Join(AppDataDirectory, "logs", "Neon.log");
             if (StartupArgs.LaunchArguments.IsOverlay)
-                fileName = Path.Join(AppDataDirectory, "logs", "VRCX.Overlay.log");
+                fileName = Path.Join(AppDataDirectory, "logs", "Neon.Overlay.log");
 
             LogManager.Setup().LoadConfiguration(builder =>
             {
@@ -128,7 +169,7 @@ namespace VRCX
             if (Wine.GetIfWine())
             {
                 MessageBox.Show(
-                    "VRCX Cef has detected Wine.\nPlease switch to our native Electron build for Linux.",
+                    "Neon has detected Wine.\nNeon needs Windows.",
                     "Wine Detected", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
             try
@@ -143,15 +184,15 @@ namespace VRCX
                 logger.Error(e, "Handled Exception, Missing file found in Handle Cef Explosion.");
 
                 var result = MessageBox.Show(
-                    "VRCX has encountered an error with the CefSharp backend,\nthis is typically caused by missing files or dependencies.\nWould you like to try autofix by automatically installing vc_redist?.",
-                    "VRCX CefSharp not found.", MessageBoxButtons.YesNo, MessageBoxIcon.Error);
+                    "Neon has encountered an error with the CefSharp backend,\nthis is typically caused by missing files or dependencies.\nWould you like to try autofix by automatically installing vc_redist?.",
+                    "Neon CefSharp not found.", MessageBoxButtons.YesNo, MessageBoxIcon.Error);
                 switch (result)
                 {
                     case DialogResult.Yes:
                         logger.Fatal("Handled Exception, user selected auto install of vc_redist.");
                         Update.DownloadInstallRedist().GetAwaiter().GetResult();
                         MessageBox.Show(
-                            "vc_redist has finished installing, if the issue persists upon next restart, please reinstall VRCX From GitHub,\nVRCX Will now restart.",
+                            "vc_redist has finished installing, if the issue persists upon next restart, please reinstall Neon from the latest release,\nNeon will now restart.",
                             "vc_redist installation complete", MessageBoxButtons.OK);
                         Thread.Sleep(5000);
                         AppApiInstance.RestartApplication(false);
@@ -160,8 +201,8 @@ namespace VRCX
                     case DialogResult.No:
                         logger.Fatal("Handled Exception, user chose manual.");
                         MessageBox.Show(
-                            "VRCX will now close, try reinstalling VRCX using the setup from Github as a potential fix.",
-                            "VRCX CefSharp not found", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            "Neon will now close, try reinstalling Neon using the latest setup as a potential fix.",
+                            "Neon CefSharp not found", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         Thread.Sleep(5000);
                         Environment.Exit(0);
                         break;
@@ -177,13 +218,13 @@ namespace VRCX
                 logger.Fatal(e, "Unhandled SQLite Exception, closing.");
                 var messageBoxResult = MessageBox.Show(
                     "A fatal database error has occured.\n" +
-                    "Please try to repair your database by following the steps in the provided repair guide, or alternatively rename your \"%AppData%\\VRCX\" folder to reset VRCX. " +
+                    "Please try to repair your database by following the steps in the provided repair guide, or alternatively rename your \"%AppData%\\Neon\" folder to reset Neon. " +
                     "If the issue still persists after following the repair guide please join the Discord (https://vrcx.app/discord) for further assistance. " +
                     "Would you like to open the webpage for database repair steps?\n" +
                     e, "Database error", MessageBoxButtons.YesNo, MessageBoxIcon.Error);
                 if (messageBoxResult == DialogResult.Yes)
                 {
-                    AppApiInstance.OpenLink("https://github.com/vrcx-team/VRCX/wiki#how-to-repair-vrcx-database");
+                    AppApiInstance.OpenLink("https://github.com/kx2158/aurora");
                 }
             }
 

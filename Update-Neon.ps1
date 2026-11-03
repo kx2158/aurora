@@ -1,10 +1,10 @@
 <#
-  Update-Neon.ps1 - replaces VRCX (or an older Neon) with the newest Neon and keeps all your data.
+  Update-Neon.ps1 - replaces an older Neon install with the newest Neon and keeps all your data.
 
   What it does, in order:
     1. Finds the Neon installer (given path, next to this script, in Downloads, or downloads the latest build with the GitHub CLI).
-    2. Closes VRCX / Neon if they are running.
-    3. Backs up your data folder (%APPDATA%\VRCX) to Documents\Neon-backups.
+    2. Closes Neon if they are running.
+    3. Backs up your data folder (%APPDATA%\Neon) to Documents\Neon-backups.
     4. Runs the installer silently. It removes the old app files and installs Neon. Your data folder is not touched.
     5. Checks that your data is still there and that Neon is installed.
 
@@ -19,7 +19,8 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $Repo = 'kx2158/aurora'
-$DataDir = Join-Path $env:APPDATA 'VRCX'
+$DataDir = Join-Path $env:APPDATA 'Neon'
+if (-not (Test-Path $DataDir) -and (Test-Path (Join-Path $env:APPDATA 'VRCX'))) { $DataDir = Join-Path $env:APPDATA 'VRCX' }
 
 # ask for admin rights (the installer writes to Program Files)
 $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()
@@ -60,7 +61,7 @@ try {
     }
     Write-Host "Using: $found"
 
-    Step 'Closing VRCX / Neon'
+    Step 'Closing Neon'
     foreach ($proc in 'VRCX', 'Neon') {
         Get-Process -Name $proc -ErrorAction SilentlyContinue | ForEach-Object {
             Write-Host "Closing $($_.ProcessName) ($($_.Id))"
@@ -77,7 +78,7 @@ try {
     if (-not $NoBackup -and (Test-Path $DataDir)) {
         Step 'Backing up your data'
         $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
-        $backup = Join-Path ([Environment]::GetFolderPath('MyDocuments')) "Neon-backups\VRCX-data-$stamp"
+        $backup = Join-Path ([Environment]::GetFolderPath('MyDocuments')) "Neon-backups\data-$stamp"
         New-Item -ItemType Directory -Path $backup -Force | Out-Null
         robocopy $DataDir $backup /E /R:1 /W:1 /NFL /NDL /NJH /NJS | Out-Null
         if ($LASTEXITCODE -ge 8) { throw "Backup failed (robocopy code $LASTEXITCODE). Nothing was changed." }
@@ -89,9 +90,9 @@ try {
     if ($p.ExitCode -ne 0) { throw "The installer exited with code $($p.ExitCode)." }
 
     Step 'Checking the result'
-    $installDir = (Get-ItemProperty 'HKLM:\Software\VRCX' -ErrorAction SilentlyContinue).InstallDir
-    if (-not $installDir) { $installDir = Join-Path $env:ProgramFiles 'VRCX' }
-    $exe = Join-Path $installDir 'VRCX.exe'
+    $installDir = (Get-ItemProperty 'HKLM:\Software\Neon' -ErrorAction SilentlyContinue).InstallDir
+    if (-not $installDir) { $installDir = Join-Path $env:ProgramFiles 'Neon' }
+    $exe = Join-Path $installDir 'Neon.exe'
     if (-not (Test-Path $exe)) { throw "Neon's program file was not found at $exe." }
     $after = 0
     if (Test-Path $DataDir) {
@@ -102,7 +103,7 @@ try {
     if ($after -lt $before) { Write-Host 'Warning: fewer data files than before. Restore from the backup folder if something is missing.' -ForegroundColor Yellow }
 
     Write-Host "`nDone. Neon is installed and your data was kept." -ForegroundColor Green
-    if (-not (Get-Process -Name 'VRCX' -ErrorAction SilentlyContinue)) {
+    if (-not (Get-Process -Name 'Neon' -ErrorAction SilentlyContinue)) {
         Start-Process $exe
     }
 }

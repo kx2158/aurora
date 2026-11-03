@@ -24,31 +24,10 @@
                     }}</span>
                 </div>
             </div>
-
-            <div class="flex flex-col gap-0.5 px-1 py-1 cursor-pointer" @click="openExternalLink(links.github)">
-                <div class="flex-1">
-                    <span class="block truncate font-medium text-sm leading-[18px]">{{
-                        t('view.settings.general.general.repository_url')
-                    }}</span>
-                    <span v-once class="block truncate text-xs text-muted-foreground">{{ links.github }}</span>
-                </div>
-            </div>
-
-            <div class="flex flex-col gap-0.5 px-1 py-1 cursor-pointer" @click="openExternalLink(links.discord)">
-                <div class="flex-1">
-                    <span class="block truncate font-medium text-sm leading-[18px]">{{
-                        t('view.settings.general.general.support')
-                    }}</span>
-                    <span v-once class="block truncate text-xs text-muted-foreground">{{ links.discord }}</span>
-                </div>
-            </div>
         </SettingsGroup>
 
         <SettingsGroup :title="t('view.settings.general.vrcx_updater.header')">
             <div class="flex gap-2">
-                <Button size="sm" variant="outline" @click="showChangeLogDialog">{{
-                    t('view.settings.general.vrcx_updater.change_log')
-                }}</Button>
                 <Button v-if="!noUpdater" size="sm" variant="outline" @click="showVRCXUpdateDialog()">{{
                     t('view.settings.general.vrcx_updater.change_build')
                 }}</Button>
@@ -139,25 +118,8 @@
             </SettingsItem>
         </SettingsGroup>
 
-        <SettingsGroup :title="t('view.settings.general.contributors.header')">
-            <div>
-                <img
-                    src="https://contrib.rocks/image?repo=vrcx-team/VRCX"
-                    alt="Contributors"
-                    class="cursor-pointer"
-                    @click="openExternalLink('https://github.com/vrcx-team/VRCX/graphs/contributors')" />
-            </div>
-        </SettingsGroup>
-
         <SettingsGroup :title="t('view.settings.general.legal_notice.header')">
             <div class="flex flex-col gap-2 text-sm text-muted-foreground mb-2">
-                <p class="m-0">
-                    &copy; 2019-2026
-                    <a class="cursor-pointer" @click="openExternalLink('https://github.com/pypy-vrc')">pypy</a> &amp;
-                    <a class="cursor-pointer" @click="openExternalLink('https://github.com/Natsumi-sama')">Natsumi</a>
-                    &amp;
-                    <a class="cursor-pointer" @click="openExternalLink('https://github.com/Map1en')">Map1en</a>
-                </p>
                 <p class="m-0">{{ t('view.settings.general.legal_notice.info') }}</p>
                 <p class="m-0">{{ t('view.settings.general.legal_notice.disclaimer1') }}</p>
                 <p class="m-0">{{ t('view.settings.general.legal_notice.disclaimer2') }}</p>
@@ -183,8 +145,6 @@
 
     import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
     import { useGeneralSettingsStore, useVRCXUpdaterStore } from '@/stores';
-    import { links } from '@/shared/constants';
-    import { openExternalLink } from '@/shared/utils';
 
     import SettingsGroup from '../SettingsGroup.vue';
     import SettingsItem from '../SettingsItem.vue';
@@ -212,7 +172,7 @@
     } = generalSettingsStore;
 
     const { appVersion, autoUpdateVRCX, latestAppVersion, noUpdater } = storeToRefs(vrcxUpdaterStore);
-    const { setAutoUpdateVRCX, checkForVRCXUpdate, showVRCXUpdateDialog, showChangeLogDialog } = vrcxUpdaterStore;
+    const { setAutoUpdateVRCX, checkForVRCXUpdate, showVRCXUpdateDialog } = vrcxUpdaterStore;
 
     const ossDialog = ref(false);
     const isLinux = computed(() => LINUX);

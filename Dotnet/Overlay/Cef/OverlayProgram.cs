@@ -13,7 +13,7 @@ internal static class OverlayProgram
 
     public static void OverlayMain()
     {
-        logger.Info("VRCX Overlay starting...");
+        logger.Info("Neon Overlay starting...");
         CefService.Instance.Init();
         AppApiVr.Instance = new AppApiVrCef();
         var isLegacy = VRCXStorage.Instance.Get("VRCX_DisableVrOverlayGpuAcceleration") == "true";
@@ -22,7 +22,7 @@ internal static class OverlayProgram
 
         OverlayClient.Init();
 
-        logger.Info("VRCX Overlay started...");
+        logger.Info("Neon Overlay started...");
         QuitProcess();
         ApplicationConfiguration.Initialize();
         var context = new ApplicationContext();
@@ -32,7 +32,7 @@ internal static class OverlayProgram
 
     private static void Exit()
     {
-        logger.Info("VRCX Overlay exiting...");
+        logger.Info("Neon Overlay exiting...");
         // CefService.Instance.Exit();
         OverlayClient.Exit();
         VRCXVRInstance.Exit();

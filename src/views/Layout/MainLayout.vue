@@ -82,9 +82,6 @@
         <FreeStoreItemDialog />
         <ModerationReportDialog />
         <GlobalToolsDialogs />
-        <ChangelogDialog />
-        <WhatsNewDialog />
-        <SpotlightDialog />
     </template>
 </template>
 
@@ -104,7 +101,6 @@
     import { watchState } from '../../services/watchState';
 
     import AvatarImportDialog from '../Favorites/dialogs/AvatarImportDialog.vue';
-    import ChangelogDialog from '../Settings/dialogs/ChangelogDialog.vue';
     import ChooseFavoriteGroupDialog from '../../components/dialogs/ChooseFavoriteGroupDialog.vue';
     import FreeStoreItemDialog from '../../components/dialogs/FreeStoreItemDialog.vue';
     import FriendImportDialog from '../Favorites/dialogs/FriendImportDialog.vue';
@@ -125,8 +121,6 @@
     import StatusBar from '../../components/StatusBar.vue';
     import VRChatConfigDialog from '../Settings/dialogs/VRChatConfigDialog.vue';
     import WorldImportDialog from '../Favorites/dialogs/WorldImportDialog.vue';
-    import WhatsNewDialog from '../../components/onboarding/WhatsNewDialog.vue';
-    import SpotlightDialog from '../../components/onboarding/SpotlightDialog.vue';
 
     const router = useRouter();
     const { t } = useI18n();

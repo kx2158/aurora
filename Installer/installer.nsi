@@ -19,8 +19,8 @@
     VIAddVersionKey "FileVersion" "${VERSION}"
     VIAddVersionKey "ProductName" "Neon"
     VIAddVersionKey "ProductVersion" "${PRODUCT_VERSION}"
-    VIAddVersionKey "LegalCopyright" "Copyright vrcx-team, pypy, natsumi"
-    VIAddVersionKey "FileDescription" "Friendship management tool for VRChat"
+    VIAddVersionKey "LegalCopyright" "Neon (MIT licensed, see LICENSE)"
+    VIAddVersionKey "FileDescription" "Neon - your VRChat companion"
 
 ;--------------------------------
 ;Include Modern UI
@@ -37,8 +37,8 @@
     Unicode True
     Name "Neon"
     OutFile "Neon_Setup_x64.exe"
-    InstallDir "$PROGRAMFILES64\VRCX"
-    InstallDirRegKey HKLM "Software\VRCX" "InstallDir"
+    InstallDir "$PROGRAMFILES64\Neon"
+    InstallDirRegKey HKLM "Software\Neon" "InstallDir"
     RequestExecutionLevel admin
     ShowInstDetails show
 
@@ -46,6 +46,7 @@
 ;Variables
 
     VAR upgradeInstallation
+    VAR legacyDir
 
 ;--------------------------------
 ;Interface Settings
@@ -55,8 +56,8 @@
 ;--------------------------------
 ;Icons
 
-    !define MUI_ICON "../images/VRCX.ico"
-    !define MUI_UNICON "../images/VRCX.ico"
+    !define MUI_ICON "../images/Neon.ico"
+    !define MUI_UNICON "../images/Neon.ico"
 
 ;--------------------------------
 ;Pages
@@ -72,10 +73,10 @@
     ;------------------------------
     ; Finish Page
 
-    ; Checkbox to launch VRCX.
+    ; Checkbox to launch Neon.
     !define MUI_FINISHPAGE_RUN
     !define MUI_FINISHPAGE_RUN_TEXT "Launch Neon"
-    !define MUI_FINISHPAGE_RUN_FUNCTION launchVRCX
+    !define MUI_FINISHPAGE_RUN_FUNCTION launchNeon
 
     ; Checkbox to create desktop shortcut.
     !define MUI_FINISHPAGE_SHOWREADME
@@ -109,18 +110,30 @@ FunctionEnd
 Function .onInit
     StrCpy $upgradeInstallation 0
 
-    ReadRegStr $R0 HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\VRCX" "UninstallString"
+    StrCpy $legacyDir ""
+    ReadRegStr $R0 HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Neon" "UninstallString"
     StrCmp $R0 "" notInstalled
         StrCpy $upgradeInstallation 1
     notInstalled:
 
-    ; If VRCX is already running, display a warning message
+    ; An older install from before the rename: remember where it lives, it is replaced below
+    ReadRegStr $R0 HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\VRCX" "UninstallString"
+    StrCmp $R0 "" noLegacy
+        ReadRegStr $legacyDir HKLM "Software\VRCX" "InstallDir"
+        StrCpy $upgradeInstallation 1
+    noLegacy:
+
+    ; If Neon is already running, display a warning message
     loop:
-    StrCpy $1 "VRCX.exe"
-    nsProcess::_FindProcess "$1"
+    nsProcess::_FindProcess "Neon.exe"
     Pop $R1
+    ${If} $R1 <> 0
+        nsProcess::_FindProcess "VRCX.exe"
+        Pop $R1
+    ${EndIf}
     ${If} $R1 = 0
         MessageBox MB_OKCANCEL|MB_ICONEXCLAMATION "Neon is still running. $\n$\nClick `OK` to kill the running process or `Cancel` to cancel this installer." /SD IDOK IDCANCEL cancel
+            nsExec::ExecToStack "taskkill /IM Neon.exe"
             nsExec::ExecToStack "taskkill /IM VRCX.exe"
     ${Else}
         Goto done
@@ -135,29 +148,41 @@ FunctionEnd
 
 Function .onInstSuccess
     ${If} $upgradeInstallation = 1
-        Call launchVRCX
+        Call launchNeon
     ${EndIf}
 FunctionEnd
 
 Function createDesktopShortcut
-    CreateShortcut "$DESKTOP\Neon.lnk" "$INSTDIR\VRCX.exe"
+    CreateShortcut "$DESKTOP\Neon.lnk" "$INSTDIR\Neon.exe"
 FunctionEnd
 
-Function launchVRCX
+Function launchNeon
     SetOutPath $INSTDIR
-    ShellExecAsUser::ShellExecAsUser "" "$INSTDIR\VRCX.exe" ""
+    ShellExecAsUser::ShellExecAsUser "" "$INSTDIR\Neon.exe" ""
 FunctionEnd
 
 ;--------------------------------
 ;Installer Sections
 
 Section "Install" SecInstall
-    StrCmp $upgradeInstallation 0 noUpgrade
+    ; remove an install from before the rename (the program files only, your data is untouched)
+    StrCmp $legacyDir "" noLegacyCleanup
+        DetailPrint "Replacing the previous version..."
+        IfFileExists "$legacyDir\Uninstall.exe" 0 +3
+            ExecWait '"$legacyDir\Uninstall.exe" /S _?=$legacyDir'
+            Delete "$legacyDir\Uninstall.exe"
+        RMDir /r "$legacyDir"
+        DeleteRegKey HKLM "Software\VRCX"
+        DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\VRCX"
+    noLegacyCleanup:
+
+    IfFileExists "$INSTDIR\Uninstall.exe" 0 noOwnUninstall
         DetailPrint "Uninstall previous version..."
         ExecWait '"$INSTDIR\Uninstall.exe" /S _?=$INSTDIR'
         Delete $INSTDIR\Uninstall.exe
         Goto afterUpgrade
-    noUpgrade:
+    noOwnUninstall:
+    StrCmp $upgradeInstallation 1 afterUpgrade
 
     inetc::get "https://aka.ms/vs/17/release/vc_redist.x64.exe" $TEMP\vcredist_x64.exe
     ExecWait "$TEMP\vcredist_x64.exe /install /quiet /norestart"
@@ -165,30 +190,31 @@ Section "Install" SecInstall
 
     afterUpgrade:
 
-    ; Safety copy of your VRCX/Neon data (history, favorites, settings). The data itself is never touched.
-    IfFileExists "$APPDATA\VRCX\*.*" 0 noBackup
+    ; Safety copy of your data (history, favorites, settings). The data itself is never touched.
+    ; The app moves an older data folder to its new name by itself the first time it starts.
+    IfFileExists "$APPDATA\VRCX\*.*" 0 noOldBackup
         DetailPrint "Backing up your data to Documents\Neon-backups ..."
-        nsExec::ExecToLog 'robocopy "$APPDATA\VRCX" "$DOCUMENTS\Neon-backups\VRCX-data-before-aurora" /E /R:1 /W:1 /NFL /NDL /NJH /NJS'
+        nsExec::ExecToLog 'robocopy "$APPDATA\VRCX" "$DOCUMENTS\Neon-backups\data-before-rename" /E /R:1 /W:1 /NFL /NDL /NJH /NJS'
         Pop $0
-    noBackup:
+    noOldBackup:
 
     SetOutPath "$INSTDIR"
 
     File /r /x *.log /x *.pdb "..\build\Cef\*.*"
 
-    WriteRegStr HKLM "Software\VRCX" "InstallDir" $INSTDIR
+    WriteRegStr HKLM "Software\Neon" "InstallDir" $INSTDIR
     WriteUninstaller "$INSTDIR\Uninstall.exe"
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\VRCX" "DisplayName" "Neon"
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\VRCX" "Publisher" "Neon (fork of VRCX, MIT)"
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\VRCX" "DisplayVersion" "${VERSION}"
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\VRCX" "DisplayArch" "x64"
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\VRCX" "InstallLocation" "$INSTDIR"
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\VRCX" "UninstallString" "$\"$INSTDIR\Uninstall.exe$\""
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\VRCX" "DisplayIcon" "$\"$INSTDIR\VRCX.ico$\""
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Neon" "DisplayName" "Neon"
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Neon" "Publisher" "Neon"
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Neon" "DisplayVersion" "${VERSION}"
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Neon" "DisplayArch" "x64"
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Neon" "InstallLocation" "$INSTDIR"
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Neon" "UninstallString" "$\"$INSTDIR\Uninstall.exe$\""
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Neon" "DisplayIcon" "$\"$INSTDIR\Neon.ico$\""
 
     ${GetSize} "$INSTDIR" "/S=0K" $0 $1 $2
     IntFmt $0 "0x%08X" $0
-    WriteRegDWORD HKLM  "Software\Microsoft\Windows\CurrentVersion\Uninstall\VRCX" "EstimatedSize" "$0"
+    WriteRegDWORD HKLM  "Software\Microsoft\Windows\CurrentVersion\Uninstall\Neon" "EstimatedSize" "$0"
 
     ${GetParameters} $R2
     ${GetOptions} $R2 /SKIP_SHORTCUT= $3
@@ -197,26 +223,26 @@ Section "Install" SecInstall
         Delete "$DESKTOP\VRCX.lnk"
         Delete "$SMPROGRAMS\Aurora.lnk"
         Delete "$DESKTOP\Aurora.lnk"
-        CreateShortCut "$SMPROGRAMS\Neon.lnk" "$INSTDIR\VRCX.exe"
-        ApplicationID::Set "$SMPROGRAMS\Neon.lnk" "VRCX"
-        CreateShortCut "$DESKTOP\Neon.lnk" "$INSTDIR\VRCX.exe"
+        CreateShortCut "$SMPROGRAMS\Neon.lnk" "$INSTDIR\Neon.exe"
+        ApplicationID::Set "$SMPROGRAMS\Neon.lnk" "Neon"
+        CreateShortCut "$DESKTOP\Neon.lnk" "$INSTDIR\Neon.exe"
     noShortcut:
 
     WriteRegStr HKCU "Software\Classes\vrcx" "" "URL:vrcx"
-    WriteRegStr HKCU "Software\Classes\vrcx" "FriendlyTypeName" "VRCX"
+    WriteRegStr HKCU "Software\Classes\vrcx" "FriendlyTypeName" "Neon"
     WriteRegStr HKCU "Software\Classes\vrcx" "URL Protocol" ""
-    WriteRegExpandStr HKCU "Software\Classes\vrcx\DefaultIcon" "" "$INSTDIR\VRCX.ico"
+    WriteRegExpandStr HKCU "Software\Classes\vrcx\DefaultIcon" "" "$INSTDIR\Neon.ico"
     WriteRegStr HKCU "Software\Classes\vrcx\shell" "" "open"
-    WriteRegStr HKCU "Software\Classes\vrcx\shell\open" "FriendlyAppName" "VRCX"
-    WriteRegStr HKCU "Software\Classes\vrcx\shell\open\command" "" '"$INSTDIR\VRCX.exe" /uri="%1" /params="%2 %3 %4"'
+    WriteRegStr HKCU "Software\Classes\vrcx\shell\open" "FriendlyAppName" "Neon"
+    WriteRegStr HKCU "Software\Classes\vrcx\shell\open\command" "" '"$INSTDIR\Neon.exe" /uri="%1" /params="%2 %3 %4"'
 SectionEnd
 
 ;--------------------------------
 ;Uninstaller Section
 
 Section "Uninstall"
-    ; If VRCX is already running, display a warning message and exit
-    StrCpy $1 "VRCX.exe"
+    ; If Neon is already running, display a warning message and exit
+    StrCpy $1 "Neon.exe"
     nsProcess::_FindProcess "$1"
     Pop $R1
     ${If} $R1 = 0
@@ -226,8 +252,8 @@ Section "Uninstall"
 
     RMDir /r "$INSTDIR"
 
-    DeleteRegKey HKLM "Software\VRCX"
-    DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\VRCX"
+    DeleteRegKey HKLM "Software\Neon"
+    DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Neon"
     DeleteRegKey HKCU "Software\Classes\vrcx"
 
     ${IfNot} ${Silent}

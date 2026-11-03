@@ -36,7 +36,7 @@ namespace VRCX
                 if (File.Exists(LaunchArguments.ConfigDirectory))
                 {
                     var message =
-                        "Move your \"VRCX.sqlite3\" into a folder then specify the folder in the launch parameter e.g.\n--config=\"C:\\VRCX\\\"";
+                        "Move your \"Neon.sqlite3\" into a folder then specify the folder in the launch parameter e.g.\n--config=\"C:\\Neon\\\"";
 #if !LINUX
                     MessageBox.Show(message, "--config is now a directory", MessageBoxButtons.OK, MessageBoxIcon.Error);
 #endif
@@ -120,7 +120,7 @@ namespace VRCX
 
         private static bool IsDuplicateProcessRunning(VrcxLaunchArguments launchArguments)
         {
-            var processes = Process.GetProcessesByName("VRCX");
+            var processes = Process.GetProcessesByName("Neon");
             var isDuplicateProcessRunning = false;
             foreach (var process in processes)
             {

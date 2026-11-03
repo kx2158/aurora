@@ -117,7 +117,7 @@
   </Target>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="$(IsWindows)">
-    <Exec Command="&quot;$(ProjectDir)..\Dotnet\build-tools\Topten.nvpatch.exe&quot; --enable &quot;$(ProjectDir)..\build\Cef\VRCX.exe&quot;" />
+    <Exec Command="&quot;$(ProjectDir)..\Dotnet\build-tools\Topten.nvpatch.exe&quot; --enable &quot;$(ProjectDir)..\build\Cef\Neon.exe&quot;" />
   </Target>
 
   <ItemGroup>

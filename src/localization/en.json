@@ -1522,7 +1522,21 @@
             "tile_world": "Current world",
             "min_ago": "added {n} min ago",
             "hour_ago": "added {n} h ago",
-            "day_ago": "added {n} days ago"
+            "day_ago": "added {n} days ago",
+            "worlds_visited": "Worlds visited",
+            "tab_recent": "Recent",
+            "tab_top": "Most time",
+            "visits": "{n} visits",
+            "week": "Last 7 days in VRChat",
+            "tile_time": "Time in VRChat",
+            "tile_time_sub": "over {n} sessions",
+            "tile_today": "Today",
+            "tile_today_sub": "week {w} - longest {l}",
+            "tile_worlds": "Worlds visited",
+            "tile_streak": "{n} day streak",
+            "today": "today",
+            "yesterday": "yesterday",
+            "day_short": "{n}d ago"
         },
         "chatbox": {
             "title": "Chatbox",

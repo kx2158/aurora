@@ -12,21 +12,51 @@
             <div v-for="tile in tiles" :key="tile.label" class="nx-card nx-tile">
                 <span class="nx-meta">{{ tile.label }}</span>
                 <span class="nx-num">{{ tile.value }}</span>
+                <span v-if="tile.sub" class="nx-meta">{{ tile.sub }}</span>
+            </div>
+        </div>
+
+        <div class="nx-card nx-panel nx-week">
+            <h2 class="nx-h2">{{ t('view.home.week') }}</h2>
+            <div class="nx-bars">
+                <div v-for="b in stats.bars" :key="b.label" class="nx-bar">
+                    <span class="nx-bar-fill" :style="{ height: barHeight(b.ms) + '%' }"></span>
+                    <span class="nx-meta">{{ b.label }}</span>
+                    <span class="nx-meta">{{ b.ms ? fmtDuration(b.ms) : '' }}</span>
+                </div>
             </div>
         </div>
 
         <div class="nx-grid">
             <div class="nx-card nx-panel">
-                <h2 class="nx-h2">{{ t('view.home.recent_feed') }}</h2>
-                <RouterLink v-for="(row, i) in recent" :key="i" :to="{ name: 'feed' }" class="nx-row">
-                    <span class="nx-avatar">{{ initial(row.displayName) }}</span>
+                <h2 class="nx-h2">
+                    {{ t('view.home.worlds_visited') }}
+                    <span class="nx-count">{{ stats.worldCount }}</span>
+                </h2>
+                <div class="nx-tabs">
+                    <button type="button" :class="{ on: worldTab === 'recent' }" @click="worldTab = 'recent'">
+                        {{ t('view.home.tab_recent') }}
+                    </button>
+                    <button type="button" :class="{ on: worldTab === 'top' }" @click="worldTab = 'top'">
+                        {{ t('view.home.tab_top') }}
+                    </button>
+                </div>
+                <button
+                    v-for="w in worldTab === 'recent' ? stats.recent : stats.top"
+                    :key="w.id"
+                    type="button"
+                    class="nx-row nx-btn"
+                    @click="showWorldDialog(w.id)">
+                    <span class="nx-avatar">{{ initial(w.name) }}</span>
                     <span class="nx-grow">
-                        <b>{{ row.displayName }}</b>
-                        <span class="nx-meta">{{ describe(row) }}</span>
+                        <b>{{ w.name }}</b>
+                        <span class="nx-meta">
+                            {{ t('view.home.visits', { n: w.visits }) }} - {{ fmtDuration(w.time) }}
+                        </span>
                     </span>
-                    <span class="nx-tag">{{ row.type }}</span>
-                </RouterLink>
-                <p v-if="!recent.length" class="nx-meta">{{ t('view.home.empty') }}</p>
+                    <span class="nx-tag">{{ agoDate(w.last) }}</span>
+                </button>
+                <p v-if="!stats.worldCount" class="nx-meta">{{ t('view.home.empty') }}</p>
             </div>
 
             <div class="nx-side">
@@ -69,25 +99,40 @@
 </template>
 
 <script setup>
-    import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+    import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
     import { useI18n } from 'vue-i18n';
 
     import { showUserDialog } from '../../coordinators/userCoordinator';
+    import { showWorldDialog } from '../../coordinators/worldCoordinator';
+    import { fmtDuration, loadStats } from '../../services/auroraStats';
     import { clearPending, initCompanion, pendingNotes } from '../../services/auroraCompanion';
-    import { useFeedStore, useFriendStore, useLocationStore } from '../../stores';
+    import { useFriendStore, useLocationStore } from '../../stores';
 
     const { t } = useI18n();
     const friendStore = useFriendStore();
-    const feedStore = useFeedStore();
     const locationStore = useLocationStore();
 
     const now = ref(new Date());
     let timer = null;
+    const stats = ref({ total: 0, today: 0, week: 0, longest: 0, streak: 0, sessions: 0, worldCount: 0, recent: [], top: [], bars: [] });
+    const worldTab = ref('recent');
+    async function refreshStats() {
+        try {
+            stats.value = await loadStats();
+        } catch (e) {
+            console.error('Neon stats', e);
+        }
+    }
     onMounted(() => {
         initCompanion();
-        timer = setInterval(() => (now.value = new Date()), 30000);
+        refreshStats();
+        timer = setInterval(() => {
+            now.value = new Date();
+            if (now.value.getSeconds() < 30) refreshStats();
+        }, 30000);
     });
     onBeforeUnmount(() => clearInterval(timer));
+    watch(() => locationStore.lastLocation?.location, refreshStats);
 
     const clock = computed(() => now.value.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
     const greeting = computed(() => {
@@ -97,24 +142,34 @@
 
     const online = computed(() => (friendStore.onlineFriends || []).slice(0, 6));
     const onlineCount = computed(() => friendStore.onlineFriendCount ?? online.value.length);
-    const recent = computed(() => (feedStore.feedTable?.data || []).slice(0, 7));
+    const maxBar = computed(() => Math.max(1, ...stats.value.bars.map((b) => b.ms)));
+    const barHeight = (ms) => (ms ? Math.max(6, Math.round((ms / maxBar.value) * 100)) : 0);
 
     const tiles = computed(() => [
-        { label: t('view.home.tile_online'), value: onlineCount.value },
-        { label: t('view.home.tile_here'), value: locationStore.lastLocation?.playerList?.size ?? 0 },
-        { label: t('view.home.tile_notes'), value: pendingNotes.value.length },
-        { label: t('view.home.tile_world'), value: locationStore.lastLocation?.name || '-' }
+        {
+            label: t('view.home.tile_time'),
+            value: fmtDuration(stats.value.total),
+            sub: t('view.home.tile_time_sub', { n: stats.value.sessions })
+        },
+        {
+            label: t('view.home.tile_today'),
+            value: fmtDuration(stats.value.today),
+            sub: t('view.home.tile_today_sub', { w: fmtDuration(stats.value.week), l: fmtDuration(stats.value.longest) })
+        },
+        {
+            label: t('view.home.tile_worlds'),
+            value: stats.value.worldCount,
+            sub: t('view.home.tile_streak', { n: stats.value.streak })
+        },
+        { label: t('view.home.tile_online'), value: onlineCount.value, sub: locationStore.lastLocation?.name || '' }
     ]);
 
     function initial(name) {
         return String(name || '?').trim().charAt(0).toUpperCase();
     }
-    function describe(row) {
-        if (row.type === 'GPS') return row.worldName || '';
-        if (row.type === 'Status') return row.statusDescription || row.status || '';
-        if (row.type === 'Avatar') return row.avatarName || '';
-        if (row.type === 'Bio') return row.bio ? String(row.bio).slice(0, 60) : '';
-        return row.worldName || '';
+    function agoDate(iso) {
+        const d = Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
+        return d <= 0 ? t('view.home.today') : d === 1 ? t('view.home.yesterday') : t('view.home.day_short', { n: d });
     }
     function ago(ms) {
         const m = Math.max(1, Math.round((Date.now() - ms) / 60000));
@@ -285,6 +340,45 @@
         font-size: 11px;
         color: var(--primary);
         border: 1px solid var(--primary);
+    }
+    .nx-tabs {
+        display: flex;
+        gap: 6px;
+        margin-bottom: 4px;
+    }
+    .nx-tabs button {
+        height: 26px;
+        padding: 0 12px;
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--muted-foreground);
+        border: 1px solid var(--border);
+    }
+    .nx-tabs button.on {
+        color: var(--primary-foreground);
+        background: var(--primary);
+        border-color: var(--primary);
+    }
+    .nx-bars {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 10px;
+        height: 130px;
+    }
+    .nx-bar {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 2px;
+        min-height: 0;
+    }
+    .nx-bar-fill {
+        width: 100%;
+        max-width: 46px;
+        background: linear-gradient(180deg, var(--primary), color-mix(in oklch, var(--primary) 30%, transparent));
+        box-shadow: 0 0 14px color-mix(in oklch, var(--primary) 50%, transparent);
+        transition: height 0.4s ease;
     }
     .nx-add {
         height: 28px;

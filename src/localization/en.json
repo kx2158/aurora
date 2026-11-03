@@ -1536,7 +1536,10 @@
             "tile_streak": "{n} day streak",
             "today": "today",
             "yesterday": "yesterday",
-            "day_short": "{n}d ago"
+            "day_short": "{n}d ago",
+            "met_today": "Met in the last 24h",
+            "met_in": "in {n} instances",
+            "on_this_day": "On this day"
         },
         "chatbox": {
             "title": "Chatbox",

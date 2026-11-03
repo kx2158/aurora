@@ -58,7 +58,32 @@ export async function loadStats() {
         else break;
     }
 
+    // people met in the last 24 hours (excluding yourself is not needed: joins of others only matter)
+    const met = [];
+    await sqliteService.execute(
+        (r) => met.push({ name: r[0], id: r[1], n: r[2], last: r[3] }),
+        `SELECT display_name, user_id, COUNT(DISTINCT location), MAX(created_at)
+         FROM gamelog_join_leave
+         WHERE type = 'OnPlayerJoined' AND created_at >= @since AND user_id LIKE 'usr_%'
+         GROUP BY user_id ORDER BY MAX(created_at) DESC LIMIT 8`,
+        { '@since': new Date(now - day).toISOString() }
+    );
+
+    // the same calendar day in earlier years
+    const memories = [];
+    const md = new Date(now);
+    const pattern = `%-${String(md.getMonth() + 1).padStart(2, '0')}-${String(md.getDate()).padStart(2, '0')}T%`;
+    await sqliteService.execute(
+        (r) => memories.push({ at: r[0], id: r[1], name: r[2], time: r[3] || 0 }),
+        `SELECT created_at, world_id, world_name, time FROM gamelog_location
+         WHERE created_at LIKE @p AND created_at < @y AND world_id LIKE 'wrld_%'
+         ORDER BY time DESC LIMIT 5`,
+        { '@p': pattern, '@y': new Date(startOfDay.getTime()).toISOString() }
+    );
+
     return {
+        met,
+        memories,
         total,
         today,
         week,

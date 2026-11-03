@@ -77,6 +77,41 @@
                     <p v-if="!online.length" class="nx-meta">{{ t('view.home.nobody') }}</p>
                 </div>
 
+                <div v-if="stats.met.length" class="nx-card nx-panel">
+                    <h2 class="nx-h2">
+                        {{ t('view.home.met_today') }}
+                        <span class="nx-count">{{ stats.met.length }}</span>
+                    </h2>
+                    <button
+                        v-for="p in stats.met"
+                        :key="p.id"
+                        type="button"
+                        class="nx-row nx-btn"
+                        @click="showUserDialog(p.id)">
+                        <span class="nx-avatar">{{ initial(p.name) }}</span>
+                        <span class="nx-grow">
+                            <b>{{ p.name }}</b>
+                            <span class="nx-meta">{{ t('view.home.met_in', { n: p.n }) }}</span>
+                        </span>
+                    </button>
+                </div>
+
+                <div v-if="stats.memories.length" class="nx-card nx-panel">
+                    <h2 class="nx-h2">{{ t('view.home.on_this_day') }}</h2>
+                    <button
+                        v-for="m in stats.memories"
+                        :key="m.at"
+                        type="button"
+                        class="nx-row nx-btn"
+                        @click="showWorldDialog(m.id)">
+                        <span class="nx-avatar">{{ initial(m.name) }}</span>
+                        <span class="nx-grow">
+                            <b>{{ m.name }}</b>
+                            <span class="nx-meta">{{ m.at.slice(0, 4) }} - {{ fmtDuration(m.time) }}</span>
+                        </span>
+                    </button>
+                </div>
+
                 <div class="nx-card nx-panel nx-notes">
                     <h2 class="nx-h2">
                         {{ t('view.home.no_notes') }}
@@ -114,7 +149,7 @@
 
     const now = ref(new Date());
     let timer = null;
-    const stats = ref({ total: 0, today: 0, week: 0, longest: 0, streak: 0, sessions: 0, worldCount: 0, recent: [], top: [], bars: [] });
+    const stats = ref({ total: 0, today: 0, week: 0, longest: 0, streak: 0, sessions: 0, worldCount: 0, met: [], memories: [], recent: [], top: [], bars: [] });
     const worldTab = ref('recent');
     async function refreshStats() {
         try {

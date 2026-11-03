@@ -861,7 +861,8 @@
                 "sorting": {
                     "alphabetical": "Alphabétique",
                     "members": "Membres",
-                    "in_game": "En jeu"
+                    "in_game": "En jeu",
+                    "visibility": "Visibility"
                 },
                 "leave_group_tooltip": "Quitter le groupe"
             },

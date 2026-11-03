@@ -641,7 +641,8 @@
                 "sorting": {
                     "alphabetical": "По алфавиту",
                     "members": "Участники",
-                    "in_game": "Игровой порядок"
+                    "in_game": "Игровой порядок",
+                    "visibility": "Visibility"
                 },
                 "leave_group_tooltip": "Покинуть группу"
             },

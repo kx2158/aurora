@@ -37,9 +37,9 @@
     Unicode True
     Name "Neon"
     OutFile "Neon_Setup_x64.exe"
-    InstallDir "$PROGRAMFILES64\Neon"
-    InstallDirRegKey HKLM "Software\Neon" "InstallDir"
-    RequestExecutionLevel admin
+    InstallDir "$LOCALAPPDATA\Programs\Neon"
+    InstallDirRegKey HKCU "Software\Neon" "InstallDir"
+    RequestExecutionLevel user
     ShowInstDetails show
 
 ;--------------------------------
@@ -111,7 +111,7 @@ Function .onInit
     StrCpy $upgradeInstallation 0
 
     StrCpy $legacyDir ""
-    ReadRegStr $R0 HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Neon" "UninstallString"
+    ReadRegStr $R0 HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Neon" "UninstallString"
     StrCmp $R0 "" notInstalled
         StrCpy $upgradeInstallation 1
     notInstalled:
@@ -202,19 +202,19 @@ Section "Install" SecInstall
 
     File /r /x *.log /x *.pdb "..\build\Cef\*.*"
 
-    WriteRegStr HKLM "Software\Neon" "InstallDir" $INSTDIR
+    WriteRegStr HKCU "Software\Neon" "InstallDir" $INSTDIR
     WriteUninstaller "$INSTDIR\Uninstall.exe"
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Neon" "DisplayName" "Neon"
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Neon" "Publisher" "Neon"
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Neon" "DisplayVersion" "${VERSION}"
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Neon" "DisplayArch" "x64"
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Neon" "InstallLocation" "$INSTDIR"
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Neon" "UninstallString" "$\"$INSTDIR\Uninstall.exe$\""
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Neon" "DisplayIcon" "$\"$INSTDIR\Neon.ico$\""
+    WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Neon" "DisplayName" "Neon"
+    WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Neon" "Publisher" "Neon"
+    WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Neon" "DisplayVersion" "${VERSION}"
+    WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Neon" "DisplayArch" "x64"
+    WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Neon" "InstallLocation" "$INSTDIR"
+    WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Neon" "UninstallString" "$\"$INSTDIR\Uninstall.exe$\""
+    WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Neon" "DisplayIcon" "$\"$INSTDIR\Neon.ico$\""
 
     ${GetSize} "$INSTDIR" "/S=0K" $0 $1 $2
     IntFmt $0 "0x%08X" $0
-    WriteRegDWORD HKLM  "Software\Microsoft\Windows\CurrentVersion\Uninstall\Neon" "EstimatedSize" "$0"
+    WriteRegDWORD HKCU  "Software\Microsoft\Windows\CurrentVersion\Uninstall\Neon" "EstimatedSize" "$0"
 
     ${GetParameters} $R2
     ${GetOptions} $R2 /SKIP_SHORTCUT= $3
@@ -252,8 +252,8 @@ Section "Uninstall"
 
     RMDir /r "$INSTDIR"
 
-    DeleteRegKey HKLM "Software\Neon"
-    DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Neon"
+    DeleteRegKey HKCU "Software\Neon"
+    DeleteRegKey HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Neon"
     DeleteRegKey HKCU "Software\Classes\vrcx"
 
     ${IfNot} ${Silent}

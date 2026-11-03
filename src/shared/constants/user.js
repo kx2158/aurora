@@ -44,6 +44,10 @@ const userDialogGroupSortingOptions = {
     inGame: {
         name: 'dialog.user.groups.sorting.in_game',
         value: 'inGame'
+    },
+    visibility: {
+        name: 'dialog.user.groups.sorting.visibility',
+        value: 'visibility'
     }
 };
 

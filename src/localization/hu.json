@@ -1473,7 +1473,8 @@
                 "sorting": {
                     "alphabetical": "Betűrend",
                     "members": "Tagok",
-                    "in_game": "Játékbeli sorrend"
+                    "in_game": "Játékbeli sorrend",
+                    "visibility": "Visibility"
                 },
                 "leave_group_tooltip": "Csoport elhagyása"
             },

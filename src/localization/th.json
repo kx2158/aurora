@@ -1280,7 +1280,8 @@
                 "sorting": {
                     "alphabetical": "ตามตัวอักษร",
                     "members": "สมาชิก  คน",
-                    "in_game": "ลำดับในเกม"
+                    "in_game": "ลำดับในเกม",
+                    "visibility": "Visibility"
                 },
                 "leave_group_tooltip": "ออกจากกลุ่ม"
             },

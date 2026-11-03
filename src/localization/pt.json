@@ -1368,7 +1368,8 @@
                 "sorting": {
                     "alphabetical": "Ordem Alfabética",
                     "members": "Membros",
-                    "in_game": "Ordem no Jogo"
+                    "in_game": "Ordem no Jogo",
+                    "visibility": "Visibility"
                 },
                 "leave_group_tooltip": "Sair do Grupo"
             },

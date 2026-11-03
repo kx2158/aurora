@@ -1473,7 +1473,8 @@
                 "sorting": {
                     "alphabetical": "字母顺序",
                     "members": "成员数",
-                    "in_game": "游戏内顺序"
+                    "in_game": "游戏内顺序",
+                    "visibility": "Visibility"
                 },
                 "leave_group_tooltip": "离开群组"
             },

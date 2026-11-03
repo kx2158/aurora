@@ -39,7 +39,9 @@
                                 :key="String(key)"
                                 :value="String(key)"
                                 :disabled="
-                                    item === userDialogGroupSortingOptions.inGame && userDialog.id !== currentUser.id
+                                    (item === userDialogGroupSortingOptions.inGame ||
+                                        item === userDialogGroupSortingOptions.visibility) &&
+                                    userDialog.id !== currentUser.id
                                 ">
                                 {{ t(item.name) }}
                             </SelectItem>
@@ -544,7 +546,10 @@
         }
         if (userId === currentUser.value.id) {
             userDialog.value.groupSorting = userDialogGroupSortingOptions.inGame;
-        } else if (userDialog.value.groupSorting.value === userDialogGroupSortingOptions.inGame.value) {
+        } else if (
+            userDialog.value.groupSorting.value === userDialogGroupSortingOptions.inGame.value ||
+            userDialog.value.groupSorting.value === userDialogGroupSortingOptions.visibility.value
+        ) {
             userDialog.value.groupSorting = userDialogGroupSortingOptions.alphabetical;
         }
         await sortCurrentUserGroups();
@@ -586,6 +591,12 @@
                 sortMethod = sortGroupsByInGame;
                 await updateInGameGroupOrder();
                 break;
+            case 'visibility': {
+                const rank = { visible: 0, friends: 1, hidden: 2 };
+                const r = (g) => rank[g?.myMember?.visibility] ?? 3;
+                sortMethod = (a, b) => r(a) - r(b) || compareByName(a, b);
+                break;
+            }
         }
 
         userDialog.value.userGroups.ownGroups.sort(sortMethod);

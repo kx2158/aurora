@@ -1442,7 +1442,8 @@
                 "sorting": {
                     "alphabetical": "アルファベット順",
                     "members": "メンバー数",
-                    "in_game": "VRChat 内での表示順"
+                    "in_game": "VRChat 内での表示順",
+                    "visibility": "Visibility"
                 },
                 "leave_group_tooltip": "グループから退出"
             },

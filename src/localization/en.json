@@ -1500,7 +1500,16 @@
                 "mm_latency": "Delay",
                 "mm_lat_low": "Lowest (about 10 ms, may crackle)",
                 "mm_lat_mid": "Balanced (about 30 ms)",
-                "mm_lat_safe": "Safe (about 80 ms)"
+                "mm_lat_safe": "Safe (about 80 ms)",
+                "rules": "Status rules",
+                "rules_desc": "Change your status while chosen friends are online, and put it back when they leave. Useful for staying out of reach of someone without blocking them.",
+                "rules_enabled": "Enable status rules",
+                "rules_status": "Status while they are online",
+                "rules_desc_label": "Status text (optional)",
+                "rules_restore": "Restore my old status afterwards",
+                "rules_add_ph": "Friend display name",
+                "rules_add": "Watch",
+                "rules_not_found": "No friend with that exact name"
             }
         },
         "home": {
@@ -1735,7 +1744,8 @@
                 "sorting": {
                     "alphabetical": "Alphabetical",
                     "members": "Members",
-                    "in_game": "In-Game Order"
+                    "in_game": "In-Game Order",
+                    "visibility": "Visibility"
                 },
                 "leave_group_tooltip": "Leave Group"
             },

@@ -1447,7 +1447,8 @@
                 "sorting": {
                     "alphabetical": "依字母順序",
                     "members": "成員",
-                    "in_game": "遊戲內順序"
+                    "in_game": "遊戲內順序",
+                    "visibility": "Visibility"
                 },
                 "leave_group_tooltip": "離開群組"
             },

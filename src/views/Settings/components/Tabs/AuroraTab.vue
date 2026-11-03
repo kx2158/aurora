@@ -129,6 +129,40 @@
                 </div>
             </div>
         </SettingsGroup>
+        <SettingsGroup :title="t('view.settings.aurora.rules')">
+            <div class="flex flex-col gap-2">
+                <p class="text-xs text-muted-foreground">{{ t('view.settings.aurora.rules_desc') }}</p>
+                <label class="flex items-center gap-2 text-sm">
+                    <span class="w-56">{{ t('view.settings.aurora.rules_enabled') }}</span>
+                    <Switch :model-value="rules.enabled" @update:modelValue="(v) => { rules.enabled = v; saveRules(); }" />
+                </label>
+                <label class="flex items-center gap-2 text-sm">
+                    <span class="w-56">{{ t('view.settings.aurora.rules_status') }}</span>
+                    <select class="nx-sel" v-model="rules.status" @change="saveRules">
+                        <option value="busy">Do Not Disturb</option>
+                        <option value="ask me">Ask Me</option>
+                        <option value="join me">Join Me</option>
+                        <option value="active">Online</option>
+                    </select>
+                </label>
+                <label class="flex items-center gap-2 text-sm">
+                    <span class="w-56">{{ t('view.settings.aurora.rules_desc_label') }}</span>
+                    <Input v-model="rules.desc" maxlength="32" class="flex-1" @change="saveRules" />
+                </label>
+                <label class="flex items-center gap-2 text-sm">
+                    <span class="w-56">{{ t('view.settings.aurora.rules_restore') }}</span>
+                    <Switch :model-value="rules.restore" @update:modelValue="(v) => { rules.restore = v; saveRules(); }" />
+                </label>
+                <div v-for="w in rules.ids" :key="w.id" class="flex items-center gap-2 text-sm">
+                    <span class="flex-1">{{ w.name }}</span>
+                    <Button size="sm" variant="outline" @click="removeWatched(w.id)">x</Button>
+                </div>
+                <div class="flex gap-2">
+                    <Input v-model="watchName" :placeholder="t('view.settings.aurora.rules_add_ph')" class="flex-1" @keydown.enter="addWatchedByName" />
+                    <Button size="sm" variant="outline" @click="addWatchedByName">+ {{ t('view.settings.aurora.rules_add') }}</Button>
+                </div>
+            </div>
+        </SettingsGroup>
         <SettingsGroup :title="t('view.settings.aurora.companion')">
             <SettingsItem
                 :label="t('view.settings.aurora.companion')"
@@ -373,6 +407,8 @@
 
 <script setup>
     import { onMounted, ref } from 'vue';
+    import { addWatched, initStatusRules, removeWatched, rules, saveRules } from '@/services/auroraStatusRules';
+    import { useFriendStore } from '@/stores';
     import { Button } from '@/components/ui/button';
     import { Input } from '@/components/ui/input';
     import { Switch } from '@/components/ui/switch';
@@ -538,7 +574,21 @@
         });
     }
 
+    const watchName = ref('');
+    const friendStoreRef = useFriendStore();
+    function addWatchedByName() {
+        const q = watchName.value.trim().toLowerCase();
+        if (!q) return;
+        const hit = Array.from(friendStoreRef.friends.values()).find((f) => String(f.name || f.ref?.displayName || '').toLowerCase() === q);
+        if (!hit) {
+            toast.error(t('view.settings.aurora.rules_not_found'));
+            return;
+        }
+        addWatched(hit.id, hit.name || hit.ref?.displayName);
+        watchName.value = '';
+    }
     onMounted(() => {
+        initStatusRules();
         refreshAudioLists();
         initChatbox();
     });

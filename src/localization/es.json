@@ -717,7 +717,8 @@
                 "sorting": {
                     "alphabetical": "Alfabético",
                     "members": "Miembros",
-                    "in_game": "Orden en el Juego"
+                    "in_game": "Orden en el Juego",
+                    "visibility": "Visibility"
                 },
                 "leave_group_tooltip": "Dejar Grupo"
             },

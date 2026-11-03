@@ -4,6 +4,7 @@ import { database } from '../services/database';
 import { useFeedStore } from '../stores/feed';
 import { useFriendStore } from '../stores/friend';
 import { useNotificationStore } from '../stores/notification';
+import { statusRuleFriendChange } from '../services/auroraStatusRules';
 import { syncFriendSearchIndex } from './searchIndexCoordinator';
 import { useSharedFeedStore } from '../stores/sharedFeed';
 import { useUserStore } from '../stores/user';
@@ -72,6 +73,7 @@ export async function runUpdateFriendDelayedCheckFlow(
             };
             notificationStore.queueFeedNoty(feed);
             sharedFeedStore.addEntry(feed);
+            statusRuleFriendChange(ref.id, false);
             const persistedFeed = await database.addOnlineOfflineToDatabase(feed);
             if (persistedFeed) {
                 feedStore.addFeedEntry(persistedFeed);
@@ -97,6 +99,7 @@ export async function runUpdateFriendDelayedCheckFlow(
             };
             notificationStore.queueFeedNoty(feed);
             sharedFeedStore.addEntry(feed);
+            statusRuleFriendChange(id, true);
             const persistedFeed = await database.addOnlineOfflineToDatabase(feed);
             if (persistedFeed) {
                 feedStore.addFeedEntry(persistedFeed);

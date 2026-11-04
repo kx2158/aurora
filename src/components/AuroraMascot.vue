@@ -8,6 +8,7 @@
     import { computed, ref, watch } from 'vue';
 
     import { mascotTint } from '@/services/auroraAccent';
+    import { character, characters, initCharacter } from '@/services/auroraCharacter';
     import { emotion, mouthLevel, speaking } from '@/services/auroraVoice';
     import icon from '../../images/aurora/icon.png';
 
@@ -25,6 +26,8 @@
     for (const [path, url] of Object.entries(sprites)) {
         bySlug[path.split('/').pop().replace('.png', '')] = url;
     }
+
+    initCharacter();
 
     const isSpeaking = computed(() => props.reactive && speaking.value);
 
@@ -66,6 +69,11 @@
         let wanted = mood;
         if (isSpeaking.value && !FIXED_FACE.includes(mood)) {
             wanted = mouth.value;
+        }
+        const own = characters[character.value];
+        if (own) {
+            // a character may only have some of the faces, missing ones fall back to its neutral
+            return own[wanted] || own[mood] || own.neutral || bySlug[wanted] || bySlug.neutral || icon;
         }
         return bySlug[wanted] || bySlug[mood] || bySlug.neutral || icon;
     });

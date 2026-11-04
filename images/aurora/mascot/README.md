@@ -5,3 +5,7 @@ Mouth shapes used while she talks: `m-closed`, `m-small`, `m-happy`, `m-o`, `m-g
 
 The mouth follows the loudness of the voice and the face follows the emotion guessed from the words.
 Without `neutral.png` the app icon is used.
+
+More characters: make a sub folder (for example `fox/`) and put the same file names inside it.
+Only `neutral.png` is required, any face a character does not have falls back to its neutral.
+The character picker in Settings lists every folder that has a `neutral.png`.

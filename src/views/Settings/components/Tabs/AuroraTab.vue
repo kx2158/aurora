@@ -98,6 +98,19 @@
                 </div>
             </div>
         </SettingsGroup>
+        <SettingsGroup :title="t('view.settings.aurora.character')">
+            <div class="flex flex-wrap gap-2">
+                <Button
+                    v-for="c in characterList"
+                    :key="c"
+                    size="sm"
+                    :variant="character === c ? 'default' : 'outline'"
+                    @click="setCharacter(c)">
+                    {{ prettyName(c) }}
+                </Button>
+            </div>
+            <p class="text-xs text-muted-foreground">{{ t('view.settings.aurora.character_desc') }}</p>
+        </SettingsGroup>
         <SettingsGroup :title="t('view.settings.aurora.accent')">
             <SettingsItem :label="t('view.settings.aurora.accent_desc')">
                 <div class="flex flex-wrap items-center gap-2">
@@ -433,6 +446,7 @@
         setChatboxTemplate
     } from '@/services/auroraChatbox';
     import { audioApps, audioDevices, mm, refreshAudioLists, setMm, toggleMicMute, toggleMusicMic } from '@/services/auroraMusicMic';
+    import { character, characterList, prettyName, setCharacter } from '@/services/auroraCharacter';
     import { ACCENT_PRESETS, accent, setAccent } from '@/services/auroraAccent';
     import { addAlarm, alarms, removeAlarm, ringAlarm } from '@/services/auroraAlarms';
     import { buildVoicePack, pack } from '@/services/auroraLines';

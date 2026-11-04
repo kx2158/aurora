@@ -1509,7 +1509,9 @@
                 "rules_restore": "Restore my old status afterwards",
                 "rules_add_ph": "Friend display name",
                 "rules_add": "Watch",
-                "rules_not_found": "No friend with that exact name"
+                "rules_not_found": "No friend with that exact name",
+                "character": "Mascot character",
+                "character_desc": "Pick which character appears as your companion. The accent colour still tints whichever you choose."
             }
         },
         "home": {

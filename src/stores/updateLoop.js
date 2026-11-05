@@ -35,7 +35,7 @@ export const useUpdateLoopStore = defineStore('UpdateLoop', () => {
         nextCurrentUserRefresh: 300,
         nextFriendsRefresh: 3600,
         nextGroupInstanceRefresh: 0,
-        nextAppUpdateCheck: 3600,
+        nextAppUpdateCheck: 120,
         ipcTimeout: 0,
         nextClearVRCXCacheCheck: 86400,
         nextDiscordUpdate: 0,
@@ -93,7 +93,7 @@ export const useUpdateLoopStore = defineStore('UpdateLoop', () => {
                     AppApi.CheckGameRunning();
                 }
                 if (--state.nextAppUpdateCheck <= 0) {
-                    state.nextAppUpdateCheck = 3600; // 1hour
+                    state.nextAppUpdateCheck = 300; // 5min, so a new release is picked up while Neon runs
                     if (vrcxUpdaterStore.autoUpdateVRCX !== 'Off') {
                         vrcxUpdaterStore.checkForVRCXUpdate();
                     }

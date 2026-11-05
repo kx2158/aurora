@@ -9,6 +9,11 @@ public partial class AppApi
         await Update.DownloadUpdate(fileUrl, hashString, downloadSize);
     }
 
+    public void InstallUpdateNow()
+    {
+        Update.InstallNow();
+    }
+
     public void CancelUpdate()
     {
         Update.CancelUpdate();

@@ -22,6 +22,7 @@ namespace VRCX
                     "Neon add-ons\r\n\r\n" +
                     "Make a folder for each add-on, for example addons\\rin\\ :\r\n\r\n" +
                     "  addon.json              optional, {\"name\":\"Rin\",\"author\":\"Rin\"}\r\n" +
+                    "                          add \"hidden\":true to keep it out of the lists until its name is typed into the secret field\r\n" +
                     "  faces\\neutral.png       a character: neutral.png is required, the rest are optional\r\n" +
                     "                          (joy, sad, sleepy, angry, surprised, smug, error)\r\n" +
                     "  voice\\poke\\*.mp3        a voice: recordings per kind of line\r\n" +
@@ -48,7 +49,7 @@ namespace VRCX
                 foreach (var dir in Directory.GetDirectories(NeonAddonsRoot()))
                 {
                     var id = Path.GetFileName(dir);
-                    var item = new Dictionary<string, object> { ["id"] = id, ["name"] = id, ["author"] = "" };
+                    var item = new Dictionary<string, object> { ["id"] = id, ["name"] = id, ["author"] = "", ["hidden"] = false };
                     try
                     {
                         var meta = Path.Join(dir, "addon.json");
@@ -56,6 +57,7 @@ namespace VRCX
                         {
                             using var doc = JsonDocument.Parse(File.ReadAllText(meta));
                             if (doc.RootElement.TryGetProperty("name", out var n) && n.ValueKind == JsonValueKind.String) item["name"] = n.GetString();
+                            if (doc.RootElement.TryGetProperty("hidden", out var h) && h.ValueKind == JsonValueKind.True) item["hidden"] = true;
                             if (doc.RootElement.TryGetProperty("author", out var a) && a.ValueKind == JsonValueKind.String) item["author"] = a.GetString();
                         }
                     }

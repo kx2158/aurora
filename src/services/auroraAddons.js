@@ -4,7 +4,7 @@
  *   voice\poke\*.mp3, idle\*.wav ...  a voice (recordings Neon plays instead of the generated voice)
  * They are only pictures and sound files, an add-on cannot run code.
  */
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 
 import configRepository from './config';
 import { registerCharacter } from './auroraCharacter';
@@ -14,6 +14,10 @@ export const addons = ref([]);
 /** id of the add-on whose voice is used, '' for Neon's own voice */
 export const addonVoice = ref('');
 export const addonStatus = ref('');
+/** ids of hidden add-ons the user has unlocked */
+export const unlockedAddons = ref([]);
+/** add-ons that are visible: not hidden, or hidden and unlocked */
+export const visibleAddons = computed(() => addons.value.filter((a) => !a.hidden || unlockedAddons.value.includes(a.id)));
 
 const clipCache = new Map(); // "id/kind/file" -> { samples, rate }
 let ctx = null;
@@ -23,7 +27,26 @@ export async function initAddons() {
     if (loaded) return;
     loaded = true;
     addonVoice.value = await configRepository.getString('Neon_addonVoice', '');
+    try {
+        unlockedAddons.value = JSON.parse(await configRepository.getString('Neon_addonUnlocked', '[]')) || [];
+    } catch {
+        unlockedAddons.value = [];
+    }
     await refreshAddons();
+}
+
+/** Reveals a hidden add-on when its id (or name) is typed in. Returns true on a match. */
+export async function unlockAddon(code) {
+    const c = String(code || '').trim().toLowerCase();
+    if (!c) return false;
+    const hit = addons.value.find((a) => a.hidden && (a.id.toLowerCase() === c || String(a.name).toLowerCase() === c));
+    if (!hit) return false;
+    if (!unlockedAddons.value.includes(hit.id)) {
+        unlockedAddons.value = [...unlockedAddons.value, hit.id];
+        configRepository.setString('Neon_addonUnlocked', JSON.stringify(unlockedAddons.value));
+    }
+    await refreshAddons();
+    return true;
 }
 
 export function openAddonsFolder() {
@@ -45,6 +68,7 @@ export async function refreshAddons() {
     addons.value = Array.isArray(list) ? list : [];
     for (const a of addons.value) {
         if (!a.faces?.includes('neutral')) continue;
+        if (a.hidden && !unlockedAddons.value.includes(a.id)) continue;
         const faces = {};
         for (const name of a.faces) {
             const url = await AppApi.ReadNeonAddonFile(a.id, `faces/${name}.png`);
@@ -52,7 +76,7 @@ export async function refreshAddons() {
         }
         if (faces.neutral) registerCharacter(a.id, faces);
     }
-    if (addonVoice.value && !addons.value.some((a) => a.id === addonVoice.value)) {
+    if (addonVoice.value && !visibleAddons.value.some((a) => a.id === addonVoice.value)) {
         addonVoice.value = '';
     }
     addonStatus.value = `${addons.value.length}`;
@@ -79,7 +103,7 @@ async function decode(dataUri) {
 /** A random recording of this kind of line from the chosen voice add-on, or null to use the normal voice. */
 export async function pickClip(kind) {
     if (!addonVoice.value || !kind) return null;
-    const addon = addons.value.find((a) => a.id === addonVoice.value);
+    const addon = visibleAddons.value.find((a) => a.id === addonVoice.value);
     const files = addon?.voice?.[kind];
     if (!files?.length) return null;
     const file = files[Math.floor(Math.random() * files.length)];

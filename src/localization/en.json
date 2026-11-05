@@ -1541,7 +1541,12 @@
                 "addons_default_voice": "Neon's own voice",
                 "addons_faces": "{n} faces",
                 "addons_clips": "{n} kinds of recordings",
-                "addons_none": "No add-ons yet."
+                "addons_none": "No add-ons yet.",
+                "addons_secret": "Secret add-on",
+                "addons_unlock": "Unlock",
+                "addons_secret_hint": "Type the secret name",
+                "addons_secret_ok": "Unlocked",
+                "addons_secret_no": "Nothing found"
             }
         },
         "home": {

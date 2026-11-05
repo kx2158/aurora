@@ -157,19 +157,30 @@
                     <span class="w-56">{{ t('view.settings.aurora.addons_voice') }}</span>
                     <select class="nx-sel" :value="addonVoice" @change="(e) => setAddonVoice(e.target.value)">
                         <option value="">{{ t('view.settings.aurora.addons_default_voice') }}</option>
-                        <option v-for="a in addons.filter((x) => Object.keys(x.voice || {}).length)" :key="a.id" :value="a.id">
+                        <option v-for="a in visibleAddons.filter((x) => Object.keys(x.voice || {}).length)" :key="a.id" :value="a.id">
                             {{ a.name }}
                         </option>
                     </select>
                 </label>
-                <div v-for="a in addons" :key="a.id" class="flex items-center gap-2 text-sm">
+                <label class="flex items-center gap-2 text-sm">
+                    <span class="w-56">{{ t('view.settings.aurora.addons_secret') }}</span>
+                    <input
+                        v-model="addonSecret"
+                        class="nx-sel"
+                        type="text"
+                        autocomplete="off"
+                        :placeholder="addonSecretMsg"
+                        @keydown.enter.prevent="tryUnlockAddon" />
+                    <Button size="sm" variant="outline" @click="tryUnlockAddon">{{ t('view.settings.aurora.addons_unlock') }}</Button>
+                </label>
+                <div v-for="a in visibleAddons" :key="a.id" class="flex items-center gap-2 text-sm">
                     <span class="flex-1">{{ a.name }}<span v-if="a.author" class="text-muted-foreground"> - {{ a.author }}</span></span>
                     <span class="text-xs text-muted-foreground">
                         {{ a.faces?.length ? t('view.settings.aurora.addons_faces', { n: a.faces.length }) : '' }}
                         {{ Object.keys(a.voice || {}).length ? t('view.settings.aurora.addons_clips', { n: Object.keys(a.voice).length }) : '' }}
                     </span>
                 </div>
-                <p v-if="!addons.length" class="text-xs text-muted-foreground">{{ t('view.settings.aurora.addons_none') }}</p>
+                <p v-if="!visibleAddons.length" class="text-xs text-muted-foreground">{{ t('view.settings.aurora.addons_none') }}</p>
             </div>
         </SettingsGroup>
         <SettingsGroup id="nx-accent" :title="t('view.settings.aurora.accent')">
@@ -533,7 +544,15 @@
         setChatboxTemplate
     } from '@/services/auroraChatbox';
     import { audioApps, audioDevices, mm, refreshAudioLists, setMm, toggleMicMute, toggleMusicMic } from '@/services/auroraMusicMic';
-    import { addonVoice, addons, initAddons, openAddonsFolder, refreshAddons, setAddonVoice } from '@/services/auroraAddons';
+    import {
+        addonVoice,
+        initAddons,
+        openAddonsFolder,
+        refreshAddons,
+        setAddonVoice,
+        unlockAddon,
+        visibleAddons
+    } from '@/services/auroraAddons';
     import { character, characterList, prettyName, setCharacter } from '@/services/auroraCharacter';
     import { ACCENT_PRESETS, accent, setAccent } from '@/services/auroraAccent';
     import { addAlarm, alarms, removeAlarm, ringAlarm } from '@/services/auroraAlarms';
@@ -691,6 +710,13 @@
         else toast.success(t('view.settings.aurora.boops_sent'));
     }
     const friendStoreRef = useFriendStore();
+    const addonSecret = ref('');
+    const addonSecretMsg = ref(t('view.settings.aurora.addons_secret_hint'));
+    async function tryUnlockAddon() {
+        const ok = await unlockAddon(addonSecret.value);
+        addonSecret.value = '';
+        addonSecretMsg.value = t(ok ? 'view.settings.aurora.addons_secret_ok' : 'view.settings.aurora.addons_secret_no');
+    }
     function addWatchedByName() {
         const q = watchName.value.trim().toLowerCase();
         if (!q) return;

@@ -32,6 +32,7 @@
         { id: 'nx-rules', label: 'jump_rules' },
         { id: 'nx-people', label: 'jump_people' },
         { id: 'nx-character', label: 'jump_character' },
+        { id: 'nx-addons', label: 'jump_addons' },
         { id: 'nx-accent', label: 'jump_accent' },
         { id: 'nx-voice', label: 'jump_voice' },
         { id: 'nx-companion', label: 'jump_companion' },

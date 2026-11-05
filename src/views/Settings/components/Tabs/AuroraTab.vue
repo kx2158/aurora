@@ -146,6 +146,32 @@
             </div>
             <p class="text-xs text-muted-foreground">{{ t('view.settings.aurora.character_desc') }}</p>
         </SettingsGroup>
+        <SettingsGroup id="nx-addons" :title="t('view.settings.aurora.addons')">
+            <div class="flex flex-col gap-3">
+                <p class="text-xs text-muted-foreground">{{ t('view.settings.aurora.addons_desc') }}</p>
+                <div class="flex flex-wrap gap-2">
+                    <Button size="sm" variant="outline" @click="openAddonsFolder">{{ t('view.settings.aurora.addons_open') }}</Button>
+                    <Button size="sm" variant="outline" @click="refreshAddons">{{ t('view.settings.aurora.addons_refresh') }}</Button>
+                </div>
+                <label class="flex items-center gap-2 text-sm">
+                    <span class="w-56">{{ t('view.settings.aurora.addons_voice') }}</span>
+                    <select class="nx-sel" :value="addonVoice" @change="(e) => setAddonVoice(e.target.value)">
+                        <option value="">{{ t('view.settings.aurora.addons_default_voice') }}</option>
+                        <option v-for="a in addons.filter((x) => Object.keys(x.voice || {}).length)" :key="a.id" :value="a.id">
+                            {{ a.name }}
+                        </option>
+                    </select>
+                </label>
+                <div v-for="a in addons" :key="a.id" class="flex items-center gap-2 text-sm">
+                    <span class="flex-1">{{ a.name }}<span v-if="a.author" class="text-muted-foreground"> - {{ a.author }}</span></span>
+                    <span class="text-xs text-muted-foreground">
+                        {{ a.faces?.length ? t('view.settings.aurora.addons_faces', { n: a.faces.length }) : '' }}
+                        {{ Object.keys(a.voice || {}).length ? t('view.settings.aurora.addons_clips', { n: Object.keys(a.voice).length }) : '' }}
+                    </span>
+                </div>
+                <p v-if="!addons.length" class="text-xs text-muted-foreground">{{ t('view.settings.aurora.addons_none') }}</p>
+            </div>
+        </SettingsGroup>
         <SettingsGroup id="nx-accent" :title="t('view.settings.aurora.accent')">
             <SettingsItem :label="t('view.settings.aurora.accent_desc')">
                 <div class="flex flex-wrap items-center gap-2">
@@ -507,6 +533,7 @@
         setChatboxTemplate
     } from '@/services/auroraChatbox';
     import { audioApps, audioDevices, mm, refreshAudioLists, setMm, toggleMicMute, toggleMusicMic } from '@/services/auroraMusicMic';
+    import { addonVoice, addons, initAddons, openAddonsFolder, refreshAddons, setAddonVoice } from '@/services/auroraAddons';
     import { character, characterList, prettyName, setCharacter } from '@/services/auroraCharacter';
     import { ACCENT_PRESETS, accent, setAccent } from '@/services/auroraAccent';
     import { addAlarm, alarms, removeAlarm, ringAlarm } from '@/services/auroraAlarms';
@@ -679,6 +706,7 @@
         initStatusRules();
         initPersonRules();
         initBoopCode();
+        initAddons();
         refreshAudioLists();
         initChatbox();
     });

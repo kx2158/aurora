@@ -105,6 +105,17 @@ export const LINES = {
 
 export const ALL_LINES = Object.values(LINES).flat();
 const recent = [];
+const categoryByLine = new Map();
+for (const [category, list] of Object.entries(LINES)) {
+    for (const l of list) {
+        categoryByLine.set(l, category);
+    }
+}
+
+/** Which kind of line this is (poke, idle, ...), or '' for anything else. */
+export function categoryOf(line) {
+    return categoryByLine.get(line) || '';
+}
 
 /** Picks a line from a category, never one of the last few used. */
 export function pickLine(category) {

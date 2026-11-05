@@ -34,9 +34,10 @@
 
     import { showUserDialog } from '../coordinators/userCoordinator';
     import { clearPending, companionEnabled, companionHome, initCompanion, noteReminders, pendingNotes } from '../services/auroraCompanion';
-    import { buildVoicePack, pickLine } from '../services/auroraLines';
+    import { buildVoicePack, categoryOf, pickLine } from '../services/auroraLines';
+    import { initAddons, pickClip } from '../services/auroraAddons';
     import { takeUnspoken } from '../services/auroraNews';
-    import { setMood, speak, speaking } from '../services/auroraVoice';
+    import { setMood, speak, speakEntry, speaking } from '../services/auroraVoice';
     import { useAuroraSettingsStore, useGameStore } from '../stores';
     import AuroraMascot from './AuroraMascot.vue';
 
@@ -100,7 +101,14 @@
         };
         if (settings.mascotVoiceEnabled || force) {
             // she says the universal line (instant, pre-rendered); the bubble can show names
-            speak(spoken || text, { ...voiceOptions(), mood, interrupt, onStart: show }).catch(() => show());
+            const kind = categoryOf(spoken);
+            pickClip(kind)
+                .then((clip) =>
+                    clip
+                        ? speakEntry(clip, text, { volume: settings.mascotVoiceVolume, mood, interrupt, onStart: show })
+                        : speak(spoken || text, { ...voiceOptions(), mood, interrupt, onStart: show })
+                )
+                .catch(() => show());
         } else {
             show();
         }
@@ -187,6 +195,7 @@
 
     onMounted(async () => {
         await initCompanion();
+        initAddons();
         pickTarget();
         raf = requestAnimationFrame(step);
         timers.push(setInterval(pickTarget, 9000));

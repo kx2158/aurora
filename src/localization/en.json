@@ -1532,7 +1532,16 @@
                 "boops_need_pass": "Enter the shared passphrase first",
                 "boops_slow": "One boop every 3 seconds",
                 "boops_failed": "The boop could not be sent",
-                "boops_sent": "Boop sent"
+                "boops_sent": "Boop sent",
+                "addons": "Add-ons",
+                "addons_desc": "Drop a folder into the add-ons folder to add a character (faces) or a voice (recordings). No rebuild needed. Put pictures in faces\\neutral.png and sounds in voice\\poke\\*.mp3. The README in the folder lists every name. Add-ons are only pictures and sound, they cannot run code.",
+                "addons_open": "Open add-ons folder",
+                "addons_refresh": "Refresh add-ons",
+                "addons_voice": "Voice",
+                "addons_default_voice": "Neon's own voice",
+                "addons_faces": "{n} faces",
+                "addons_clips": "{n} kinds of recordings",
+                "addons_none": "No add-ons yet."
             }
         },
         "home": {
@@ -1615,7 +1624,8 @@
             "jump_security": "Security",
             "jump_cleanup": "Cleanup",
             "jump_people": "People",
-            "jump_boops": "Rin troll"
+            "jump_boops": "Rin troll",
+            "jump_addons": "Add-ons"
         }
     },
     "dialog": {

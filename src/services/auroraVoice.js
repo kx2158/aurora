@@ -230,6 +230,34 @@ export function speak(text, { voice = 'af_heart', speed = 1, volume = 0.8, fx = 
     return startedPromise;
 }
 
+/**
+ * Plays a ready made recording ({ samples, rate }) the same way speak() plays a generated line,
+ * so it waits its turn and the mouth follows it. Used by voice add-ons.
+ */
+export function speakEntry(entry, text, { volume = 0.8, mood = null, onStart = null, interrupt = false } = {}) {
+    if (interrupt) {
+        epoch++;
+        stopSpeaking();
+        playChain = Promise.resolve();
+    }
+    const myEpoch = epoch;
+    let started;
+    const startedPromise = new Promise((resolve) => (started = resolve));
+    playChain = playChain
+        .then(async () => {
+            if (myEpoch !== epoch) {
+                return started();
+            }
+            await play(entry, String(text || ''), volume, mood, onStart);
+            started();
+        })
+        .catch((e) => {
+            started();
+            console.error('Neon voice add-on failed', e);
+        });
+    return startedPromise;
+}
+
 async function play(entry, line, volume, mood, onStart) {
     audioCtx = audioCtx || new AudioContext();
     if (audioCtx.state === 'suspended') {

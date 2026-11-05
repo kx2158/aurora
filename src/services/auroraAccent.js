@@ -65,16 +65,22 @@ export function mascotFilter(hex = accent.value) {
 }
 
 export const mascotTint = ref('none');
+/** A character add-on can lend its own colour without changing the saved accent. '' for none. */
+const accentOverride = ref('');
+export function setAccentOverride(hex) {
+    accentOverride.value = /^#[0-9a-f]{6}$/i.test(hex || '') ? hex.toLowerCase() : '';
+}
 
 function apply() {
-    const hex = accent.value;
+    const hex = accentOverride.value || accent.value;
     const root = document.documentElement;
     const [r, g, b] = hexToRgb(hex);
     root.style.setProperty('--aurora-pink', hex);
     root.style.setProperty('--aurora-pink-soft', `rgba(${r}, ${g}, ${b}, 0.35)`);
     // 340 is where the original pink theme sits (hot pink is about 17 above that)
     root.style.setProperty('--ah', String(Math.round(oklchHue(hex) - 17)));
-    mascotTint.value = mascotFilter(hex);
+    // an add-on character keeps its own colours, only Neon's own pink sprites get tinted
+    mascotTint.value = accentOverride.value ? 'none' : mascotFilter(hex);
 }
 
 let started = false;
@@ -85,7 +91,7 @@ export async function initAccent() {
     started = true;
     accent.value = await configRepository.getString('Neon_accent', DEFAULT_ACCENT);
     apply();
-    watch(accent, apply);
+    watch([accent, accentOverride], apply);
 }
 
 export function setAccent(hex) {

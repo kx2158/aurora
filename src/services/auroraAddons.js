@@ -4,10 +4,11 @@
  *   voice\poke\*.mp3, idle\*.wav ...  a voice (recordings Neon plays instead of the generated voice)
  * They are only pictures and sound files, an add-on cannot run code.
  */
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 
 import configRepository from './config';
-import { registerCharacter } from './auroraCharacter';
+import { setAccentOverride } from './auroraAccent';
+import { character, registerCharacter } from './auroraCharacter';
 
 /** [{ id, name, author, faces:[], voice:{ kind:[files] } }] */
 export const addons = ref([]);
@@ -18,6 +19,51 @@ export const addonStatus = ref('');
 export const unlockedAddons = ref([]);
 /** add-ons that are visible: not hidden, or hidden and unlocked */
 export const visibleAddons = computed(() => addons.value.filter((a) => !a.hidden || unlockedAddons.value.includes(a.id)));
+
+/** English lines of add-on personas, { addonId: { kind: [lines] } } */
+const personaLines = ref({});
+
+/**
+ * An add-on character can bring its own look and voice (addon.json: appName, accent, voiceId, voiceSpeed,
+ * lines:true plus a lines.json). It applies while that character is the chosen one.
+ */
+export const persona = computed(() => {
+    const a = addons.value.find((x) => x.id === character.value);
+    const m = a?.meta;
+    if (!m || !(m.appName || m.accent || m.voiceId || m.lines)) return null;
+    return {
+        id: a.id,
+        appName: String(m.appName || ''),
+        accent: String(m.accent || ''),
+        voiceId: String(m.voiceId || ''),
+        voiceSpeed: Number(m.voiceSpeed) || 1,
+        lines: personaLines.value[a.id] || null
+    };
+});
+export const appName = computed(() => persona.value?.appName || 'Neon');
+
+const baseTitle = typeof document !== 'undefined' ? document.title : 'Neon';
+watch(
+    persona,
+    (p) => {
+        setAccentOverride(p?.accent || '');
+        try {
+            document.title = p?.appName || baseTitle;
+        } catch {
+            // no document
+        }
+    },
+    { immediate: true }
+);
+
+/** A line from the persona for this kind of line, or '' to use Neon's own. */
+export function personaLine(kind, recent = []) {
+    const pool = persona.value?.lines?.[kind];
+    if (!Array.isArray(pool) || !pool.length) return '';
+    const fresh = pool.filter((l) => !recent.includes(l));
+    const from = fresh.length ? fresh : pool;
+    return from[Math.floor(Math.random() * from.length)];
+}
 
 const clipCache = new Map(); // "id/kind/file" -> { samples, rate }
 let ctx = null;
@@ -89,6 +135,17 @@ export async function refreshAddons() {
             if (url) faces[name] = url;
         }
         if (faces.neutral) registerCharacter(a.id, faces);
+        if (a.meta?.lines === true) {
+            try {
+                const uri = await AppApi.ReadNeonAddonFile(a.id, 'lines.json');
+                if (uri) {
+                    const text = await (await fetch(uri)).text();
+                    personaLines.value = { ...personaLines.value, [a.id]: JSON.parse(text) };
+                }
+            } catch (e) {
+                console.error('Neon add-on lines', e);
+            }
+        }
     }
     if (addonVoice.value && !visibleAddons.value.some((a) => a.id === addonVoice.value)) {
         addonVoice.value = '';

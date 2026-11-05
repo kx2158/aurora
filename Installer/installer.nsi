@@ -27,6 +27,8 @@
 
     !include "MUI2.nsh"
     !include "FileFunc.nsh"
+    !include "WordFunc.nsh"
+    !insertmacro VersionCompare
     !include "LogicLib.nsh"
 
 ;--------------------------------
@@ -123,6 +125,17 @@ Function .onInit
         StrCpy $upgradeInstallation 1
     noLegacy:
 
+    ; Never replace a newer install with an older installer
+    ReadRegStr $R0 HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Neon" "DisplayVersion"
+    StrCmp $R0 "" noVersionCheck
+        ${VersionCompare} "$R0" "${VERSION}" $R2
+        ${If} $R2 = 1
+            MessageBox MB_YESNO|MB_ICONQUESTION "A newer Neon ($R0) is already installed. Install the older ${VERSION} anyway?" /SD IDNO IDYES noVersionCheck
+            Abort
+        ${EndIf}
+    noVersionCheck:
+
+    StrCpy $R3 0
     ; If Neon is already running, display a warning message
     loop:
     nsProcess::_FindProcess "Neon.exe"
@@ -139,6 +152,11 @@ Function .onInit
         Goto done
     ${EndIf}
     Sleep 1000
+    IntOp $R3 $R3 + 1
+    ${If} $R3 > 20
+        ; still running (for example it only hid itself to the tray), close it hard
+        nsExec::ExecToStack "taskkill /F /IM Neon.exe"
+    ${EndIf}
     Goto loop
 
     cancel:

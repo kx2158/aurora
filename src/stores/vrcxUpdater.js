@@ -66,16 +66,10 @@ export const useVRCXUpdaterStore = defineStore('VRCXUpdater', () => {
             noUpdater.value = true;
         }
 
-        const [VRCX_autoUpdateVRCX, VRCX_id] = await Promise.all([
-            configRepository.getString('VRCX_autoUpdateVRCX', 'Auto Download'),
-            configRepository.getString('VRCX_id', '')
-        ]);
+        const VRCX_id = await configRepository.getString('VRCX_id', '');
 
-        if (VRCX_autoUpdateVRCX === 'Auto Install') {
-            autoUpdateVRCX.value = 'Auto Download';
-        } else {
-            autoUpdateVRCX.value = VRCX_autoUpdateVRCX;
-        }
+        // Neon always keeps itself up to date, whatever an older setting says
+        autoUpdateVRCX.value = 'Auto Download';
         if (noUpdater.value) {
             autoUpdateVRCX.value = 'Off';
         }
@@ -86,22 +80,8 @@ export const useVRCXUpdaterStore = defineStore('VRCXUpdater', () => {
         await initBranch();
         await loadVrcxId();
 
-        let checkedForUpdatesDuringAnnouncement = false;
-        if (await shouldAnnounceCurrentVersion()) {
-            const shown = await showWhatsNewDialog();
-            if (shown) {
-                await markCurrentVersionAsSeen();
-            } else if (isRecognizedStableReleaseVersion()) {
-                const result = await showChangeLogDialog({ prefetch: true });
-                checkedForUpdatesDuringAnnouncement = result.checkedForUpdates;
-                if (result.shown) {
-                    await markCurrentVersionAsSeen();
-                }
-            }
-        } else {
-            await syncCurrentVersionState();
-        }
-        if (autoUpdateVRCX.value !== 'Off' && !checkedForUpdatesDuringAnnouncement) {
+        await syncCurrentVersionState();
+        if (autoUpdateVRCX.value !== 'Off') {
             await checkForVRCXUpdate();
         }
     }
@@ -159,18 +139,6 @@ export const useVRCXUpdaterStore = defineStore('VRCXUpdater', () => {
             return true;
         }
         return false;
-    }
-
-    async function shouldAnnounceCurrentVersion() {
-        if (branch.value !== 'Stable' || !isRecognizedStableReleaseVersion()) {
-            return false;
-        }
-        const lastVersion = await configRepository.getString('VRCX_lastVRCXVersion', '');
-        return Boolean(lastVersion) && lastVersion !== currentVersion.value;
-    }
-
-    function isRecognizedStableReleaseVersion() {
-        return Boolean(normalizeReleaseVersion(currentVersion.value));
     }
 
     /**
@@ -348,17 +316,6 @@ export const useVRCXUpdaterStore = defineStore('VRCXUpdater', () => {
                     return true;
                 }
                 pendingVRCXUpdate.value = true;
-                if (updateToastRelease.value !== releaseName) {
-                    updateToastRelease.value = releaseName;
-                    toast(t('nav_menu.update_available'), {
-                        description: releaseName,
-                        duration: 5000,
-                        action: {
-                            label: t('nav_menu.update'),
-                            onClick: () => showVRCXUpdateDialog()
-                        }
-                    });
-                }
                 if (autoUpdateVRCX.value === 'Notify') {
                     // this.showVRCXUpdateDialog();
                 } else if (autoUpdateVRCX.value === 'Auto Download') {
@@ -451,6 +408,10 @@ export const useVRCXUpdaterStore = defineStore('VRCXUpdater', () => {
             await downloadFileProgress();
             await AppApi.DownloadUpdate(downloadUrl, hashString, size);
             pendingVRCXInstall.value = releaseName;
+            if (!LINUX) {
+                // install on the spot, silently, no restart prompt
+                await AppApi.InstallUpdateNow();
+            }
         } catch (err) {
             console.error(err);
             toast.error(`${t('message.vrcx_updater.failed_install')} ${err}`);

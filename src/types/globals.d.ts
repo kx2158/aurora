@@ -271,6 +271,7 @@ declare global {
         // Update
         DownloadUpdate(fileUrl: string, hashString: string, downloadSize: number): Promise<void>;
         CancelUpdate(): Promise<void>;
+        InstallUpdateNow(): Promise<void>;
         CheckUpdateProgress(): Promise<number>;
 
         // Neon: window, music and system info (Windows build)

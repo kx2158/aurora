@@ -19,6 +19,7 @@ namespace VRCX
         private static readonly Logger logger = LogManager.GetCurrentClassLogger();
         private static readonly string VrcxSetupExecutable = Path.Join(Program.AppDataDirectory, "Neon_Setup.exe");
         private static readonly string UpdateExecutable = Path.Join(Program.AppDataDirectory, "update.exe");
+        private static readonly string UpdateVersionFile = Path.Join(Program.AppDataDirectory, "update.version");
         private static readonly string TempDownload = Path.Join(Program.AppDataDirectory, "tempDownload");
         private static readonly HttpClient httpClient;
         private static CancellationToken _cancellationToken;
@@ -48,6 +49,9 @@ namespace VRCX
 
         public static void Check()
         {
+            // the installer relaunches Neon before it has fully exited, so wait for it instead of quitting
+            for (var i = 0; i < 120 && Process.GetProcessesByName("Neon_Setup").Length > 0; i++)
+                Thread.Sleep(500);
             if (Process.GetProcessesByName("Neon_Setup").Length > 0)
                 Environment.Exit(0);
 
@@ -57,39 +61,116 @@ namespace VRCX
                 File.Delete(VrcxSetupExecutable);
 
             if (File.Exists(UpdateExecutable))
+            {
+                // never install a staged update that is not newer than what is running (that would be a downgrade)
+                if (!IsStagedUpdateNewer())
+                {
+                    logger.Info("Dropping the staged update, it is not newer than {0}", Program.Version);
+                    DeleteStagedUpdate();
+                    return;
+                }
                 InstallUpdate();
+            }
         }
 
-        private static void InstallUpdate()
+        private static void DeleteStagedUpdate()
         {
-            var setupArguments = string.Empty;
+            try
+            {
+                if (File.Exists(UpdateExecutable))
+                    File.Delete(UpdateExecutable);
+                if (File.Exists(UpdateVersionFile))
+                    File.Delete(UpdateVersionFile);
+            }
+            catch (Exception e)
+            {
+                logger.Warn(e, "Failed to delete the staged update");
+            }
+        }
 
+        private static long[] VersionNumbers(string version)
+        {
+            var list = new List<long>();
+            foreach (System.Text.RegularExpressions.Match m in System.Text.RegularExpressions.Regex.Matches(version ?? string.Empty, @"\d+"))
+                list.Add(long.Parse(m.Value));
+            return list.ToArray();
+        }
+
+        private static bool IsNewer(string a, string b)
+        {
+            var x = VersionNumbers(a);
+            var y = VersionNumbers(b);
+            for (var i = 0; i < Math.Max(x.Length, y.Length); i++)
+            {
+                var d = (i < x.Length ? x[i] : 0) - (i < y.Length ? y[i] : 0);
+                if (d != 0)
+                    return d > 0;
+            }
+            return false;
+        }
+
+        private static bool IsStagedUpdateNewer()
+        {
+            try
+            {
+                if (!File.Exists(UpdateVersionFile))
+                    return false; // unknown version, download it again instead of guessing
+                return IsNewer(File.ReadAllText(UpdateVersionFile).Trim(), Program.Version);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        /// <summary>Installs the downloaded update right now, silently, and closes this app so the installer can replace it.</summary>
+        public static void InstallNow()
+        {
+#if !LINUX
+            if (!File.Exists(UpdateExecutable) || !IsStagedUpdateNewer())
+                return;
+            if (!StartInstaller())
+                return;
+            try
+            {
+                Application.Exit();
+            }
+            catch
+            {
+                Environment.Exit(0);
+            }
+#endif
+        }
+
+        private static bool StartInstaller()
+        {
             try
             {
                 if (File.Exists(VrcxSetupExecutable))
                     File.Delete(VrcxSetupExecutable);
                 File.Move(UpdateExecutable, VrcxSetupExecutable);
-                var vrcxProcess = new Process
+                if (File.Exists(UpdateVersionFile))
+                    File.Delete(UpdateVersionFile);
+                Process.Start(new ProcessStartInfo
                 {
-                    StartInfo = new ProcessStartInfo
-                    {
-                        FileName = VrcxSetupExecutable,
-                        Arguments = setupArguments,
-                        UseShellExecute = true,
-                        WorkingDirectory = Program.AppDataDirectory
-                    }
-                };
-                vrcxProcess.Start();
-                Environment.Exit(0);
+                    FileName = VrcxSetupExecutable,
+                    Arguments = "/S",
+                    UseShellExecute = true,
+                    WorkingDirectory = Program.AppDataDirectory
+                });
+                return true;
             }
             catch (Exception e)
             {
-                var message = $"Failed to install the update: {e.Message}";
-                logger.Info(message);
-#if !LINUX
-                MessageBox.Show(message, "Update failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
-#endif
+                logger.Error(e, "Failed to install the update");
+                return false;
             }
+        }
+
+        private static void InstallUpdate()
+        {
+            if (StartInstaller())
+                Environment.Exit(0);
         }
 
         public static async Task DownloadInstallRedist()
@@ -228,6 +309,10 @@ namespace VRCX
                 if (File.Exists(UpdateExecutable))
                     File.Delete(UpdateExecutable);
                 File.Move(TempDownload, UpdateExecutable);
+                // release urls look like .../releases/download/v2026.11.05.12/Neon_Setup_x64.exe
+                var match = System.Text.RegularExpressions.Regex.Match(fileUrl, @"/download/v?([\d.]+)/");
+                if (match.Success)
+                    File.WriteAllText(UpdateVersionFile, match.Groups[1].Value);
             }
             else
             {

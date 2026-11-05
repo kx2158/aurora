@@ -10,8 +10,43 @@ import { miscRequest } from '../api';
 import { photonEmojis } from '../shared/constants/photon.js';
 import configRepository from './config';
 import { pushNews } from './auroraNews';
+import { hashPin, verifyPin } from './auroraSecurity';
 
 const KEY = 'Neon_boopCode';
+const UNLOCK_KEY = 'Neon_boopsUnlocked';
+const PASS_KEY = 'Neon_boopsPass';
+/** Salted hash of the default password. The boop tools stay completely hidden until it is typed in. */
+const DEFAULT_PASS_HASH = '{"v":1,"i":210000,"s":"5a77e19209afe93a6814be01d8441ed8","h":"77d3419e80c0559d8230971568a9a99ef78fa90767018f151ffe2d1644532d3d"}';
+
+/** true once the boop tools were unlocked with the password */
+export const boopsUnlocked = ref(false);
+
+export async function initBoopsLock() {
+    boopsUnlocked.value = (await configRepository.getString(UNLOCK_KEY, 'false')) === 'true';
+}
+
+/** Returns true (and shows the boop tools) when the text is the password. */
+export async function tryUnlockBoops(text) {
+    const pass = String(text || '').trim();
+    if (!pass) return false;
+    const stored = await configRepository.getString(PASS_KEY, '');
+    if (!(await verifyPin(pass, stored || DEFAULT_PASS_HASH))) return false;
+    boopsUnlocked.value = true;
+    configRepository.setString(UNLOCK_KEY, 'true');
+    return true;
+}
+
+export function lockBoops() {
+    boopsUnlocked.value = false;
+    configRepository.setString(UNLOCK_KEY, 'false');
+}
+
+export async function changeBoopsPassword(next) {
+    const pass = String(next || '').trim();
+    if (pass.length < 6) return false;
+    configRepository.setString(PASS_KEY, await hashPin(pass));
+    return true;
+}
 
 /** Shared default soundboard. Same order on both sides, so keep it as is unless you both change it. */
 export const BOOP_LINES = [

@@ -7,7 +7,7 @@
                 <span class="text-xs text-muted-foreground">{{ t('view.settings.aurora.tagline') }}</span>
             </div>
         </div>
-        <SettingsGroup id="nx-boops" :title="t('view.settings.aurora.boops')">
+        <SettingsGroup v-if="boopsUnlocked" id="nx-boops" :title="t('view.settings.aurora.boops')">
             <div class="flex flex-col gap-3">
                 <div class="grid grid-cols-2 gap-2 md:grid-cols-3">
                     <button
@@ -39,6 +39,11 @@
                 <div class="flex items-center gap-2 text-sm">
                     <span class="w-56">{{ t('view.settings.aurora.boops_target') }}</span>
                     <Input v-model="boopCode.target" :placeholder="t('view.settings.aurora.rules_add_ph')" class="flex-1" @change="saveBoopCode" />
+                </div>
+                <div class="flex items-center gap-2 text-sm">
+                    <span class="w-56">{{ t('view.settings.aurora.boops_newpass') }}</span>
+                    <Input v-model="newBoopPass" type="password" class="flex-1" @change="saveNewBoopPass" />
+                    <Button size="sm" variant="outline" @click="lockBoops">{{ t('view.settings.aurora.boops_lock') }}</Button>
                 </div>
             </div>
         </SettingsGroup>
@@ -516,7 +521,17 @@
 
 <script setup>
     import { onMounted, ref } from 'vue';
-    import { boopCode, initBoopCode, saveBoopCode, sendBoopLine } from '@/services/auroraBoopCode';
+    import {
+        boopCode,
+        boopsUnlocked,
+        changeBoopsPassword,
+        initBoopCode,
+        initBoopsLock,
+        lockBoops,
+        saveBoopCode,
+        sendBoopLine,
+        tryUnlockBoops
+    } from '@/services/auroraBoopCode';
     import { addPersonRule, initPersonRules, personRules, removePersonRule, savePersonRules } from '@/services/auroraPranks';
     import { addWatched, initStatusRules, removeWatched, rules, saveRules } from '@/services/auroraStatusRules';
     import { useFriendStore } from '@/stores';
@@ -712,8 +727,14 @@
     const friendStoreRef = useFriendStore();
     const addonSecret = ref('');
     const addonSecretMsg = ref(t('view.settings.aurora.addons_secret_hint'));
+    const newBoopPass = ref('');
+    async function saveNewBoopPass() {
+        if (await changeBoopsPassword(newBoopPass.value)) toast.success(t('view.settings.aurora.boops_pass_saved'));
+        newBoopPass.value = '';
+    }
     async function tryUnlockAddon() {
-        const ok = await unlockAddon(addonSecret.value);
+        // the same box also takes the password of the hidden boop tools
+        const ok = (await tryUnlockBoops(addonSecret.value)) || (await unlockAddon(addonSecret.value));
         addonSecret.value = '';
         addonSecretMsg.value = t(ok ? 'view.settings.aurora.addons_secret_ok' : 'view.settings.aurora.addons_secret_no');
     }
@@ -733,6 +754,7 @@
         initPersonRules();
         initBoopCode();
         initAddons();
+        initBoopsLock();
         refreshAudioLists();
         initChatbox();
     });

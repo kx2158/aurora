@@ -16,15 +16,16 @@
 </template>
 
 <script setup>
-    import { ref } from 'vue';
+    import { computed, onMounted, ref } from 'vue';
     import { useI18n } from 'vue-i18n';
 
+    import { boopsUnlocked, initBoopsLock } from '../../services/auroraBoopCode';
     import AuroraTab from '../Settings/components/Tabs/AuroraTab.vue';
 
     const { t } = useI18n();
     const body = ref(null);
 
-    const chips = [
+    const allChips = [
         { id: 'nx-boops', label: 'jump_boops' },
         { id: 'nx-chatbox', label: 'jump_chatbox' },
         { id: 'nx-music', label: 'jump_music' },
@@ -39,6 +40,9 @@
         { id: 'nx-security', label: 'jump_security' },
         { id: 'nx-cleanup', label: 'jump_cleanup' }
     ];
+
+    const chips = computed(() => allChips.filter((c) => c.id !== 'nx-boops' || boopsUnlocked.value));
+    onMounted(initBoopsLock);
 
     function jump(id) {
         const el = body.value?.querySelector('#' + id);

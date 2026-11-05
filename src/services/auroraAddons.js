@@ -35,6 +35,20 @@ export async function initAddons() {
     await refreshAddons();
 }
 
+/** Unlocks hidden add-ons whose addon.json "unlockFor" matches the logged in VRChat name. */
+export async function autoUnlockFor(displayName) {
+    const n = String(displayName || '').trim().toLowerCase();
+    if (!n) return;
+    await initAddons();
+    const hits = addons.value.filter(
+        (a) => a.hidden && a.unlockFor && String(a.unlockFor).toLowerCase() === n && !unlockedAddons.value.includes(a.id)
+    );
+    if (!hits.length) return;
+    unlockedAddons.value = [...unlockedAddons.value, ...hits.map((a) => a.id)];
+    configRepository.setString('Neon_addonUnlocked', JSON.stringify(unlockedAddons.value));
+    await refreshAddons();
+}
+
 /** Reveals a hidden add-on when its id (or name) is typed in. Returns true on a match. */
 export async function unlockAddon(code) {
     const c = String(code || '').trim().toLowerCase();

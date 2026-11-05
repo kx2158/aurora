@@ -35,14 +35,20 @@
     import { showUserDialog } from '../coordinators/userCoordinator';
     import { clearPending, companionEnabled, companionHome, initCompanion, noteReminders, pendingNotes } from '../services/auroraCompanion';
     import { buildVoicePack, categoryOf, pickLine } from '../services/auroraLines';
-    import { initAddons, pickClip } from '../services/auroraAddons';
+    import { autoUnlockFor, initAddons, pickClip } from '../services/auroraAddons';
     import { takeUnspoken } from '../services/auroraNews';
     import { setMood, speak, speakEntry, speaking } from '../services/auroraVoice';
-    import { useAuroraSettingsStore, useGameStore } from '../stores';
+    import { useAuroraSettingsStore, useGameStore, useUserStore } from '../stores';
     import AuroraMascot from './AuroraMascot.vue';
 
     const { t } = useI18n();
     const settings = useAuroraSettingsStore();
+    const userStore = useUserStore();
+    watch(
+        () => userStore.currentUser?.displayName,
+        (name) => autoUnlockFor(name),
+        { immediate: true }
+    );
     const game = useGameStore();
 
     const pos = ref({ x: 300, y: 300 });

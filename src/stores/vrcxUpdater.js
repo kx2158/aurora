@@ -6,7 +6,7 @@ import { useI18n } from 'vue-i18n';
 import { logWebRequest } from '../services/appConfig';
 import { branches } from '../shared/constants';
 import { FORK } from '../shared/constants/fork';
-import { getWhatsNewRelease, normalizeReleaseVersion } from '../shared/constants/whatsNewReleases';
+import { getWhatsNewRelease } from '../shared/constants/whatsNewReleases';
 import { changeLogRemoveLinks } from '../shared/utils';
 
 import configRepository from '../services/config';
@@ -50,7 +50,6 @@ export const useVRCXUpdaterStore = defineStore('VRCXUpdater', () => {
     const pendingVRCXInstall = ref('');
     const updateInProgress = ref(false);
     const updateProgress = ref(0);
-    const updateToastRelease = ref('');
 
     async function initVRCXUpdaterSettings() {
         if (LINUX) {

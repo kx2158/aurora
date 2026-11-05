@@ -1513,7 +1513,15 @@
                 "rules_add": "Watch",
                 "rules_not_found": "No friend with that exact name",
                 "character": "Mascot character",
-                "character_desc": "Pick which character appears as your companion. The accent colour still tints whichever you choose."
+                "character_desc": "Pick which character appears as your companion. The accent colour still tints whichever you choose.",
+                "people": "Per-person rules",
+                "people_desc": "Pick a person by their VRChat name. While they are in your instance, Neon greets them and nags on a timer, on your screen only. Nothing is sent to them and nothing goes into your chatbox. {name} in a line becomes the nickname.",
+                "people_name": "VRChat name",
+                "people_nick": "Name Neon uses",
+                "people_greeting": "Greeting when they join",
+                "people_reminder": "Repeating line",
+                "people_escalate": "Faster each time",
+                "people_add": "Add person"
             }
         },
         "home": {
@@ -1594,7 +1602,8 @@
             "jump_companion": "Companion",
             "jump_voice": "Voice",
             "jump_security": "Security",
-            "jump_cleanup": "Cleanup"
+            "jump_cleanup": "Cleanup",
+            "jump_people": "People"
         }
     },
     "dialog": {

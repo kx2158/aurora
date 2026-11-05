@@ -29,6 +29,7 @@
         { id: 'nx-music', label: 'jump_music' },
         { id: 'nx-alarms', label: 'jump_alarms' },
         { id: 'nx-rules', label: 'jump_rules' },
+        { id: 'nx-people', label: 'jump_people' },
         { id: 'nx-character', label: 'jump_character' },
         { id: 'nx-accent', label: 'jump_accent' },
         { id: 'nx-voice', label: 'jump_voice' },

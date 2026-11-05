@@ -176,6 +176,30 @@
                 </div>
             </div>
         </SettingsGroup>
+        <SettingsGroup id="nx-people" :title="t('view.settings.aurora.people')">
+            <div class="flex flex-col gap-3">
+                <p class="text-xs text-muted-foreground">{{ t('view.settings.aurora.people_desc') }}</p>
+                <div v-for="r in personRules" :key="r.id" class="flex flex-col gap-2 border border-border p-3">
+                    <div class="flex items-center gap-2">
+                        <Input v-model="r.name" :placeholder="t('view.settings.aurora.people_name')" class="flex-1" @change="savePersonRules" />
+                        <Input v-model="r.nickname" :placeholder="t('view.settings.aurora.people_nick')" class="flex-1" @change="savePersonRules" />
+                        <Switch :model-value="r.enabled" @update:modelValue="(v) => { r.enabled = v; savePersonRules(); }" />
+                        <Button size="sm" variant="outline" @click="removePersonRule(r.id)">x</Button>
+                    </div>
+                    <Input v-model="r.greeting" :placeholder="t('view.settings.aurora.people_greeting')" @change="savePersonRules" />
+                    <div class="flex items-center gap-2">
+                        <Input v-model="r.reminder" :placeholder="t('view.settings.aurora.people_reminder')" class="flex-1" @change="savePersonRules" />
+                        <Input v-model.number="r.minutes" type="number" min="1" class="w-20" @change="savePersonRules" />
+                        <span class="text-xs text-muted-foreground">min</span>
+                        <span class="text-xs text-muted-foreground">{{ t('view.settings.aurora.people_escalate') }}</span>
+                        <Switch :model-value="r.escalate" @update:modelValue="(v) => { r.escalate = v; savePersonRules(); }" />
+                    </div>
+                </div>
+                <div>
+                    <Button size="sm" variant="outline" @click="addPersonRule">+ {{ t('view.settings.aurora.people_add') }}</Button>
+                </div>
+            </div>
+        </SettingsGroup>
         <SettingsGroup id="nx-companion" :title="t('view.settings.aurora.companion')">
             <SettingsItem
                 :label="t('view.settings.aurora.companion')"
@@ -420,6 +444,7 @@
 
 <script setup>
     import { onMounted, ref } from 'vue';
+    import { addPersonRule, initPersonRules, personRules, removePersonRule, savePersonRules } from '@/services/auroraPranks';
     import { addWatched, initStatusRules, removeWatched, rules, saveRules } from '@/services/auroraStatusRules';
     import { useFriendStore } from '@/stores';
     import { Button } from '@/components/ui/button';
@@ -603,6 +628,7 @@
     }
     onMounted(() => {
         initStatusRules();
+        initPersonRules();
         refreshAudioLists();
         initChatbox();
     });

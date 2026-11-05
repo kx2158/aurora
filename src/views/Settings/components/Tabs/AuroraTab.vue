@@ -7,6 +7,41 @@
                 <span class="text-xs text-muted-foreground">{{ t('view.settings.aurora.tagline') }}</span>
             </div>
         </div>
+        <SettingsGroup id="nx-boops" :title="t('view.settings.aurora.boops')">
+            <div class="flex flex-col gap-3">
+                <div class="grid grid-cols-2 gap-2 md:grid-cols-3">
+                    <button
+                        v-for="(line, i) in boopCode.lines"
+                        :key="i"
+                        type="button"
+                        class="nx-troll"
+                        @click="sendLine(i)">
+                        {{ line }}
+                    </button>
+                </div>
+                <p class="text-xs text-muted-foreground">{{ t('view.settings.aurora.boops_desc') }}</p>
+                <label class="flex items-center gap-2 text-sm">
+                    <span class="w-56">{{ t('view.settings.aurora.boops_enabled') }}</span>
+                    <Switch :model-value="boopCode.enabled" @update:modelValue="(v) => { boopCode.enabled = v; saveBoopCode(); }" />
+                </label>
+                <label class="flex items-center gap-2 text-sm">
+                    <span class="w-56">{{ t('view.settings.aurora.boops_pass') }}</span>
+                    <Input v-model="boopCode.passphrase" type="password" class="flex-1" @change="saveBoopCode" />
+                </label>
+                <label class="flex items-center gap-2 text-sm">
+                    <span class="w-56">{{ t('view.settings.aurora.boops_trusted') }}</span>
+                    <Input
+                        :model-value="boopCode.trusted.join(', ')"
+                        :placeholder="t('view.settings.aurora.boops_trusted_ph')"
+                        class="flex-1"
+                        @change="(e) => { boopCode.trusted = e.target.value.split(',').map((x) => x.trim()).filter(Boolean); saveBoopCode(); }" />
+                </label>
+                <div class="flex items-center gap-2 text-sm">
+                    <span class="w-56">{{ t('view.settings.aurora.boops_target') }}</span>
+                    <Input v-model="boopCode.target" :placeholder="t('view.settings.aurora.rules_add_ph')" class="flex-1" @change="saveBoopCode" />
+                </div>
+            </div>
+        </SettingsGroup>
         <SettingsGroup id="nx-chatbox" :title="t('view.settings.aurora.chatbox')">
             <SettingsItem
                 :label="t('view.settings.aurora.chatbox')"
@@ -197,36 +232,6 @@
                 </div>
                 <div>
                     <Button size="sm" variant="outline" @click="addPersonRule">+ {{ t('view.settings.aurora.people_add') }}</Button>
-                </div>
-            </div>
-        </SettingsGroup>
-        <SettingsGroup id="nx-boops" :title="t('view.settings.aurora.boops')">
-            <div class="flex flex-col gap-3">
-                <p class="text-xs text-muted-foreground">{{ t('view.settings.aurora.boops_desc') }}</p>
-                <label class="flex items-center gap-2 text-sm">
-                    <span class="w-56">{{ t('view.settings.aurora.boops_enabled') }}</span>
-                    <Switch :model-value="boopCode.enabled" @update:modelValue="(v) => { boopCode.enabled = v; saveBoopCode(); }" />
-                </label>
-                <label class="flex items-center gap-2 text-sm">
-                    <span class="w-56">{{ t('view.settings.aurora.boops_pass') }}</span>
-                    <Input v-model="boopCode.passphrase" type="password" class="flex-1" @change="saveBoopCode" />
-                </label>
-                <label class="flex items-center gap-2 text-sm">
-                    <span class="w-56">{{ t('view.settings.aurora.boops_trusted') }}</span>
-                    <Input
-                        :model-value="boopCode.trusted.join(', ')"
-                        :placeholder="t('view.settings.aurora.boops_trusted_ph')"
-                        class="flex-1"
-                        @change="(e) => { boopCode.trusted = e.target.value.split(',').map((x) => x.trim()).filter(Boolean); saveBoopCode(); }" />
-                </label>
-                <div class="flex items-center gap-2 text-sm">
-                    <span class="w-56">{{ t('view.settings.aurora.boops_target') }}</span>
-                    <Input v-model="boopTarget" :placeholder="t('view.settings.aurora.rules_add_ph')" class="flex-1" />
-                </div>
-                <div class="flex flex-wrap gap-2">
-                    <Button v-for="(line, i) in boopCode.lines" :key="i" size="sm" variant="outline" @click="sendLine(i)">
-                        {{ line }}
-                    </Button>
                 </div>
             </div>
         </SettingsGroup>
@@ -645,9 +650,8 @@
     }
 
     const watchName = ref('');
-    const boopTarget = ref('');
     async function sendLine(i) {
-        const q = boopTarget.value.trim().toLowerCase();
+        const q = String(boopCode.value.target || '').trim().toLowerCase();
         const hit = Array.from(friendStoreRef.friends.values()).find((f) => String(f.name || f.ref?.displayName || '').toLowerCase() === q);
         if (!hit) {
             toast.error(t('view.settings.aurora.rules_not_found'));
@@ -681,6 +685,25 @@
 </script>
 
 <style scoped>
+.nx-troll {
+    min-height: 56px;
+    padding: 10px 14px;
+    font-size: 13px;
+    font-weight: 700;
+    text-align: left;
+    color: var(--foreground);
+    background: var(--card);
+    border: 1px solid var(--primary);
+    clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+    transition: background-color 0.12s ease, color 0.12s ease;
+}
+.nx-troll:hover {
+    background: var(--primary);
+    color: var(--primary-foreground);
+}
+.nx-troll:active {
+    transform: scale(0.98);
+}
 .nx-sel {
     flex: 1;
     min-width: 0;

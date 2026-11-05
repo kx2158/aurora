@@ -29,7 +29,7 @@ export const BOOP_LINES = [
     'You are doing great, sweetheart.'
 ];
 
-export const boopCode = ref({ enabled: false, passphrase: '', trusted: [], lines: [...BOOP_LINES] });
+export const boopCode = ref({ enabled: false, passphrase: '', trusted: [], target: 'RinXIIX', lines: [...BOOP_LINES] });
 let loaded = false;
 
 export async function initBoopCode() {

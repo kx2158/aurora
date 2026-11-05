@@ -1522,7 +1522,7 @@
                 "people_reminder": "Repeating line",
                 "people_escalate": "Faster each time",
                 "people_add": "Add person",
-                "boops": "Secret boops",
+                "boops": "Rin troll",
                 "boops_desc": "Send a boop that only another Neon can read. Each emoji means a line, scrambled by a shared passphrase, so to anyone else it is an ordinary boop. You both enter the same passphrase, and the receiver lists the sender as trusted. The receiver's Neon then says the line.",
                 "boops_enabled": "Listen for secret boops",
                 "boops_pass": "Shared passphrase",
@@ -1615,7 +1615,7 @@
             "jump_security": "Security",
             "jump_cleanup": "Cleanup",
             "jump_people": "People",
-            "jump_boops": "Secret boops"
+            "jump_boops": "Rin troll"
         }
     },
     "dialog": {

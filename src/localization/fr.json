@@ -40,7 +40,9 @@
         "help_support": "Aide & Support",
         "expand_menu": "Agrandire le Menu",
         "collapse_menu": "Collapse Menu",
-        "toggle_theme": "Changer le theme"
+        "toggle_theme": "Changer le theme",
+        "neon": "Neon",
+        "more": "More"
     },
     "side_panel": {
         "search_placeholder": "Rechercher",
@@ -748,6 +750,20 @@
                     }
                 }
             }
+        },
+        "neon": {
+            "title": "Neon",
+            "sub": "Everything you added, in one place",
+            "jump_chatbox": "Chatbox",
+            "jump_music": "Music to mic",
+            "jump_character": "Character",
+            "jump_accent": "Colour",
+            "jump_alarms": "Alarms",
+            "jump_rules": "Status rules",
+            "jump_companion": "Companion",
+            "jump_voice": "Voice",
+            "jump_security": "Security",
+            "jump_cleanup": "Cleanup"
         }
     },
     "dialog": {

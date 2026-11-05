@@ -7,7 +7,7 @@
                 <span class="text-xs text-muted-foreground">{{ t('view.settings.aurora.tagline') }}</span>
             </div>
         </div>
-        <SettingsGroup :title="t('view.settings.aurora.chatbox')">
+        <SettingsGroup id="nx-chatbox" :title="t('view.settings.aurora.chatbox')">
             <SettingsItem
                 :label="t('view.settings.aurora.chatbox')"
                 :description="t('view.settings.aurora.chatbox_desc')"
@@ -39,7 +39,7 @@
                 <span class="text-xs text-muted-foreground">{{ chatboxPreview || '...' }}</span>
             </SettingsItem>
         </SettingsGroup>
-        <SettingsGroup :title="t('view.settings.aurora.mm')">
+        <SettingsGroup id="nx-music" :title="t('view.settings.aurora.mm')">
             <p class="mb-2 text-xs text-muted-foreground">{{ t('view.settings.aurora.mm_desc') }}</p>
             <div class="flex flex-col gap-2">
                 <label class="flex items-center gap-2 text-sm">
@@ -98,7 +98,7 @@
                 </div>
             </div>
         </SettingsGroup>
-        <SettingsGroup :title="t('view.settings.aurora.character')">
+        <SettingsGroup id="nx-character" :title="t('view.settings.aurora.character')">
             <div class="flex flex-wrap gap-2">
                 <Button
                     v-for="c in characterList"
@@ -111,7 +111,7 @@
             </div>
             <p class="text-xs text-muted-foreground">{{ t('view.settings.aurora.character_desc') }}</p>
         </SettingsGroup>
-        <SettingsGroup :title="t('view.settings.aurora.accent')">
+        <SettingsGroup id="nx-accent" :title="t('view.settings.aurora.accent')">
             <SettingsItem :label="t('view.settings.aurora.accent_desc')">
                 <div class="flex flex-wrap items-center gap-2">
                     <button
@@ -126,7 +126,7 @@
                 </div>
             </SettingsItem>
         </SettingsGroup>
-        <SettingsGroup :title="t('view.settings.aurora.alarms')">
+        <SettingsGroup id="nx-alarms" :title="t('view.settings.aurora.alarms')">
             <div class="flex flex-col gap-2">
                 <div v-for="a in alarms" :key="a.id" class="flex items-center gap-2">
                     <Input v-model="a.time" type="time" class="w-28" />
@@ -142,7 +142,7 @@
                 </div>
             </div>
         </SettingsGroup>
-        <SettingsGroup :title="t('view.settings.aurora.rules')">
+        <SettingsGroup id="nx-rules" :title="t('view.settings.aurora.rules')">
             <div class="flex flex-col gap-2">
                 <p class="text-xs text-muted-foreground">{{ t('view.settings.aurora.rules_desc') }}</p>
                 <label class="flex items-center gap-2 text-sm">
@@ -176,7 +176,7 @@
                 </div>
             </div>
         </SettingsGroup>
-        <SettingsGroup :title="t('view.settings.aurora.companion')">
+        <SettingsGroup id="nx-companion" :title="t('view.settings.aurora.companion')">
             <SettingsItem
                 :label="t('view.settings.aurora.companion')"
                 :description="t('view.settings.aurora.companion_desc')"
@@ -207,7 +207,7 @@
                     @update:modelValue="setNoteReminders" />
             </SettingsItem>
         </SettingsGroup>
-        <SettingsGroup :title="t('view.settings.aurora.header')">
+        <SettingsGroup id="nx-voice" :title="t('view.settings.aurora.header')">
             <SettingsItem
                 :label="t('view.settings.aurora.enabled')"
                 :description="t('view.settings.aurora.enabled_desc')"
@@ -303,7 +303,7 @@
             </SettingsItem>
         </SettingsGroup>
 
-        <SettingsGroup :title="t('view.settings.aurora.security.header')">
+        <SettingsGroup id="nx-security" :title="t('view.settings.aurora.security.header')">
             <SettingsItem
                 :label="t('view.settings.aurora.security.status')"
                 :description="t('view.settings.aurora.security.desc')">
@@ -361,7 +361,7 @@
             </SettingsItem>
         </SettingsGroup>
 
-        <SettingsGroup :title="t('view.settings.aurora.cleanup.header')">
+        <SettingsGroup id="nx-cleanup" :title="t('view.settings.aurora.cleanup.header')">
             <SettingsItem
                 v-for="key in CLEANUP_KEYS"
                 :key="key"

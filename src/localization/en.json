@@ -86,7 +86,9 @@
         "expand_sidebar": "Expand Sidebar",
         "toggle_theme": "Toggle Theme",
         "home": "Home",
-        "chatbox": "Chatbox"
+        "chatbox": "Chatbox",
+        "neon": "Neon",
+        "more": "More"
     },
     "nav_menu": {
         "resources": "RESOURCES",
@@ -1579,6 +1581,20 @@
             "not_in_world": "Not in a world",
             "players": "{n} players",
             "update": "Neon {v} is ready. Update when you like."
+        },
+        "neon": {
+            "title": "Neon",
+            "sub": "Everything you added, in one place",
+            "jump_chatbox": "Chatbox",
+            "jump_music": "Music to mic",
+            "jump_character": "Character",
+            "jump_accent": "Colour",
+            "jump_alarms": "Alarms",
+            "jump_rules": "Status rules",
+            "jump_companion": "Companion",
+            "jump_voice": "Voice",
+            "jump_security": "Security",
+            "jump_cleanup": "Cleanup"
         }
     },
     "dialog": {

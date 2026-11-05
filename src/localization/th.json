@@ -24,7 +24,9 @@
         "help_support": "ความช่วยเหลือและสนับสนุน",
         "expand_menu": "ขยายเมนู",
         "collapse_menu": "ย่อเมนู",
-        "toggle_theme": "สลับธีม"
+        "toggle_theme": "สลับธีม",
+        "neon": "Neon",
+        "more": "More"
     },
     "side_panel": {
         "search_placeholder": "ค้นหาเร็ว",
@@ -1144,6 +1146,20 @@
             "clear_filters": "ล้างทั้งหมด",
             "table_view": "มุมมองตาราง",
             "grid_view": "มุมมองกริด"
+        },
+        "neon": {
+            "title": "Neon",
+            "sub": "Everything you added, in one place",
+            "jump_chatbox": "Chatbox",
+            "jump_music": "Music to mic",
+            "jump_character": "Character",
+            "jump_accent": "Colour",
+            "jump_alarms": "Alarms",
+            "jump_rules": "Status rules",
+            "jump_companion": "Companion",
+            "jump_voice": "Voice",
+            "jump_security": "Security",
+            "jump_cleanup": "Cleanup"
         }
     },
     "dialog": {

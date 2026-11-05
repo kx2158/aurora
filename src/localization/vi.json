@@ -11,7 +11,9 @@
         "moderation": "Quản lý kiểm duyệt",
         "notification": "Thông báo",
         "friend_list": "Danh sách bạn bè",
-        "settings": "Cài đặt"
+        "settings": "Cài đặt",
+        "neon": "Neon",
+        "more": "More"
     },
     "side_panel": {
         "search_placeholder": "Tìm kiếm",
@@ -453,6 +455,20 @@
                     }
                 }
             }
+        },
+        "neon": {
+            "title": "Neon",
+            "sub": "Everything you added, in one place",
+            "jump_chatbox": "Chatbox",
+            "jump_music": "Music to mic",
+            "jump_character": "Character",
+            "jump_accent": "Colour",
+            "jump_alarms": "Alarms",
+            "jump_rules": "Status rules",
+            "jump_companion": "Companion",
+            "jump_voice": "Voice",
+            "jump_security": "Security",
+            "jump_cleanup": "Cleanup"
         }
     },
     "dialog": {

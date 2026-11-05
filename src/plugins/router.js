@@ -6,6 +6,7 @@ import FavoritesAvatar from './../views/Favorites/FavoritesAvatar.vue';
 import FavoritesFriend from './../views/Favorites/FavoritesFriend.vue';
 import FavoritesWorld from './../views/Favorites/FavoritesWorld.vue';
 import Chatbox from './../views/Chatbox/Chatbox.vue';
+import Neon from './../views/Neon/Neon.vue';
 import Home from './../views/Home/Home.vue';
 import Feed from './../views/Feed/Feed.vue';
 import FriendList from './../views/FriendList/FriendList.vue';
@@ -40,6 +41,7 @@ const routes = [
             { path: '', redirect: { name: 'home' } },
             { path: 'home', name: 'home', component: Home },
             { path: 'feed', name: 'feed', component: Feed },
+            { path: 'neon', name: 'neon', component: Neon },
             { path: 'chatbox', name: 'chatbox', component: Chatbox },
             {
                 path: 'friends-locations',

@@ -9,6 +9,13 @@ const navDefinitions = [
         routeName: 'home'
     },
     {
+        key: 'neon',
+        icon: 'ri-flashlight-line',
+        tooltip: 'nav_tooltip.neon',
+        labelKey: 'nav_tooltip.neon',
+        routeName: 'neon'
+    },
+    {
         key: 'chatbox',
         icon: 'ri-chat-3-line',
         tooltip: 'nav_tooltip.chatbox',

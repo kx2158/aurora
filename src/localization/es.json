@@ -12,7 +12,9 @@
         "notification": "Notificación",
         "friend_list": "Lista de Amigos",
         "charts": "Gráficos",
-        "settings": "Configuración"
+        "settings": "Configuración",
+        "neon": "Neon",
+        "more": "More"
     },
     "side_panel": {
         "search_placeholder": "Buscar",
@@ -603,6 +605,20 @@
                     }
                 }
             }
+        },
+        "neon": {
+            "title": "Neon",
+            "sub": "Everything you added, in one place",
+            "jump_chatbox": "Chatbox",
+            "jump_music": "Music to mic",
+            "jump_character": "Character",
+            "jump_accent": "Colour",
+            "jump_alarms": "Alarms",
+            "jump_rules": "Status rules",
+            "jump_companion": "Companion",
+            "jump_voice": "Voice",
+            "jump_security": "Security",
+            "jump_cleanup": "Cleanup"
         }
     },
     "dialog": {

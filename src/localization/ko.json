@@ -11,7 +11,9 @@
         "moderation": "음소거 및 차단",
         "notification": "알림",
         "friend_list": "친구 목록",
-        "settings": "설정"
+        "settings": "설정",
+        "neon": "Neon",
+        "more": "More"
     },
     "side_panel": {
         "search_placeholder": "검색",
@@ -464,6 +466,20 @@
                     }
                 }
             }
+        },
+        "neon": {
+            "title": "Neon",
+            "sub": "Everything you added, in one place",
+            "jump_chatbox": "Chatbox",
+            "jump_music": "Music to mic",
+            "jump_character": "Character",
+            "jump_accent": "Colour",
+            "jump_alarms": "Alarms",
+            "jump_rules": "Status rules",
+            "jump_companion": "Companion",
+            "jump_voice": "Voice",
+            "jump_security": "Security",
+            "jump_cleanup": "Cleanup"
         }
     },
     "dialog": {

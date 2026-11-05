@@ -3,37 +3,32 @@ import { DASHBOARD_NAV_KEY_PREFIX } from '../../shared/constants';
 export function createBaseDefaultNavLayout(t) {
     return [
         { type: 'item', key: 'home' },
-        { type: 'item', key: 'feed' },
+        { type: 'item', key: 'neon' },
         { type: 'item', key: 'chatbox' },
         { type: 'item', key: 'friends-locations' },
-        { type: 'item', key: 'game-log' },
-        { type: 'item', key: 'player-list' },
-        { type: 'item', key: 'search' },
-        {
-            type: 'folder',
-            id: 'default-folder-favorites',
-            nameKey: 'nav_tooltip.favorites',
-            name: t('nav_tooltip.favorites'),
-            icon: 'ri-star-line',
-            items: ['favorite-friends', 'favorite-worlds', 'favorite-avatars']
-        },
-        {
-            type: 'folder',
-            id: 'default-folder-social',
-            nameKey: 'nav_tooltip.social',
-            name: t('nav_tooltip.social'),
-            icon: 'ri-group-line',
-            items: ['friend-log', 'friend-list', 'moderation']
-        },
+        { type: 'item', key: 'feed' },
         { type: 'item', key: 'notification' },
-        { type: 'item', key: 'my-avatars' },
         {
             type: 'folder',
-            id: 'default-folder-charts',
-            nameKey: 'nav_tooltip.charts',
-            name: t('nav_tooltip.charts'),
-            icon: 'ri-pie-chart-line',
-            items: ['charts-instance', 'charts-mutual', 'charts-hot-worlds']
+            id: 'default-folder-more',
+            nameKey: 'nav_tooltip.more',
+            name: t('nav_tooltip.more'),
+            icon: 'ri-apps-2-line',
+            items: [
+                'game-log',
+                'player-list',
+                'search',
+                'favorite-friends',
+                'favorite-worlds',
+                'favorite-avatars',
+                'friend-log',
+                'friend-list',
+                'moderation',
+                'my-avatars',
+                'charts-instance',
+                'charts-mutual',
+                'charts-hot-worlds'
+            ]
         },
         { type: 'item', key: 'tools' },
         { type: 'item', key: 'direct-access' }

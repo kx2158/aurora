@@ -83,7 +83,9 @@
         "help_support": "協助與支援",
         "expand_menu": "展開選單",
         "collapse_menu": "收起選單",
-        "toggle_theme": "切換主題"
+        "toggle_theme": "切換主題",
+        "neon": "Neon",
+        "more": "More"
     },
     "nav_menu": {
         "resources": "資源",
@@ -1299,6 +1301,20 @@
                     }
                 }
             }
+        },
+        "neon": {
+            "title": "Neon",
+            "sub": "Everything you added, in one place",
+            "jump_chatbox": "Chatbox",
+            "jump_music": "Music to mic",
+            "jump_character": "Character",
+            "jump_accent": "Colour",
+            "jump_alarms": "Alarms",
+            "jump_rules": "Status rules",
+            "jump_companion": "Companion",
+            "jump_voice": "Voice",
+            "jump_security": "Security",
+            "jump_cleanup": "Cleanup"
         }
     },
     "dialog": {

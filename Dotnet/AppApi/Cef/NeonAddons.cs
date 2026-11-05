@@ -9,7 +9,7 @@ namespace VRCX
 {
     public partial class AppApi
     {
-        private static readonly string[] NeonAddonExtensions = { ".png", ".jpg", ".jpeg", ".webp", ".mp3", ".wav", ".ogg", ".m4a" };
+        private static readonly string[] NeonAddonExtensions = { ".png", ".jpg", ".jpeg", ".webp", ".mp3", ".wav", ".ogg", ".m4a", ".json" };
 
         private static string NeonAddonsRoot()
         {
@@ -57,6 +57,7 @@ namespace VRCX
                         {
                             using var doc = JsonDocument.Parse(File.ReadAllText(meta));
                             if (doc.RootElement.TryGetProperty("name", out var n) && n.ValueKind == JsonValueKind.String) item["name"] = n.GetString();
+                            item["meta"] = doc.RootElement.Clone();
                             if (doc.RootElement.TryGetProperty("hidden", out var h) && h.ValueKind == JsonValueKind.True) item["hidden"] = true;
                             if (doc.RootElement.TryGetProperty("unlockFor", out var u) && u.ValueKind == JsonValueKind.String) item["unlockFor"] = u.GetString();
                             if (doc.RootElement.TryGetProperty("author", out var a) && a.ValueKind == JsonValueKind.String) item["author"] = a.GetString();
@@ -113,6 +114,7 @@ namespace VRCX
                     ".png" => "image/png",
                     ".jpg" or ".jpeg" => "image/jpeg",
                     ".webp" => "image/webp",
+                    ".json" => "application/json",
                     ".mp3" => "audio/mpeg",
                     ".wav" => "audio/wav",
                     ".ogg" => "audio/ogg",

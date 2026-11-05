@@ -23,7 +23,7 @@
             <div class="nx-frame">
                 <AuroraMascot :size="120" />
             </div>
-            <span class="nx-label">NEON.EXE</span>
+            <span class="nx-label">{{ appName.toUpperCase() }}{{ persona ? '' : '.EXE' }}</span>
         </div>
     </div>
 </template>
@@ -35,7 +35,8 @@
     import { showUserDialog } from '../coordinators/userCoordinator';
     import { clearPending, companionEnabled, companionHome, initCompanion, noteReminders, pendingNotes } from '../services/auroraCompanion';
     import { buildVoicePack, categoryOf, pickLine } from '../services/auroraLines';
-    import { autoUnlockFor, initAddons, pickClip } from '../services/auroraAddons';
+    import { appName, autoUnlockFor, initAddons, persona, pickClip } from '../services/auroraAddons';
+    import { FX_PRESETS } from '../services/auroraVoiceFx';
     import { takeUnspoken } from '../services/auroraNews';
     import { setMood, speak, speakEntry, speaking } from '../services/auroraVoice';
     import { useAuroraSettingsStore, useGameStore, useUserStore } from '../stores';
@@ -87,6 +88,11 @@
     }
 
     function voiceOptions() {
+        const p = persona.value;
+        if (p?.voiceId) {
+            // a character add-on with its own voice: plain, no robot effect
+            return { voice: p.voiceId, speed: p.voiceSpeed, volume: settings.mascotVoiceVolume, fx: { ...FX_PRESETS.clean } };
+        }
         return {
             voice: settings.mascotVoice,
             speed: settings.mascotVoiceSpeed,

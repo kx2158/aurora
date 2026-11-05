@@ -3,7 +3,7 @@
         <SidebarHeader class="px-2 pt-3 pb-1">
             <div class="aurora-brand" :class="{ 'justify-center': isCollapsed }">
                 <AuroraMascot :size="isCollapsed ? 28 : 36" />
-                <span v-show="!isCollapsed" class="aurora-brand-name">NE<b>ON</b></span>
+                <span v-show="!isCollapsed" class="aurora-brand-name"><template v-if="persona">{{ appName.toUpperCase() }}</template><template v-else>NE<b>ON</b></template></span>
             </div>
         </SidebarHeader>
         <SidebarHeader v-if="showNewDashboardButton" class="px-2 py-2">
@@ -208,6 +208,7 @@
     import { isEntryNotified as checkEntryNotified } from './navMenuUtils';
     import { DASHBOARD_NAV_KEY_PREFIX, links } from '../../shared/constants';
     import { openExternalLink } from '../../shared/utils';
+    import { appName, persona } from '../../services/auroraAddons';
 
     import NavMenuFolderItem from './NavMenuFolderItem.vue';
     import NavMenuFooter from './NavMenuFooter.vue';

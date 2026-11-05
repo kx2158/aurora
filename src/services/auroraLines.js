@@ -4,6 +4,7 @@
  * The text on screen can still show names, she just says the universal version.
  */
 import { reactive } from 'vue';
+import { personaLine } from './auroraAddons';
 
 import { speak, prepare } from './auroraVoice';
 
@@ -119,6 +120,12 @@ export function categoryOf(line) {
 
 /** Picks a line from a category, never one of the last few used. */
 export function pickLine(category) {
+    const own = personaLine(category, recent);
+    if (own) {
+        recent.push(own);
+        while (recent.length > 12) recent.shift();
+        return own;
+    }
     const pool = LINES[category] || [];
     const fresh = pool.filter((l) => !recent.includes(l));
     const from = fresh.length ? fresh : pool;

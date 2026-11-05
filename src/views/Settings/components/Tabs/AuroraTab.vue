@@ -200,6 +200,36 @@
                 </div>
             </div>
         </SettingsGroup>
+        <SettingsGroup id="nx-boops" :title="t('view.settings.aurora.boops')">
+            <div class="flex flex-col gap-3">
+                <p class="text-xs text-muted-foreground">{{ t('view.settings.aurora.boops_desc') }}</p>
+                <label class="flex items-center gap-2 text-sm">
+                    <span class="w-56">{{ t('view.settings.aurora.boops_enabled') }}</span>
+                    <Switch :model-value="boopCode.enabled" @update:modelValue="(v) => { boopCode.enabled = v; saveBoopCode(); }" />
+                </label>
+                <label class="flex items-center gap-2 text-sm">
+                    <span class="w-56">{{ t('view.settings.aurora.boops_pass') }}</span>
+                    <Input v-model="boopCode.passphrase" type="password" class="flex-1" @change="saveBoopCode" />
+                </label>
+                <label class="flex items-center gap-2 text-sm">
+                    <span class="w-56">{{ t('view.settings.aurora.boops_trusted') }}</span>
+                    <Input
+                        :model-value="boopCode.trusted.join(', ')"
+                        :placeholder="t('view.settings.aurora.boops_trusted_ph')"
+                        class="flex-1"
+                        @change="(e) => { boopCode.trusted = e.target.value.split(',').map((x) => x.trim()).filter(Boolean); saveBoopCode(); }" />
+                </label>
+                <div class="flex items-center gap-2 text-sm">
+                    <span class="w-56">{{ t('view.settings.aurora.boops_target') }}</span>
+                    <Input v-model="boopTarget" :placeholder="t('view.settings.aurora.rules_add_ph')" class="flex-1" />
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <Button v-for="(line, i) in boopCode.lines" :key="i" size="sm" variant="outline" @click="sendLine(i)">
+                        {{ line }}
+                    </Button>
+                </div>
+            </div>
+        </SettingsGroup>
         <SettingsGroup id="nx-companion" :title="t('view.settings.aurora.companion')">
             <SettingsItem
                 :label="t('view.settings.aurora.companion')"
@@ -444,6 +474,7 @@
 
 <script setup>
     import { onMounted, ref } from 'vue';
+    import { boopCode, initBoopCode, saveBoopCode, sendBoopLine } from '@/services/auroraBoopCode';
     import { addPersonRule, initPersonRules, personRules, removePersonRule, savePersonRules } from '@/services/auroraPranks';
     import { addWatched, initStatusRules, removeWatched, rules, saveRules } from '@/services/auroraStatusRules';
     import { useFriendStore } from '@/stores';
@@ -614,6 +645,20 @@
     }
 
     const watchName = ref('');
+    const boopTarget = ref('');
+    async function sendLine(i) {
+        const q = boopTarget.value.trim().toLowerCase();
+        const hit = Array.from(friendStoreRef.friends.values()).find((f) => String(f.name || f.ref?.displayName || '').toLowerCase() === q);
+        if (!hit) {
+            toast.error(t('view.settings.aurora.rules_not_found'));
+            return;
+        }
+        const err = await sendBoopLine(hit.id, i);
+        if (err === 'passphrase') toast.error(t('view.settings.aurora.boops_need_pass'));
+        else if (err === 'slow') toast.info(t('view.settings.aurora.boops_slow'));
+        else if (err) toast.error(t('view.settings.aurora.boops_failed'));
+        else toast.success(t('view.settings.aurora.boops_sent'));
+    }
     const friendStoreRef = useFriendStore();
     function addWatchedByName() {
         const q = watchName.value.trim().toLowerCase();
@@ -629,6 +674,7 @@
     onMounted(() => {
         initStatusRules();
         initPersonRules();
+        initBoopCode();
         refreshAudioLists();
         initChatbox();
     });

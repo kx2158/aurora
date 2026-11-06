@@ -22,8 +22,13 @@ export const character = ref('neon');
 let savedSlug = 'neon';
 
 export async function initCharacter() {
-    savedSlug = await configRepository.getString('Neon_character', 'neon');
-    character.value = characterList.value.includes(savedSlug) ? savedSlug : 'neon';
+    // one time: the app became Aurora, so the Aurora character is the default (Neon stays in the picker)
+    if (!(await configRepository.getBool('Aurora_charV2', false))) {
+        await configRepository.setString('Neon_character', 'aurora');
+        await configRepository.setBool('Aurora_charV2', true);
+    }
+    savedSlug = await configRepository.getString('Neon_character', 'aurora');
+    character.value = characterList.value.includes(savedSlug) ? savedSlug : characterList.value.includes('aurora') ? 'aurora' : 'neon';
 }
 
 /** Adds (or replaces) a character, used by add-ons. faces is { neutral: url, joy: url, ... }. */

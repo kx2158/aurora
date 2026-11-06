@@ -57,3 +57,7 @@ The Windows app is built from `Dotnet/VRCX-Cef.csproj`, and the installer from `
 ## Credits and license
 
 Aurora is built on VRCX by the VRCX team and contributors, released under the MIT license. The license and copyright notice are kept in `LICENSE`. VRChat is a trademark of VRChat Inc.
+
+## Fork it
+
+See [docs/GUIDE.md](docs/GUIDE.md) for how the code is laid out, how to add settings, pages and features, how to restyle the app and how to change the assistant.

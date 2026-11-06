@@ -79,7 +79,8 @@ async function applyThemeColor(themeKey, { persist = true } = {}) {
 
 async function initThemeColor() {
     const storedKey = await configRepository.getString(THEME_COLOR_STORAGE_KEY);
-    const resolved = resolveThemeColor(storedKey || DEFAULT_THEME_COLOR_KEY);
+    void storedKey; // Aurora uses its own accent colour, the old colour packs would fight it
+    const resolved = resolveThemeColor(DEFAULT_THEME_COLOR_KEY);
     applyThemeColorStyle(resolved);
     currentThemeColor.value = resolved.key;
 }

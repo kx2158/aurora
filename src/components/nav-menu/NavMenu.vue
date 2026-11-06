@@ -3,7 +3,7 @@
         <SidebarHeader class="px-2 pt-3 pb-1">
             <div class="aurora-brand" :class="{ 'justify-center': isCollapsed }">
                 <AuroraMascot :size="isCollapsed ? 28 : 36" />
-                <span v-show="!isCollapsed" class="aurora-brand-name">NE<b>ON</b></span>
+                <span v-show="!isCollapsed" class="aurora-brand-name">AURORA</span>
             </div>
         </SidebarHeader>
         <SidebarHeader v-if="showNewDashboardButton" class="px-2 py-2">
@@ -174,6 +174,7 @@
     import { useRouter } from 'vue-router';
 
     import { useNavLayout } from './composables/useNavLayout';
+    import { ACCENT_PRESETS, accent, setAccent } from '@/services/auroraAccent';
     import { useNavTheme } from './composables/useNavTheme';
     import { useToolActions } from '../../composables/useToolActions';
     import { useToolNavPinning } from '../../composables/useToolNavPinning';
@@ -246,20 +247,22 @@
 
     const {
         themes,
-        themeColors,
-        currentThemeColor,
         isApplyingThemeColor,
         initThemeColor,
         themeDisplayName,
-        themeColorDisplayName,
         handleThemeSelect,
         handleThemeToggle,
-        handleTableDensitySelect,
-        handleThemeColorSelect
+        handleTableDensitySelect
     } = useNavTheme({
         t,
         appearanceSettingsStore
     });
+
+    // the colour dots in the theme menu are Aurora's own accent colours (plus grayscale)
+    const themeColors = computed(() => ACCENT_PRESETS.map((p) => ({ key: p.hex, label: p.name, swatch: p.hex })));
+    const currentThemeColor = computed(() => accent.value);
+    const themeColorDisplayName = (theme) => theme?.label || '';
+    const handleThemeColorSelect = (theme) => theme && setAccent(theme.key);
 
     const {
         navLayout,

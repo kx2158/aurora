@@ -127,6 +127,10 @@
                     <span class="w-56">{{ t('view.settings.aurora.mm_mic_bass') }} {{ Math.round(mm.micBass * 100) }}%</span>
                     <input type="range" min="0" max="1" step="0.01" :value="mm.micBass" class="flex-1" @input="(e) => setMm('micBass', Number(e.target.value))" />
                 </label>
+                <label class="flex items-center gap-2 text-sm">
+                    <input type="checkbox" :checked="mm.autoStart" @change="(e) => setMm('autoStart', e.target.checked)" />
+                    <span>{{ t('view.settings.aurora.mm_autostart') }}</span>
+                </label>
                 <div class="flex items-center gap-2">
                     <Button size="sm" @click="toggleMusicMic">{{ mm.running ? t('view.settings.aurora.mm_stop') : t('view.settings.aurora.mm_start') }}</Button>
                     <Button size="sm" :variant="mm.micMuted ? 'destructive' : 'outline'" @click="toggleMicMute">{{

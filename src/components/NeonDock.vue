@@ -1,7 +1,7 @@
 <template>
     <div v-if="dockVisible" class="nx-dock" :class="{ collapsed }">
         <button type="button" class="nx-dock-head" @click="collapsed = !collapsed">
-            <span>{{ neonLook ? 'NEON' : 'AURORA' }} // {{ t('view.dock.title') }}</span>
+            <span>AURORA // {{ t('view.dock.title') }}</span>
             <span>{{ collapsed ? '+' : '-' }}</span>
         </button>
         <template v-if="!collapsed">

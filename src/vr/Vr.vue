@@ -22,7 +22,7 @@
                 <span v-if="neonState.nextAlarm" class="neon-chip on">ALARM {{ neonState.nextAlarm }}</span>
             </div>
             <div class="neon-ticker">
-                <span>NEON//SYS ONLINE</span><span>LINK STABLE</span><span>NIGHT CITY TIME {{ clock.hm }}</span>
+                <span>AURORA//SYS ONLINE</span><span>LINK STABLE</span><span>NIGHT CITY TIME {{ clock.hm }}</span>
             </div>
             <div class="x-container" style="flex: 1">
                 <div class="x-friend-list" ref="list" style="color: var(--vr-text-secondary)">
@@ -1354,7 +1354,7 @@
         <!-- Neon SteamVR dashboard: big buttons for the laser pointer -->
         <div class="neon-dash">
             <div class="neon-dash-head">
-                <span class="neon-dash-title">NEON//CONTROL</span>
+                <span class="neon-dash-title">AURORA//CONTROL</span>
                 <span class="neon-dash-clock">{{ clock.hm }}<small>{{ clock.sec }}</small></span>
             </div>
             <div class="neon-dash-sub">
@@ -1630,7 +1630,7 @@
         { cmd: 'timer60', icon: '\u23F0', label: '1 HOUR' },
         { cmd: 'stopAlarm', icon: '\u25A0', label: 'STOP ALARM', warn: true },
         { cmd: 'music', icon: '\u266A', label: 'MUSIC LINE', state: onOff(neonState.music), on: neonState.music },
-        { cmd: 'voice', icon: '\u263A', label: 'NEON VOICE', state: onOff(neonState.voice), on: neonState.voice },
+        { cmd: 'voice', icon: '\u263A', label: 'AURORA VOICE', state: onOff(neonState.voice), on: neonState.voice },
         { cmd: 'sounds', icon: '\u266B', label: 'VR BEEPS', state: onOff(neonState.sounds), on: neonState.sounds }
     ]);
     const musicLine = computed(() =>

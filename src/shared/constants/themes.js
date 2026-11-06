@@ -3,6 +3,16 @@ export const THEME_CONFIG = {
         isDark: 'system',
         name: 'System'
     },
+    xraydark: {
+        isDark: true,
+        name: 'Aurora Dark',
+        file: 'xray-dark.css'
+    },
+    xray: {
+        isDark: false,
+        name: 'Aurora Light',
+        file: 'xray.css'
+    },
     light: {
         isDark: false,
         name: 'Light'
@@ -15,16 +25,6 @@ export const THEME_CONFIG = {
         isDark: true,
         name: 'Midnight',
         file: 'midnight.css'
-    },
-    xray: {
-        isDark: false,
-        name: 'Aurora',
-        file: 'xray.css'
-    },
-    xraydark: {
-        isDark: true,
-        name: 'Aurora Dark',
-        file: 'xray-dark.css'
     },
     aurora: {
         isDark: true,

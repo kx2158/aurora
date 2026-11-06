@@ -9,7 +9,9 @@ export const DEFAULT_ACCENT = '#ff3d9a';
 /** Aurora's own default, a borealis green. DEFAULT_ACCENT stays pink because the mascot pictures are pink. */
 export const AURORA_ACCENT = '#4fe3a0';
 export const accent = ref(AURORA_ACCENT);
+export const GRAY_ACCENT = '#b4b4b4';
 export const ACCENT_PRESETS = [
+    { name: 'Grayscale', hex: GRAY_ACCENT },
     { name: 'Borealis green', hex: '#4fe3a0' },
     { name: 'Ice blue', hex: '#7cc8ff' },
     { name: 'Teal', hex: '#34d1c9' },
@@ -84,6 +86,8 @@ function apply() {
     root.style.setProperty('--ah', String(Math.round(oklchHue(hex) - 17)));
     // Aurora themes read the hue directly
     root.style.setProperty('--axh', String(Math.round(oklchHue(hex))));
+    // grayscale removes all colour from the Aurora themes
+    root.style.setProperty('--axk', hex.toLowerCase() === GRAY_ACCENT ? '0' : '1');
     mascotTint.value = mascotFilter(hex);
 }
 

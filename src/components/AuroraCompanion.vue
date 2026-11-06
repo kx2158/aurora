@@ -5,7 +5,7 @@
         :style="{ left: pos.x + 'px', top: pos.y + 'px' }"
         :class="{ dragging, soft: !neonLook }">
         <div v-if="bubble" class="nx-dialog">
-            <div class="nx-name">{{ neonLook ? '> neon:' : 'Aurora' }}</div>
+            <div class="nx-name">{{ neonLook ? '> aurora:' : 'Aurora' }}</div>
             <div class="nx-text">{{ bubble }}<span v-if="neonLook" class="nx-caret"></span></div>
             <div v-if="current" class="aurora-bubble-actions">
                 <button type="button" @click="addNote">{{ t('view.settings.aurora.note_add') }}</button>
@@ -23,7 +23,7 @@
             <div class="nx-frame">
                 <AuroraMascot :size="120" />
             </div>
-            <span v-if="neonLook" class="nx-label">NEON.EXE</span>
+            <span v-if="neonLook" class="nx-label">AURORA.EXE</span>
         </div>
     </div>
 </template>
@@ -382,6 +382,9 @@
         background: #000;
         clip-path: polygon(11px 0, calc(100% - 11px) 0, 100% 11px, 100% calc(100% - 11px), calc(100% - 11px) 100%, 11px 100%, 0 calc(100% - 11px), 0 11px);
     }
+    .nx-frame :deep(.stage) {
+        border-radius: 0;
+    }
     .nx-frame :deep(img) {
         border-radius: 0;
         object-position: 50% 20%;
@@ -455,6 +458,11 @@
     }
     .soft .nx-portrait {
         margin-top: 4px;
+        width: 136px;
+        height: 136px;
+    }
+    .soft .nx-frame :deep(.stage) {
+        border-radius: 50%;
     }
     .soft .nx-frame {
         padding: 0;
@@ -471,6 +479,8 @@
         border-radius: 50%;
     }
     .soft .nx-frame :deep(img) {
-        object-position: 50% 30%;
+        object-position: 50% 50%;
+        transform: translateY(9%) scale(1.32);
+        transform-origin: 50% 36%;
     }
 </style>

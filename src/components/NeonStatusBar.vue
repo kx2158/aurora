@@ -1,6 +1,6 @@
 <template>
     <div class="nx-bar">
-        <span>NEON v{{ version }}</span>
+        <span>AURORA v{{ version }}</span>
         <span class="nx-pink">VOICE: {{ voiceOn ? 'LOCAL' : 'OFF' }}</span>
         <span>{{ gameRunning ? 'VRCHAT: RUNNING' : 'VRCHAT: OFFLINE' }}</span>
         <span class="nx-grow"></span>

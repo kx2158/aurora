@@ -39,7 +39,7 @@
     import { initNoty } from './plugins/noty';
     import { initChatbox } from './services/auroraChatbox';
     import { backupDatabase } from './services/auroraBackup';
-    import { initMusicMic } from './services/auroraMusicMic';
+    import { initMusicMic, watchGameForMic } from './services/auroraMusicMic';
 import { initAccent } from './services/auroraAccent';
 import { initAlarms } from './services/auroraAlarms';
 import { initVrBridge, neonCommand } from './services/auroraVrBridge';
@@ -76,6 +76,7 @@ import { initIntegrations } from './services/auroraIntegrations';
     initVrBridge();
 
     const store = createGlobalStores();
+    setTimeout(() => watchGameForMic(() => !!store.game?.isGameRunning), 4000);
 
     if (typeof window !== 'undefined') {
         window.$pinia = store;

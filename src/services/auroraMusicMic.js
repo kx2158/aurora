@@ -16,6 +16,7 @@ export const mm = ref({
     musicBass: 0,
     micBass: 0,
     micMuted: false,
+    autoStart: true,
     latency: 30,
     error: '',
     micPeak: 0,
@@ -42,8 +43,8 @@ export async function initMusicMic() {
 }
 
 function save() {
-    const { app, mic, out, musicVol, micVol, musicBass, micBass, latency } = mm.value;
-    configRepository.setString('Neon_musicMic', JSON.stringify({ app, mic, out, musicVol, micVol, musicBass, micBass, latency }));
+    const { app, mic, out, musicVol, micVol, musicBass, micBass, latency, autoStart } = mm.value;
+    configRepository.setString('Neon_musicMic', JSON.stringify({ app, mic, out, musicVol, micVol, musicBass, micBass, latency, autoStart }));
 }
 
 export async function refreshAudioLists() {
@@ -141,3 +142,27 @@ setInterval(async () => {
         // ignore
     }
 }, 400);
+
+/** Starts the mic mix when VRChat opens (if "auto start" is on) and stops it when VRChat closes. */
+export function watchGameForMic(isRunning) {
+    let was = isRunning();
+    setInterval(() => {
+        const now = isRunning();
+        if (now === was) return;
+        was = now;
+        if (now && mm.value.autoStart && !mm.value.running) {
+            // give VRChat a few seconds to open its audio devices first
+            setTimeout(() => {
+                if (!mm.value.running) startMusicMic();
+            }, 6000);
+        } else if (!now && mm.value.autoStart && mm.value.running) {
+            stopMusicMic();
+        }
+    }, 2000);
+    // VRChat was already running when Aurora opened
+    if (was) {
+        setTimeout(() => {
+            if (mm.value.autoStart && !mm.value.running) startMusicMic();
+        }, 8000);
+    }
+}

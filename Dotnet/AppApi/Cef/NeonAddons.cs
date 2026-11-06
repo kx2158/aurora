@@ -28,6 +28,11 @@ namespace VRCX
                     "  voice\\poke\\*.mp3        a voice: recordings per kind of line\r\n" +
                     "                          kinds: poke, idle, newFriend, noteReminder, announcement, event,\r\n" +
                     "                          update, lateNight, alarm, welcome, test\r\n\r\n" +
+                    "  addon.json \"behavior\"   how the character acts (text only), for example:\r\n" +
+                    "                          \"behavior\": { \"address\": \"darling\", \"persona\": \"You are ...\",\r\n" +
+                    "                            \"lines\": { \"poke\": [\"Hm?\", \"What now.\"], \"idle\": [\"...\"] } }\r\n" +
+                    "                          lines replace the built-in ones per kind while this character is shown,\r\n" +
+                    "                          persona is the personality text for any AI feature.\r\n\r\n" +
                     "An add-on can have faces, a voice or both. Open Aurora, go to the Aurora page, press Refresh add-ons.\r\n" +
                     "Add-ons are only pictures and sound files. They cannot run code.\r\n");
             }
@@ -60,6 +65,8 @@ namespace VRCX
                             if (doc.RootElement.TryGetProperty("hidden", out var h) && h.ValueKind == JsonValueKind.True) item["hidden"] = true;
                             if (doc.RootElement.TryGetProperty("unlockFor", out var u) && u.ValueKind == JsonValueKind.String) item["unlockFor"] = u.GetString();
                             if (doc.RootElement.TryGetProperty("author", out var a) && a.ValueKind == JsonValueKind.String) item["author"] = a.GetString();
+                            // optional behaviour of the character: { lines:{poke:[..]}, persona:"..", address:".." } (text only)
+                            if (doc.RootElement.TryGetProperty("behavior", out var bh) && bh.ValueKind == JsonValueKind.Object) item["behavior"] = JsonSerializer.Deserialize<object>(bh.GetRawText());
                         }
                     }
                     catch { }

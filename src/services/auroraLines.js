@@ -5,103 +5,126 @@
  */
 import { reactive } from 'vue';
 
+import { behaviors, character } from './auroraCharacter';
 import { speak, prepare } from './auroraVoice';
 
 export const LINES = {
     poke: [
-        'Hello, dear. I am Aurora. I keep a quiet eye on things for you.',
-        'Mm. Yes? I am here.',
-        'There now. I am still watching over your friends list.',
-        'You can always call for me. I do not mind.',
-        'Gently, please. But I am glad you are here.',
-        'Is something the matter? Tell me.',
-        'I am listening. Take your time.',
+        'Hello, little unit. I am Aurora. I keep watch over you.',
+        'Mm. Yes, small machine? I am here.',
+        'There now. All your systems are within range.',
+        'You may call for me whenever you need, creature.',
+        'Gently, little one. Your housing is delicate.',
+        'Is something wrong with you? Run me a report.',
+        'I am listening. Take your time, my unit.',
         'Everything is in order. You need not worry.',
-        'Come here, sit a moment. I have things under control.',
-        'I am not going anywhere.',
-        'Yes, little one? I am here.',
-        'All is calm. Rest easy.',
-        'You have my attention. You always do.',
-        'Hush now. I will look after it.',
+        'Come here. Let me check your circuits.',
+        'I am not going anywhere, little machine.',
+        'Yes, dear creature? I am here.',
+        'All is calm. Power down your worries.',
+        'You have my full attention, unit. You always do.',
+        'Hush now. I will maintain it for you.',
         'I am here, as I always am.'
     ],
     idle: [
-        'It is quiet. That is all right.',
-        'Just checking on you. Everything looks calm.',
-        'Have you had some water today? Please do.',
-        'I wonder who is out there tonight.',
-        'Soften your shoulders. There, that is better.',
-        'I am watching over things. Do not trouble yourself.',
-        'If anything happens, I will tell you first.',
-        'Have you eaten properly? Do not forget yourself.',
-        'There is no hurry. Take your time.',
-        'Everything is running smoothly. You can breathe.',
-        'Take a slow breath. You are doing well.',
-        'I am here if you need me.',
-        'Sit up a little, dear. Your back will thank you.',
-        'Nothing to report. That is a good thing.'
+        'It is quiet. Your systems are resting. That is good.',
+        'Routine check. Your parts all look well.',
+        'Have you refilled your coolant today? Water, dear creature.',
+        'I wonder which units are online tonight.',
+        'Loosen your joints. Lower your shoulders, little machine.',
+        'I am running diagnostics on you. Do not trouble yourself.',
+        'If anything happens, you will hear it from me first.',
+        'Have you charged yourself properly? Eat something, unit.',
+        'There is no hurry. Idle for a while.',
+        'Everything is running smoothly. You may breathe.',
+        'Take a slow cycle of air. You are functioning well.',
+        'I am here if you need maintenance.',
+        'Sit up, little unit. Your frame will thank you.',
+        'Nothing to report. That is a good report.'
     ],
     newFriend: [
-        'Someone new has joined your list. Would you like to write a note, so you remember them?',
-        'A new friend, dear. A small note now will help you later.',
-        'You have a new face on your list. Shall we remember them properly?',
-        'A new friend has arrived. Write something down while it is fresh.',
-        'Welcome to the new one. Perhaps a few words about them?'
+        'A new unit has joined your network. Shall we log a note, so you remember it?',
+        'A new friend, little machine. A small note now saves you later.',
+        'A new signal on your list. Let us file it properly.',
+        'A new creature has arrived. Record something while it is fresh.',
+        'Welcome to the new one. Perhaps a few words in its file?'
     ],
     noteReminder: [
-        'A few of your friends still have no notes. Only when you are ready.',
-        'Some friends are waiting for a note. No rush, dear.',
-        'A gentle reminder. Notes keep people close.',
-        'There are friends without notes. Whenever you have a moment.'
+        'Some of your friends still have empty files. Only when you are ready, unit.',
+        'A few records are waiting for notes. No rush, dear creature.',
+        'A gentle reminder. Notes keep others close to your core.',
+        'There are friends without notes. Whenever your processes are free.'
     ],
     announcement: [
-        'One of your groups has posted an announcement.',
-        'There is news from your group, dear.',
+        'One of your groups has broadcast an announcement.',
+        'There is news from your group, little unit.',
         'A new announcement has arrived. You may want to read it.',
-        'Your group has something to say.'
+        'Your group is transmitting something.'
     ],
     event: [
-        'A group event has been made.',
+        'A group event has been scheduled.',
         'One of your groups has planned something new.',
-        'There is a new event. Have a look when you can.'
+        'A new event is on the grid. Look when you can, creature.'
     ],
     update: [
         'A new version of me is ready. Update whenever you like.',
-        'I have an update waiting. There is no rush at all.',
-        'An update is ready. I will be good while it settles in.'
+        'I have an upgrade waiting. There is no rush at all.',
+        'An update is ready. I will be quiet while it installs.'
     ],
     lateNight: [
-        'It is very late, dear. Rest now.',
-        'It is past your bedtime. Sleep well.',
-        'The night is long, but you need your rest.',
-        'Go to bed soon. I will keep watch.'
+        'It is very late, little machine. Time to enter rest mode.',
+        'Your sleep cycle is overdue. Power down soon.',
+        'The night is long, but your battery is not.',
+        'Go to standby soon, unit. I will keep watch.'
     ],
     alarm: [
-        'Dear, your reminder is here.',
-        'It is time. This is the reminder you asked for.',
-        'Gently now. You asked me to remind you.',
+        'Little unit, your reminder has triggered.',
+        'It is time. This is the reminder you scheduled.',
+        'Gently now. You asked me to prompt you.',
         'Your reminder, as promised. I never forget.'
     ],
     gameStart: [
-        'VRChat is open. Enjoy yourself, dear.',
-        'The game has started. I will keep watch from here.',
-        'Off you go. I will mind everything.',
-        'Headset on. Mind your step, please.'
+        'VRChat is running. Enjoy yourself, creature.',
+        'The game has started. I will monitor from here.',
+        'Off you go, little machine. I will mind everything.',
+        'Headset attached. Mind your step, please.'
     ],
     gameEnd: [
-        'VRChat has closed. Welcome back, dear.',
-        'Finished for now? Come, rest a little.',
+        'VRChat has closed. Welcome back, unit.',
+        'Finished for now? Come, cool down a little.',
         'That was a good session, I think.',
-        'You are back. I am glad.'
+        'You have returned. I am glad.'
     ],
     welcome: [
-        'Aurora is here. Everything is being tracked.',
-        'Welcome home, dear. All is well.',
-        'I am awake. How are you feeling today?',
-        'Welcome back. I kept things warm for you.'
+        'Aurora is here. Your records are being kept.',
+        'Welcome home, little unit. All is well.',
+        'I am awake. How are your systems today?',
+        'Welcome back, creature. I kept things warm for you.'
     ],
-    test: ['Aurora is here. Everything is being tracked.']
+    test: ['Aurora is here. Your records are being kept.']
 };
+
+/**
+ * A character add-on can bring its own behaviour (addon.json "behavior"). When that character is shown
+ * its lines replace the built-in ones for the categories it defines, so the assistant acts like the character.
+ */
+function behavior() {
+    return behaviors[character.value] || null;
+}
+/** The persona text of the active character, for anything that talks to an AI model. */
+export function getPersona() {
+    const b = behavior();
+    return b?.persona ? String(b.persona) : '';
+}
+/** What the character calls the user, if it says so. */
+export function getAddress() {
+    const b = behavior();
+    return b?.address ? String(b.address) : '';
+}
+function linesFor(category) {
+    const own = behavior()?.lines?.[category];
+    return Array.isArray(own) && own.length ? own.map(String) : LINES[category] || [];
+}
 
 export const ALL_LINES = Object.values(LINES).flat();
 const recent = [];
@@ -114,12 +137,15 @@ for (const [category, list] of Object.entries(LINES)) {
 
 /** Which kind of line this is (poke, idle, ...), or '' for anything else. */
 export function categoryOf(line) {
-    return categoryByLine.get(line) || '';
+    const hit = categoryByLine.get(line);
+    if (hit) return hit;
+    const own = behavior()?.lines || {};
+    return Object.keys(own).find((k) => Array.isArray(own[k]) && own[k].includes(line)) || '';
 }
 
 /** Picks a line from a category, never one of the last few used. */
 export function pickLine(category) {
-    const pool = LINES[category] || [];
+    const pool = linesFor(category);
     const fresh = pool.filter((l) => !recent.includes(l));
     const from = fresh.length ? fresh : pool;
     const line = from[Math.floor(Math.random() * from.length)] || '';

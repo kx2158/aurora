@@ -88,7 +88,7 @@ export async function refreshAddons() {
             const url = await AppApi.ReadNeonAddonFile(a.id, `faces/${name}.png`);
             if (url) faces[name] = url;
         }
-        if (faces.neutral) registerCharacter(a.id, faces);
+        if (faces.neutral) registerCharacter(a.id, faces, a.behavior);
     }
     if (addonVoice.value && !visibleAddons.value.some((a) => a.id === addonVoice.value)) {
         addonVoice.value = '';

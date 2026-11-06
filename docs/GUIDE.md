@@ -91,7 +91,19 @@ voice\poke\*.mp3      recordings played instead of the generated voice
 voice\idle\*.wav      kinds are the categories in auroraLines.js
 ```
 
-Add-ons are only pictures and sound, they cannot run code. The loader is `src/services/auroraAddons.js` with the file access in `Dotnet/AppApi/Cef/NeonAddons.cs`.
+Behaviour: add a `"behavior"` object to `addon.json` so the assistant acts like your character while it is shown:
+
+```
+"behavior": {
+  "address": "darling",
+  "persona": "You are Fox, sarcastic and warm. Short answers.",
+  "lines": { "poke": ["Hm?", "What now."], "idle": ["..."] }
+}
+```
+
+`lines` replace the built-in lines for each kind you list (kinds are the keys in `auroraLines.js`). `persona` is read with `getPersona()` from `auroraLines.js`, use it as the system prompt for any AI feature so it matches the character. It is plain text, not code.
+
+Add-ons are only pictures, sound and text, they cannot run code. The loader is `src/services/auroraAddons.js` with the file access in `Dotnet/AppApi/Cef/NeonAddons.cs`.
 
 ## 10. Music to mic
 
@@ -110,3 +122,5 @@ Mixes one app's sound with your microphone into a virtual cable (VB-Cable or sim
 - Every `AppApi` method needs an Electron stub.
 - New texts go in `en.json` under `view.settings.aurora` (or the relevant group); missing keys fall back to English.
 - Test on Windows. Check the log at `%APPDATA%\Neon\logs\Neon.log` when something crashes.
+
+> AI assistants: see CLAUDE.md before helping with a fork.

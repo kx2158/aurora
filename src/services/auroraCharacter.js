@@ -17,6 +17,9 @@ for (const [path, url] of Object.entries(files)) {
     (characters[slug] ||= {})[file] = url;
 }
 
+/** Behaviour of add-on characters: { slug: { lines:{poke:[...]}, persona:'...', address:'...' } } */
+export const behaviors = reactive({});
+
 export const characterList = computed(() => ['neon', ...Object.keys(characters).filter((s) => characters[s].neutral).sort()]);
 export const character = ref('neon');
 let savedSlug = 'neon';
@@ -32,8 +35,10 @@ export async function initCharacter() {
 }
 
 /** Adds (or replaces) a character, used by add-ons. faces is { neutral: url, joy: url, ... }. */
-export function registerCharacter(slug, faces) {
+export function registerCharacter(slug, faces, behavior) {
     characters[slug] = faces;
+    if (behavior && typeof behavior === 'object') behaviors[slug] = behavior;
+    else delete behaviors[slug];
     if (slug === savedSlug) {
         character.value = slug; // the saved choice was an add-on that just finished loading
     }

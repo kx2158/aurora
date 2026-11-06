@@ -262,8 +262,8 @@ namespace VRCX
         private sealed class BassBoost : ISampleProvider
         {
             private readonly ISampleProvider _src;
-            private BiQuadFilter[] _shelf = new BiQuadFilter[2];
-            private BiQuadFilter[] _punch = new BiQuadFilter[2];
+            private NAudio.Dsp.BiQuadFilter[] _shelf = new NAudio.Dsp.BiQuadFilter[2];
+            private NAudio.Dsp.BiQuadFilter[] _punch = new NAudio.Dsp.BiQuadFilter[2];
             private float _built = -1f;
             private volatile float _amount;
             public BassBoost(ISampleProvider src) { _src = src; }
@@ -280,8 +280,8 @@ namespace VRCX
                     var rate = _src.WaveFormat.SampleRate;
                     for (var c = 0; c < 2; c++)
                     {
-                        _shelf[c] = BiQuadFilter.LowShelf(rate, 150f, 1f, amount * 24f);
-                        _punch[c] = BiQuadFilter.PeakingEQ(rate, 60f, 1.2f, amount * 8f);
+                        _shelf[c] = NAudio.Dsp.BiQuadFilter.LowShelf(rate, 150f, 1f, amount * 24f);
+                        _punch[c] = NAudio.Dsp.BiQuadFilter.PeakingEQ(rate, 60f, 1.2f, amount * 8f);
                     }
                     _built = amount;
                 }

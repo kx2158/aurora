@@ -481,7 +481,7 @@
     }
     .soft .nx-frame :deep(img) {
         object-position: 50% 50%;
-        transform: translateY(9%) scale(1.32);
+        transform: translateY(2%) scale(1.04);
         transform-origin: 50% 36%;
     }
 </style>

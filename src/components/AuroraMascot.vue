@@ -137,11 +137,9 @@
         transform-origin: 50% 70%;
         will-change: transform;
     }
-    /* no box around the picture: its edges fade into whatever is behind it */
+    /* the pictures have a transparent background, so there is no box to hide */
     .stage.feather {
         border-radius: 0;
-        -webkit-mask-image: radial-gradient(closest-side at 50% 46%, #000 60%, transparent 100%);
-        mask-image: radial-gradient(closest-side at 50% 46%, #000 60%, transparent 100%);
     }
     .aurora-mascot img {
         position: absolute;

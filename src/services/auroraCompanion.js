@@ -7,7 +7,7 @@ import { ref } from 'vue';
 import configRepository from './config';
 
 export const companionEnabled = ref(true);
-export const noteReminders = ref(true);
+export const noteReminders = ref(false);
 /** 'roam' floats around the whole app, 'dock' rests next to the info dock. */
 export const companionHome = ref('roam');
 /** Friends added recently that still have no note: [{ id, name, at }] */
@@ -22,7 +22,7 @@ export async function initCompanion() {
     }
     loaded = true;
     companionEnabled.value = await configRepository.getBool('Aurora_companionEnabled', true);
-    noteReminders.value = await configRepository.getBool('Aurora_noteReminders', true);
+    noteReminders.value = await configRepository.getBool('Aurora_noteReminders', false);
     companionHome.value = await configRepository.getString('Neon_companionHome', 'roam');
     try {
         const list = JSON.parse(await configRepository.getString(KEY, '[]'));

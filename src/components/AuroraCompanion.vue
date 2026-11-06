@@ -2,9 +2,8 @@
     <div
         v-if="companionEnabled"
         class="aurora-companion"
-        :class="{ soft: !neonLook }"
         :style="{ left: pos.x + 'px', top: pos.y + 'px' }"
-        :class="{ dragging }">
+        :class="{ dragging, soft: !neonLook }">
         <div v-if="bubble" class="nx-dialog">
             <div class="nx-name">{{ neonLook ? '> neon:' : 'Aurora' }}</div>
             <div class="nx-text">{{ bubble }}<span v-if="neonLook" class="nx-caret"></span></div>

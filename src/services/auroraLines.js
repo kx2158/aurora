@@ -1,5 +1,5 @@
 /**
- * Neon's voice lines. They never contain names or numbers, so every line can be rendered once,
+ * Aurora's voice lines. They never contain names or numbers, so every line can be rendered once,
  * saved in the app, and played instantly forever after (no model work at the time she talks).
  * The text on screen can still show names, she just says the universal version.
  */
@@ -9,98 +9,98 @@ import { speak, prepare } from './auroraVoice';
 
 export const LINES = {
     poke: [
-        'Hey! I am Aurora. I float around and keep an eye on things.',
-        'Careful, that tickles. Need something?',
-        'Still here, still watching your friends list.',
-        'Click me again and I will start charging rent.',
-        'You rang?',
-        'Yes? I was busy being decorative.',
-        'I am not a button. Okay, I am a little bit a button.',
-        'Poke me one more time. I dare you.',
-        'Systems are fine. I am fine. Everything is fine.',
-        'Need a hand? I do not have hands, but I have opinions.',
-        'Oh hi. I was just thinking about nothing.',
-        'You have my full attention. For about four seconds.',
-        'Tell me something good.',
-        'Boop received. Boop returned.',
-        'I am on duty. Unofficially.'
+        'Hello, dear. I am Aurora. I keep a quiet eye on things for you.',
+        'Mm. Yes? I am here.',
+        'There now. I am still watching over your friends list.',
+        'You can always call for me. I do not mind.',
+        'Gently, please. But I am glad you are here.',
+        'Is something the matter? Tell me.',
+        'I am listening. Take your time.',
+        'Everything is in order. You need not worry.',
+        'Come here, sit a moment. I have things under control.',
+        'I am not going anywhere.',
+        'Yes, little one? I am here.',
+        'All is calm. Rest easy.',
+        'You have my attention. You always do.',
+        'Hush now. I will look after it.',
+        'I am here, as I always am.'
     ],
     idle: [
-        'It is quiet. I like quiet.',
-        'Just checking in. All systems look good.',
-        'Did you drink some water today? Asking for a friend. The friend is me.',
-        'I wonder who is online right now.',
-        'Remember to stretch. Your spine says hi.',
-        'Aurora is watching. Lovingly. Mostly.',
-        'If something happens, I will let you know.',
-        'I could use a snack. Do bytes count?',
-        'Low battery on my patience. Kidding.',
-        'Everything is running smoothly. Suspicious.',
-        'Fun fact. I do not blink. Okay, I blink a little.',
-        'Take a breath. You are doing fine.',
+        'It is quiet. That is all right.',
+        'Just checking on you. Everything looks calm.',
+        'Have you had some water today? Please do.',
+        'I wonder who is out there tonight.',
+        'Soften your shoulders. There, that is better.',
+        'I am watching over things. Do not trouble yourself.',
+        'If anything happens, I will tell you first.',
+        'Have you eaten properly? Do not forget yourself.',
+        'There is no hurry. Take your time.',
+        'Everything is running smoothly. You can breathe.',
+        'Take a slow breath. You are doing well.',
         'I am here if you need me.',
-        'Posture check. Shoulders down.',
-        'Nothing to report. That is the best kind of report.'
+        'Sit up a little, dear. Your back will thank you.',
+        'Nothing to report. That is a good thing.'
     ],
     newFriend: [
-        'You have a new friend. Want to write a note so you remember them?',
-        'Someone new joined your list. A note might help later.',
-        'New friend detected. Do not forget to add a note.',
-        'A fresh face on your friends list. Add a note while it is fresh.',
-        'Welcome to the new friend. Want to jot something down about them?'
+        'Someone new has joined your list. Would you like to write a note, so you remember them?',
+        'A new friend, dear. A small note now will help you later.',
+        'You have a new face on your list. Shall we remember them properly?',
+        'A new friend has arrived. Write something down while it is fresh.',
+        'Welcome to the new one. Perhaps a few words about them?'
     ],
     noteReminder: [
-        'Still some friends without notes. Want to fix that?',
-        'A few of your friends have no notes yet.',
-        'Little reminder. Notes make future you very happy.',
-        'You never wrote notes for some friends. Today is a good day.'
+        'A few of your friends still have no notes. Only when you are ready.',
+        'Some friends are waiting for a note. No rush, dear.',
+        'A gentle reminder. Notes keep people close.',
+        'There are friends without notes. Whenever you have a moment.'
     ],
     announcement: [
-        'One of your groups posted an announcement.',
-        'New announcement. Might be worth a look.',
-        'Your group has some news.',
-        'Announcement incoming.'
+        'One of your groups has posted an announcement.',
+        'There is news from your group, dear.',
+        'A new announcement has arrived. You may want to read it.',
+        'Your group has something to say.'
     ],
     event: [
-        'A group event was just created.',
-        'There is a new event from one of your groups.',
-        'New group event. Check your calendar.'
+        'A group event has been made.',
+        'One of your groups has planned something new.',
+        'There is a new event. Have a look when you can.'
     ],
     update: [
-        'A new version of Aurora is ready. Update whenever you like.',
-        'I have an update waiting. A better me, if you let me.',
-        'Update available. I will behave while it installs.'
+        'A new version of me is ready. Update whenever you like.',
+        'I have an update waiting. There is no rush at all.',
+        'An update is ready. I will be good while it settles in.'
     ],
     lateNight: [
-        'It is very late. Sleep is also a feature.',
-        'Past bedtime, I think. Just saying.',
-        'The night is long, but your eyes are not unlimited.'
+        'It is very late, dear. Rest now.',
+        'It is past your bedtime. Sleep well.',
+        'The night is long, but you need your rest.',
+        'Go to bed soon. I will keep watch.'
     ],
     alarm: [
-        'Hey. Your reminder is going off.',
-        'Time is up. This is your reminder.',
-        'Beep beep. You asked me to nudge you.',
-        'Reminder time. I did not forget, I never forget.'
+        'Dear, your reminder is here.',
+        'It is time. This is the reminder you asked for.',
+        'Gently now. You asked me to remind you.',
+        'Your reminder, as promised. I never forget.'
     ],
     gameStart: [
-        'VRChat is up. Have fun out there.',
-        'Game detected. I will keep watch from here.',
-        'Off you go. I will hold the fort.',
-        'Headset time. Try not to walk into a wall.'
+        'VRChat is open. Enjoy yourself, dear.',
+        'The game has started. I will keep watch from here.',
+        'Off you go. I will mind everything.',
+        'Headset on. Mind your step, please.'
     ],
     gameEnd: [
-        'VRChat closed. Welcome back to the real world.',
-        'Done for now? I will keep tracking.',
-        'That was a good session. I think.',
-        'Back on the desktop. I missed you.'
+        'VRChat has closed. Welcome back, dear.',
+        'Finished for now? Come, rest a little.',
+        'That was a good session, I think.',
+        'You are back. I am glad.'
     ],
     welcome: [
-        'Aurora online. Tracking is running.',
-        'Good to see you. Systems are up.',
-        'I am awake. What are we doing today?',
-        'Welcome back. I kept things warm.'
+        'Aurora is here. Everything is being tracked.',
+        'Welcome home, dear. All is well.',
+        'I am awake. How are you feeling today?',
+        'Welcome back. I kept things warm for you.'
     ],
-    test: ['Aurora online. Tracking is running.']
+    test: ['Aurora is here. Everything is being tracked.']
 };
 
 export const ALL_LINES = Object.values(LINES).flat();

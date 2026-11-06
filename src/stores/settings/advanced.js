@@ -743,7 +743,7 @@ export const useAdvancedSettingsStore = defineStore('AdvancedSettings', () => {
             'Content-Type': 'application/json',
             Referer: 'https://vrcx.app',
             'HTTP-Referer': 'https://vrcx.app',
-            'X-Title': 'Neon'
+            'X-Title': 'Aurora'
         };
         const keyToUse = overrides?.key ?? translationApiKey.value;
         if (keyToUse) {

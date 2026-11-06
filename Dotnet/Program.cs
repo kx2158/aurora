@@ -143,14 +143,14 @@ namespace VRCX
                 // look for trailing git hash "-22bcd96" to indicate nightly build
                 var version = versionFile.Split('-');
                 if (version.Length > 0 && version[^1].Length == 7)
-                    Version = $"Neon Nightly {versionFile}";
+                    Version = $"Aurora Nightly {versionFile}";
                 else
-                    Version = $"Neon {versionFile}";
+                    Version = $"Aurora {versionFile}";
             }
             catch (Exception ex)
             {
                 logger.Error(ex, "Failed to read version file");
-                Version = "Neon Nightly Build";
+                Version = "Aurora Nightly Build";
             }
         }
 
@@ -199,7 +199,7 @@ namespace VRCX
             if (Wine.GetIfWine())
             {
                 MessageBox.Show(
-                    "Neon has detected Wine.\nNeon needs Windows.",
+                    "Aurora has detected Wine.\nAurora needs Windows.",
                     "Wine Detected", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
             try
@@ -214,15 +214,15 @@ namespace VRCX
                 logger.Error(e, "Handled Exception, Missing file found in Handle Cef Explosion.");
 
                 var result = MessageBox.Show(
-                    "Neon has encountered an error with the CefSharp backend,\nthis is typically caused by missing files or dependencies.\nWould you like to try autofix by automatically installing vc_redist?.",
-                    "Neon CefSharp not found.", MessageBoxButtons.YesNo, MessageBoxIcon.Error);
+                    "Aurora has encountered an error with the CefSharp backend,\nthis is typically caused by missing files or dependencies.\nWould you like to try autofix by automatically installing vc_redist?.",
+                    "Aurora CefSharp not found.", MessageBoxButtons.YesNo, MessageBoxIcon.Error);
                 switch (result)
                 {
                     case DialogResult.Yes:
                         logger.Fatal("Handled Exception, user selected auto install of vc_redist.");
                         Update.DownloadInstallRedist().GetAwaiter().GetResult();
                         MessageBox.Show(
-                            "vc_redist has finished installing, if the issue persists upon next restart, please reinstall Neon from the latest release,\nNeon will now restart.",
+                            "vc_redist has finished installing, if the issue persists upon next restart, please reinstall Aurora from the latest release,\nNeon will now restart.",
                             "vc_redist installation complete", MessageBoxButtons.OK);
                         Thread.Sleep(5000);
                         AppApiInstance.RestartApplication(false);
@@ -231,8 +231,8 @@ namespace VRCX
                     case DialogResult.No:
                         logger.Fatal("Handled Exception, user chose manual.");
                         MessageBox.Show(
-                            "Neon will now close, try reinstalling Neon using the latest setup as a potential fix.",
-                            "Neon CefSharp not found", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            "Aurora will now close, try reinstalling Aurora using the latest setup as a potential fix.",
+                            "Aurora CefSharp not found", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         Thread.Sleep(5000);
                         Environment.Exit(0);
                         break;

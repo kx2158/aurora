@@ -57,7 +57,7 @@ export const BOOP_LINES = [
     'Shoulders back, pretty.',
     'Hi you. Yes, you.',
     'Sit up straight and smile for me.',
-    'Neon says you are adorable.',
+    'Aurora says you are adorable.',
     'Come sit a little closer.',
     'Sending you a tiny kiss.',
     'Stretch break. Then back to me.',

@@ -1,5 +1,5 @@
 {
-    "name": "neon",
+    "name": "aurora",
     "version": "2026.09.16",
     "private": true,
     "description": "Friendship management tool for VRChat",
@@ -11,7 +11,7 @@
         "url": "https://github.com/kx2158/aurora/issues"
     },
     "license": "MIT",
-    "author": "Neon",
+    "author": "Aurora",
     "repository": {
         "type": "git",
         "url": "git+https://github.com/kx2158/aurora.git"
@@ -138,5 +138,5 @@
         "vue-demi": true,
         "electron": true
     },
-    "desktopName": "Neon"
+    "desktopName": "Aurora"
 }

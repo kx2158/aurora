@@ -5,7 +5,7 @@
  */
 module.exports = {
     appId: 'app.vrcx',
-    productName: 'Neon',
+    productName: 'Aurora',
     icon: 'images/Neon.png',
     files: [
         'build/html/**/*',

@@ -9,7 +9,7 @@ import { speak, prepare } from './auroraVoice';
 
 export const LINES = {
     poke: [
-        'Hey! I am Neon. I float around and keep an eye on things.',
+        'Hey! I am Aurora. I float around and keep an eye on things.',
         'Careful, that tickles. Need something?',
         'Still here, still watching your friends list.',
         'Click me again and I will start charging rent.',
@@ -31,7 +31,7 @@ export const LINES = {
         'Did you drink some water today? Asking for a friend. The friend is me.',
         'I wonder who is online right now.',
         'Remember to stretch. Your spine says hi.',
-        'Neon is watching. Lovingly. Mostly.',
+        'Aurora is watching. Lovingly. Mostly.',
         'If something happens, I will let you know.',
         'I could use a snack. Do bytes count?',
         'Low battery on my patience. Kidding.',
@@ -67,7 +67,7 @@ export const LINES = {
         'New group event. Check your calendar.'
     ],
     update: [
-        'A new version of Neon is ready. Update whenever you like.',
+        'A new version of Aurora is ready. Update whenever you like.',
         'I have an update waiting. A better me, if you let me.',
         'Update available. I will behave while it installs.'
     ],
@@ -95,12 +95,12 @@ export const LINES = {
         'Back on the desktop. I missed you.'
     ],
     welcome: [
-        'Neon online. Tracking is running.',
+        'Aurora online. Tracking is running.',
         'Good to see you. Systems are up.',
         'I am awake. What are we doing today?',
         'Welcome back. I kept things warm.'
     ],
-    test: ['Neon online. Tracking is running.']
+    test: ['Aurora online. Tracking is running.']
 };
 
 export const ALL_LINES = Object.values(LINES).flat();

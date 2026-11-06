@@ -80,12 +80,12 @@
         "expand_menu": "メニューを展開",
         "collapse_menu": "メニューを折りたたむ",
         "toggle_theme": "テーマを切り替える",
-        "neon": "Neon",
+        "neon": "Aurora",
         "more": "More"
     },
     "nav_menu": {
         "resources": "お役立ちリンク",
-        "wiki": "Neon Wiki",
+        "wiki": "Aurora Wiki",
         "get_help": "困った時はこちら",
         "github": "バグ報告・提案 (GitHub)",
         "discord": "みんなと話そう (Discord)",
@@ -315,7 +315,7 @@
                 "search_placeholder": "検索",
                 "filter_placeholder": "フィルター",
                 "chatbox_blacklist": "チャットボックスのブラックリスト",
-                "status_tooltip": "Neon コンパニオンの状態"
+                "status_tooltip": "Aurora コンパニオンの状態"
             }
         },
         "my_avatars": {
@@ -532,7 +532,7 @@
                 "next_day": "翌日",
                 "refresh": "更新",
                 "tips": {
-                    "online_time": "オンライン時間とは、Neon が記録した当日のゲームプレイ時間です。",
+                    "online_time": "オンライン時間とは、Aurora が記録した当日のゲームプレイ時間です。",
                     "click_Y_axis": "Y軸ラベルをクリックで、インスタンスの詳細へジャンプ、またはユーザーダイアログを表示できます。",
                     "click_instance_name": "インスタンス名をクリックで、以前のインスタンス情報ダイアログを表示できます。"
                 },
@@ -666,7 +666,7 @@
             "export": {
                 "header": "エクスポート",
                 "export_notes": "ユーザーメモのエクスポート",
-                "export_notes_description": "Neon のユーザーメモを VRChat のノートにエクスポート",
+                "export_notes_description": "Aurora のユーザーメモを VRChat のノートにエクスポート",
                 "discord_names": "Discord のユーザー名",
                 "export_friend_list": "フレンドリストをエクスポート",
                 "export_own_avatars": "自分のアバターをエクスポート"
@@ -687,8 +687,8 @@
             },
             "shortcuts": {
                 "header": "ショートカット",
-                "vrcx_data": "Neon のデータ",
-                "vrcx_data_description": "Neon のデータフォルダを開く",
+                "vrcx_data": "Aurora のデータ",
+                "vrcx_data_description": "Aurora のデータフォルダを開く",
                 "vrchat_data": "VRChat のデータ",
                 "vrchat_data_description": "VRChat のデータフォルダを開く",
                 "crash_dumps": "クラッシュダンプ",
@@ -801,7 +801,7 @@
                     "support": "サポート"
                 },
                 "vrcx_updater": {
-                    "header": "Neon アップデーター",
+                    "header": "Aurora アップデーター",
                     "change_build": "ビルドを変更",
                     "update_action": "更新がリリースされたとき",
                     "auto_update_off": "何もしない",
@@ -819,7 +819,7 @@
                     "disable_gpu_acceleration_tooltip": "このオプションは「自分がしていることを理解している場合」にのみ変更してください。SteamVR オーバーレイに問題が発生する可能性があります。UI表示に問題が発生した場合は、これを無効に戻して再起動してください。",
                     "disable_vr_overlay_gpu_acceleration": "VRオーバーレイのGPUアクセラレーション無効化",
                     "proxy": "プロキシ設定",
-                    "startup_linux": "システムの起動時に Neon を最小化した状態で起動するには、自動起動用の neon.desktop ファイルに \"--startup\" 引数を追加します。"
+                    "startup_linux": "システムの起動時に Aurora を最小化した状態で起動するには、自動起動用の neon.desktop ファイルに \"--startup\" 引数を追加します。"
                 },
                 "favorites": {
                     "header": "お気に入りのグループ",
@@ -858,9 +858,9 @@
                 },
                 "legal_notice": {
                     "header": "法律上の注意事項",
-                    "info": "Neon は VRChat のアシスタント用アプリケーションで、フレンドに関する情報の提供や管理を行うツールです。本アプリケーションは非公式の「VRChat API SDK」を使用しています。",
-                    "disclaimer1": "Neon は VRChat によって承認されておらず、VRChat または VRChat の開発もしくは管理に公式に関与する者の見解や意見が反映されたものではありません。VRChat および関連するすべての財産は VRChat Inc. の商標または登録商標です。",
-                    "disclaimer2": "pypy と Natsumi およびすべての貢献者は Neon の使用によって発生したいかなる問題にも責任を負いません。自己責任でご使用ください！",
+                    "info": "Aurora は VRChat のアシスタント用アプリケーションで、フレンドに関する情報の提供や管理を行うツールです。本アプリケーションは非公式の「VRChat API SDK」を使用しています。",
+                    "disclaimer1": "Aurora は VRChat によって承認されておらず、VRChat または VRChat の開発もしくは管理に公式に関与する者の見解や意見が反映されたものではありません。VRChat および関連するすべての財産は VRChat Inc. の商標または登録商標です。",
+                    "disclaimer2": "pypy と Natsumi およびすべての貢献者は Aurora の使用によって発生したいかなる問題にも責任を負いません。自己責任でご使用ください！",
                     "open_source_software_notice": "オープンソースソフトウェアに関する注意事項"
                 },
                 "contributors": {
@@ -973,8 +973,8 @@
                     "header": "ユーザーダイアログ",
                     "vrchat_notes": "VRChat のノート",
                     "vrchat_notes_description": "VRChat のノートを表示",
-                    "vrcx_memos": "Neon のメモ",
-                    "vrcx_memos_description": "Neon にローカルに保存されたメモを表示",
+                    "vrcx_memos": "Aurora のメモ",
+                    "vrcx_memos_description": "Aurora にローカルに保存されたメモを表示",
                     "recent_action_cooldown": "アクションのクールダウン",
                     "recent_action_cooldown_description": "招待または招待リクエストを最近送信した場合、時計のアイコンが表示されます。",
                     "recent_action_cooldown_minutes": "クールダウン (分)"
@@ -1087,7 +1087,7 @@
                 "rpc": {
                     "vr": "VR",
                     "desktop": "デスクトップ",
-                    "powered_by_vrcx": "Powered by Neon",
+                    "powered_by_vrcx": "Powered by Aurora",
                     "private_world": "プライベート"
                 }
             },
@@ -1105,7 +1105,7 @@
                         "header": "VRChat"
                     },
                     "vrcx_settings": {
-                        "header": "Neon"
+                        "header": "Aurora"
                     },
                     "primary_password": {
                         "header": "プライマリーパスワード",
@@ -1129,11 +1129,11 @@
                     },
                     "anonymous_error_reporting": {
                         "header": "匿名エラーレポート(ナイトリービルドのみ)",
-                        "description": "クラッシュやエラーの匿名レポートは、Neon の改善に役立ちます。個人情報や VRChat のデータは含まれません",
+                        "description": "クラッシュやエラーの匿名レポートは、Aurora の改善に役立ちます。個人情報や VRChat のデータは含まれません",
                         "consent_title": "匿名エラーレポート",
-                        "consent_description": "匿名エラーレポートを有効にしますか？匿名レポートは、Neon の改善に役立ちます。\n\n・クラッシュやエラーのデータのみ。\n\n・個人情報や VRChatのデータは含まれません。\n\n・詳細設定でいつでも無効化できます。",
-                        "enabled_restart_description": "エラーレポートが有効化されました。Neon を再起動して変更を適用しますか？",
-                        "disabled_restart_description": "エラーレポートが無効化されました。Neon を再起動して変更を適用しますか？"
+                        "consent_description": "匿名エラーレポートを有効にしますか？匿名レポートは、Aurora の改善に役立ちます。\n\n・クラッシュやエラーのデータのみ。\n\n・個人情報や VRChatのデータは含まれません。\n\n・詳細設定でいつでも無効化できます。",
+                        "enabled_restart_description": "エラーレポートが有効化されました。Aurora を再起動して変更を適用しますか？",
+                        "disabled_restart_description": "エラーレポートが無効化されました。Aurora を再起動して変更を適用しますか？"
                     },
                     "save_instance_prints_to_file": {
                         "header": "インスタンス内にあるプリントを、ローカルファイルに保存",
@@ -1154,7 +1154,7 @@
                     },
                     "delete_all_screenshot_metadata": {
                         "button": "スクリーンショットのメタデータを削除",
-                        "ask": "VRChat の写真フォルダ内の全ての VRChat と Neon スクリーンショットメタデータを本当に削除しますか？",
+                        "ask": "VRChat の写真フォルダ内の全ての VRChat と Aurora スクリーンショットメタデータを本当に削除しますか？",
                         "confirm": "全てのスクリーンショットメタデータを削除する操作は元に戻せません！プリント、サブフォルダ、その他無関係な画像も含まれます。大切な写真がある場合は、削除する前にバックアップしてください。",
                         "confirm_yes": "削除する",
                         "confirm_no": "いいえ"
@@ -1187,7 +1187,7 @@
                         "header": "Neonの起動コマンド (Deep Links)",
                         "docs": "起動コマンドドキュメント",
                         "show_confirmation_on_switch_avatar_enable": "アバターの切り替え時に、確認ダイアログを表示",
-                        "show_confirmation_on_switch_avatar_tooltip": "無効の場合、アバターの切り替え時に Neon が確認を求める事はありません。",
+                        "show_confirmation_on_switch_avatar_tooltip": "無効の場合、アバターの切り替え時に Aurora が確認を求める事はありません。",
                         "website_userscript": "VRC Webサイト Userscript"
                     },
                     "screenshot_helper": {
@@ -1207,7 +1207,7 @@
                         "run_process_once": "アプリを単一インスタンスで開く"
                     },
                     "cache_debug": {
-                        "header": "Neon インスタンス キャッシュ/デバッグ",
+                        "header": "Aurora インスタンス キャッシュ/デバッグ",
                         "udon_exception_logging": "Udon の例外エラーを記録",
                         "disable_gamelog": "ゲームログを無効化",
                         "disable_gamelog_notice": "(何かが壊れる可能性があります)",
@@ -1257,11 +1257,11 @@
                         "purge_confirm_title": "アバターのフィードデータを削除",
                         "purge_confirm_description_1": "これはデータベースからアバターの変更記録を完全に削除し、ディスクスペースを開放します。",
                         "purge_confirm_description_2": "削除されたデータは復元できません。",
-                        "purge_confirm_description_3": "Neon は、完了後に自動的に再起動します。",
+                        "purge_confirm_description_3": "Aurora は、完了後に自動的に再起動します。",
                         "purge_confirm_alert": "データベースのファイルをバックアップすることを、強くお勧めします。",
                         "purge_confirm_button": "削除して再起動",
                         "purge_in_progress": "アバターデータの削除中...",
-                        "purge_complete": "アバターデータの削除が完了しました。Neon は再起動します。",
+                        "purge_complete": "アバターデータの削除が完了しました。Aurora は再起動します。",
                         "purge_failed": "削除に失敗しました: {error}"
                     },
                     "user_generated_content": {
@@ -1298,7 +1298,7 @@
             }
         },
         "neon": {
-            "title": "Neon",
+            "title": "Aurora",
             "sub": "Everything you added, in one place",
             "jump_chatbox": "Chatbox",
             "jump_music": "Music to mic",
@@ -1389,8 +1389,8 @@
             },
             "info": {
                 "header": "情報",
-                "vrcx_info": "Neon 情報",
-                "vrcx_info_tooltip": "Neon の情報は正確でない可能性があります",
+                "vrcx_info": "Aurora 情報",
+                "vrcx_info_tooltip": "Aurora の情報は正確でない可能性があります",
                 "launch_invite_tooltip": "起動/招待",
                 "self_invite_tooltip": "自分を招待",
                 "open_in_vrchat_tooltip": "VRChat で開く",
@@ -1405,7 +1405,7 @@
                 "instance_creator": "インスタンス作成者",
                 "note": "ノート (VRChat)",
                 "note_placeholder": "クリックしてノートを追加",
-                "memo": "メモ (Neon)",
+                "memo": "メモ (Aurora)",
                 "memo_placeholder": "クリックしてメモを追加",
                 "avatar_info": "アバター情報",
                 "unknown_avatar": "不明なアバター",
@@ -1711,7 +1711,7 @@
                 "time_spent": "過ごした時間",
                 "visibility": "可視性",
                 "tags": "タグ",
-                "memo": "メモ (Neon)",
+                "memo": "メモ (Aurora)",
                 "memo_placeholder": "クリックしてメモを追加",
                 "listings": "リスティング",
                 "gallery": "ギャラリー"
@@ -2085,14 +2085,14 @@
         },
         "note_export": {
             "header": "ノートをエクスポート",
-            "description1": "これにより、Neon のノートが全て VRChat のノートにインポートされます。",
+            "description1": "これにより、Aurora のノートが全て VRChat のノートにインポートされます。",
             "description2": "以下の制限にご注意ください:",
             "description3": "- API エンドポイントにはレート制限があり、リクエストを送る際は間隔を開ける必要があります。",
             "description4": "- ノート1つにつき256文字の制限があります。",
             "description5": "- 汚い言葉はフィルタリングされます (おふざけは禁止されています)。",
             "description6": "- 改行はできません。スペースに置き換えられます。",
             "description7": "- 既にノートが設定されているユーザーのノートは上書きされます。",
-            "description8": "- ここで編集した内容は Neon のメモには影響しませんが、エクスポートされた VRChat のノートには影響します。",
+            "description8": "- ここで編集した内容は Aurora のメモには影響しませんが、エクスポートされた VRChat のノートには影響します。",
             "refresh": "更新",
             "export": "エクスポート",
             "cancel": "キャンセル",
@@ -2419,9 +2419,9 @@
             "add_item": "追加"
         },
         "vrcx_updater": {
-            "header": "Neon アップデーター",
+            "header": "Aurora アップデーター",
             "latest_version": "Neonは最新版です。",
-            "ready_for_update": "インストールの準備が完了しました。Neon を再起動して適用してください。",
+            "ready_for_update": "インストールの準備が完了しました。Aurora を再起動して適用してください。",
             "branch_stable": "安定板",
             "branch_nightly": "ナイトリー",
             "nightly_title": "ナイトリービルド",
@@ -2433,7 +2433,7 @@
         },
         "change_log": {
             "header": "更新履歴",
-            "description": "将来の Neon の開発を支援するために寄付をご検討ください。",
+            "description": "将来の Aurora の開発を支援するために寄付をご検討ください。",
             "close": "閉じる",
             "donate": "寄付",
             "github": "GitHub"
@@ -2704,7 +2704,7 @@
             "search_limit_returns": "検索の上限",
             "search_limit_returns_error": "{min}〜{max}の数字を入力してください。",
             "search_limit_returns_hint": "{min}〜{max}の数字を入力してください。",
-            "search_limit_returns_warning": "値が大きすぎると Neon が重くなる可能性があります。",
+            "search_limit_returns_warning": "値が大きすぎると Aurora が重くなる可能性があります。",
             "cancel": "キャンセル",
             "save": "保存"
         }
@@ -2764,8 +2764,8 @@
         "database": {
             "upgrade_complete": "データベースのアップグレードが完了しました",
             "upgrade_in_progress_title": "データベースのアップグレードが進行中",
-            "upgrade_in_progress_description": "データベースのバージョン {from} から {to} への更新が進行中です。完了するまで Neon を閉じないでください。",
-            "upgrade_in_progress_initializing": "データベースのアップグレードを初期化中。Neon を閉じないでください。",
+            "upgrade_in_progress_description": "データベースのバージョン {from} から {to} への更新が進行中です。完了するまで Aurora を閉じないでください。",
+            "upgrade_in_progress_initializing": "データベースのアップグレードを初期化中。Aurora を閉じないでください。",
             "upgrade_in_progress_wait": "アップグレードが完了するまで、ユーザーの操作は一時的にブロックされます。",
             "upgrade_failed_title": "データベースのアップグレードに失敗しました",
             "upgrade_failed_description": "データベースのアップグレードに失敗しました。詳細についてはコンソールを確認してください。",
@@ -2841,7 +2841,7 @@
             "delete_failed": "スクリーンショットのメタデータの削除に失敗しました"
         },
         "crash": {
-            "vrcx_reload": "Neon は再起動されました"
+            "vrcx_reload": "Aurora は再起動されました"
         },
         "image": {
             "downloading": "画像をダウンロード中...",
@@ -3127,7 +3127,7 @@
     },
     "onboarding": {
         "welcome": {
-            "title": "Neon へようこそ",
+            "title": "Aurora へようこそ",
             "subtitle": "ここにいくつかの機能をご紹介します",
             "features": {
                 "user_profiles": {
@@ -3150,17 +3150,17 @@
             "cta": "使い始めよう！"
         },
         "whatsnew": {
-            "title": "Neon の新機能",
+            "title": "Aurora の新機能",
             "subtitle": "今回のアップデートの変更点をご紹介します。",
             "cta": "わかった！",
             "common": {
                 "got_it": "わかった！",
                 "view_changelog": "変更履歴を表示",
-                "support": "Neon をサポート"
+                "support": "Aurora をサポート"
             },
             "releases": {
                 "2026_05_03": {
-                    "title": "Neon の新機能",
+                    "title": "Aurora の新機能",
                     "subtitle": "今回のアップデートの変更点をご紹介します",
                     "items": {
                         "quick_search": {
@@ -3204,7 +3204,7 @@
         "ws_avg_per_minute": "{count} 回/分",
         "zoom": "Zoom",
         "zoom_tooltip": "クリックしてズームレベルを調整",
-        "app_uptime": "Neon の稼働時間",
+        "app_uptime": "Aurora の稼働時間",
         "app_uptime_short": "稼働時間",
         "clocks": "時計",
         "clock": "Clock",

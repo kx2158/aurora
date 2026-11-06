@@ -16,6 +16,16 @@ export const THEME_CONFIG = {
         name: 'Midnight',
         file: 'midnight.css'
     },
+    xray: {
+        isDark: false,
+        name: 'Aurora',
+        file: 'xray.css'
+    },
+    xraydark: {
+        isDark: true,
+        name: 'Aurora Dark',
+        file: 'xray-dark.css'
+    },
     aurora: {
         isDark: true,
         name: 'Neon',

@@ -19,14 +19,14 @@
                             <img
                                 class="h-6 w-6 cursor-pointer"
                                 :src="vrcxLogo"
-                                alt="Neon"
+                                alt="Aurora"
                                 @click="emit('open-github')" />
                             <div class="flex min-w-0 flex-col">
                                 <button
                                     type="button"
                                     class="text-left text-sm font-medium truncate flex items-center gap-1 cursor-pointer"
                                     @click="emit('open-github')">
-                                    Neon
+                                    Aurora
                                 </button>
                                 <span class="text-xs text-muted-foreground">{{ version }}</span>
                             </div>

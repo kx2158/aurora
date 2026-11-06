@@ -13,7 +13,7 @@
         "friend_list": "Lista de Amigos",
         "charts": "Gráficos",
         "settings": "Configuración",
-        "neon": "Neon",
+        "neon": "Aurora",
         "more": "More"
     },
     "side_panel": {
@@ -87,7 +87,7 @@
                 "search_placeholder": "Buscar",
                 "filter_placeholder": "Filtrar",
                 "chatbox_blacklist": "Lista Negra del Chatbox",
-                "status_tooltip": "Estado del Compañero Neon"
+                "status_tooltip": "Estado del Compañero Aurora"
             }
         },
         "search": {
@@ -230,7 +230,7 @@
                 "next_day": "Día Siguiente",
                 "refresh": "Actualizar",
                 "tips": {
-                    "online_time": "El tiempo en línea se refiere al tiempo de juego registrado por Neon para el día actual.",
+                    "online_time": "El tiempo en línea se refiere al tiempo de juego registrado por Aurora para el día actual.",
                     "click_Y_axis": "Haz clic en la etiqueta del eje Y para navegar a los detalles de la instancia o abrir el diálogo de Usuario.",
                     "click_instance_name": "Haz clic en el nombre de la instancia para abrir el diálogo de Información de Instancia Anterior."
                 },
@@ -285,7 +285,7 @@
                     "support": "Soporte"
                 },
                 "vrcx_updater": {
-                    "header": "Actualizador de Neon",
+                    "header": "Actualizador de Aurora",
                     "change_build": "Cambiar compilación",
                     "update_action": "Acción de actualización",
                     "auto_update_off": "Apagado",
@@ -299,12 +299,12 @@
                     "minimized": "Iniciar minimizado",
                     "tray": "Minimizar a la bandeja al cerrar",
                     "disable_gpu_acceleration": "Deshabilitar Aceleración GPU",
-                    "disable_gpu_acceleration_tooltip": "Solo cambia esta opción si sabes lo que estás haciendo, rompe la superposición de SteamVR, puede solucionar problemas con la UI, requiere reiniciar Neon",
+                    "disable_gpu_acceleration_tooltip": "Solo cambia esta opción si sabes lo que estás haciendo, rompe la superposición de SteamVR, puede solucionar problemas con la UI, requiere reiniciar Aurora",
                     "disable_vr_overlay_gpu_acceleration": "Deshabilitar Aceleración GPU de Superposición VR",
                     "proxy": "Configuraciones de Proxy"
                 },
                 "favorites": {
-                    "header": "Amigos Favoritos de Neon",
+                    "header": "Amigos Favoritos de Aurora",
                     "group_placeholder": "Elegir Grupos"
                 },
                 "logging": {
@@ -324,13 +324,13 @@
                     "auto_invite_request_accept": "Aceptar Solicitudes de Invitación Automáticamente",
                     "auto_invite_request_accept_tooltip": "Aceptar automáticamente las solicitudes de invitación de amigos favoritos",
                     "auto_invite_request_accept_favs": "Todos los Favoritos",
-                    "auto_invite_request_accept_selected_favs": "Favoritos de Neon"
+                    "auto_invite_request_accept_selected_favs": "Favoritos de Aurora"
                 },
                 "legal_notice": {
                     "header": "Aviso Legal",
-                    "info": "Neon es una aplicación asistente para VRChat que proporciona información sobre y gestión de amistades. Esta aplicación utiliza el SDK de la API no oficial de VRChat.",
-                    "disclaimer1": "Neon no está respaldado por VRChat y no refleja las opiniones o puntos de vista de VRChat ni de nadie oficialmente involucrado en la producción o gestión de las propiedades de VRChat. VRChat y todas las propiedades asociadas son marcas comerciales o marcas registradas de VRChat Inc. VRChat © VRChat Inc.",
-                    "disclaimer2": "pypy & Natsumi no son responsables de ningún problema causado por Neon. ¡Úselo bajo su propio riesgo!",
+                    "info": "Aurora es una aplicación asistente para VRChat que proporciona información sobre y gestión de amistades. Esta aplicación utiliza el SDK de la API no oficial de VRChat.",
+                    "disclaimer1": "Aurora no está respaldado por VRChat y no refleja las opiniones o puntos de vista de VRChat ni de nadie oficialmente involucrado en la producción o gestión de las propiedades de VRChat. VRChat y todas las propiedades asociadas son marcas comerciales o marcas registradas de VRChat Inc. VRChat © VRChat Inc.",
+                    "disclaimer2": "pypy & Natsumi no son responsables de ningún problema causado por Aurora. ¡Úselo bajo su propio riesgo!",
                     "open_source_software_notice": "Aviso de Software de Código Abierto"
                 },
                 "contributors": {
@@ -381,7 +381,7 @@
                 "user_dialog": {
                     "header": "Diálogo de Usuario",
                     "vrchat_notes": "Notas de VRChat",
-                    "vrcx_memos": "Memos de Neon"
+                    "vrcx_memos": "Memos de Aurora"
                 },
                 "user_colors": {
                     "header": "Colores de Usuario",
@@ -524,7 +524,7 @@
                         "header": "Comandos de Lanzamiento (Enlaces Profundos)",
                         "docs": "Documentación de Comandos de Lanzamiento",
                         "show_confirmation_on_switch_avatar_enable": "Mostrar diálogo de confirmación antes de cambiar avatares",
-                        "show_confirmation_on_switch_avatar_tooltip": "Cuando está deshabilitado, Neon no se pondrá al frente al cambiar avatares y no pedirá confirmación",
+                        "show_confirmation_on_switch_avatar_tooltip": "Cuando está deshabilitado, Aurora no se pondrá al frente al cambiar avatares y no pedirá confirmación",
                         "website_userscript": "Userscript del Sitio Web de VRC"
                     },
                     "screenshot_helper": {
@@ -543,7 +543,7 @@
                         "auto_close": "Cerrar aplicaciones automáticamente"
                     },
                     "cache_debug": {
-                        "header": "Caché/Depuración de Instancias de Neon",
+                        "header": "Caché/Depuración de Instancias de Aurora",
                         "udon_exception_logging": "Registro de Excepciones de Udon",
                         "disable_gamelog": "Deshabilitar GameLog",
                         "disable_gamelog_notice": "(probablemente romperá cosas)",
@@ -607,7 +607,7 @@
             }
         },
         "neon": {
-            "title": "Neon",
+            "title": "Aurora",
             "sub": "Everything you added, in one place",
             "jump_chatbox": "Chatbox",
             "jump_music": "Music to mic",
@@ -1215,14 +1215,14 @@
         },
         "note_export": {
             "header": "Exportar Notas",
-            "description1": "Este proceso exportará todos tus memos de Neon e importará en las notas de VRChat.",
+            "description1": "Este proceso exportará todos tus memos de Aurora e importará en las notas de VRChat.",
             "description2": "Ten en cuenta las siguientes limitaciones:",
             "description3": "- El punto final de la API tiene un límite de tasa que requiere un gran retraso entre solicitudes.",
             "description4": "- Límite de caracteres de 256 por nota.",
             "description5": "- Filtro de palabras malsonantes (no se permite diversión).",
             "description6": "- No se permiten nuevas líneas (se reemplazarán con un espacio).",
             "description7": "- Esto sobrescribirá cualquier nota existente de VRChat para estos usuarios.",
-            "description8": "- Cualquier edición hecha aquí no afectará a los memos de Neon pero sí afectará a las notas de VRChat una vez exportadas.",
+            "description8": "- Cualquier edición hecha aquí no afectará a los memos de Aurora pero sí afectará a las notas de VRChat una vez exportadas.",
             "refresh": "Actualizar",
             "export": "Exportar",
             "cancel": "Cancelar",
@@ -1429,23 +1429,23 @@
             "add_item": "Añadir Elemento"
         },
         "vrcx_updater": {
-            "header": "Actualizador de Neon",
-            "latest_version": "Neon está actualizado.",
-            "ready_for_update": "Listo para instalar, reinicia Neon para aplicar.",
+            "header": "Actualizador de Aurora",
+            "latest_version": "Aurora está actualizado.",
+            "ready_for_update": "Listo para instalar, reinicia Aurora para aplicar.",
             "download": "Descargar",
             "install": "Instalar",
             "cancel": "Cancelar"
         },
         "change_log": {
             "header": "Registro de Cambios",
-            "description": "Considera donar para apoyar el desarrollo futuro de Neon",
+            "description": "Considera donar para apoyar el desarrollo futuro de Aurora",
             "close": "Cerrar",
             "donate": "Donar",
             "github": "GitHub"
         },
         "open_source": {
             "header": "Aviso de Software de Código Abierto",
-            "description": "Neon se basa en software de código abierto. Fue posible gracias a su contribución."
+            "description": "Aurora se basa en software de código abierto. Fue posible gracias a su contribución."
         },
         "primary_password": {
             "header": "Contraseña Principal Requerida",
@@ -1465,7 +1465,7 @@
             "date": "Fecha",
             "action": "Acción",
             "auto_backup": "Copia de Seguridad Automática Semanal",
-            "restore_prompt": "Neon ha notado que la copia de seguridad automática de las configuraciones del registro de VRC está habilitada, pero esta computadora no tiene ninguna. Si deseas restaurar desde la copia de seguridad, puedes hacerlo desde aquí."
+            "restore_prompt": "Aurora ha notado que la copia de seguridad automática de las configuraciones del registro de VRC está habilitada, pero esta computadora no tiene ninguna. Si deseas restaurar desde la copia de seguridad, puedes hacerlo desde aquí."
         },
         "avatar_database_provider": {
             "header": "Proveedor de Base de Datos de Avatares",
@@ -1615,7 +1615,7 @@
             "input_error": "Se requiere un número válido"
         },
         "auto_clear_cache": {
-            "header": "Temporizador de Limpieza de Caché de Neon",
+            "header": "Temporizador de Limpieza de Caché de Aurora",
             "description": "Introduce la cantidad de horas, valores más grandes pueden impactar el uso de RAM y el rendimiento (predeterminado: 24, deshabilitado: 0)",
             "cancel": "Cancelar",
             "ok": "OK",

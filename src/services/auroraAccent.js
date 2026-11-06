@@ -1,13 +1,21 @@
 /**
- * Neon accent colour. One colour drives the whole look: app theme, VR panels and the mascots.
+ * Aurora accent colour. One colour drives the whole look: app theme, VR panels and the mascots.
  */
 import { ref, watch } from 'vue';
 
 import configRepository from './config';
 
 export const DEFAULT_ACCENT = '#ff3d9a';
-export const accent = ref(DEFAULT_ACCENT);
+/** Aurora's own default, a borealis green. DEFAULT_ACCENT stays pink because the mascot pictures are pink. */
+export const AURORA_ACCENT = '#4fe3a0';
+export const accent = ref(AURORA_ACCENT);
 export const ACCENT_PRESETS = [
+    { name: 'Borealis green', hex: '#4fe3a0' },
+    { name: 'Ice blue', hex: '#7cc8ff' },
+    { name: 'Teal', hex: '#34d1c9' },
+    { name: 'Lime', hex: '#9be34f' },
+    { name: 'Lilac', hex: '#a98bff' },
+    { name: 'Magenta', hex: '#e86fd8' },
     { name: 'Hot pink', hex: '#ff3d9a' },
     { name: 'Cyan', hex: '#19e3ff' },
     { name: 'Acid green', hex: '#8cff3d' },
@@ -74,6 +82,8 @@ function apply() {
     root.style.setProperty('--aurora-pink-soft', `rgba(${r}, ${g}, ${b}, 0.35)`);
     // 340 is where the original pink theme sits (hot pink is about 17 above that)
     root.style.setProperty('--ah', String(Math.round(oklchHue(hex) - 17)));
+    // Aurora themes read the hue directly
+    root.style.setProperty('--axh', String(Math.round(oklchHue(hex))));
     mascotTint.value = mascotFilter(hex);
 }
 
@@ -83,7 +93,12 @@ export async function initAccent() {
         return;
     }
     started = true;
-    accent.value = await configRepository.getString('Neon_accent', DEFAULT_ACCENT);
+    // one time: the app became Aurora, so start on the borealis green (it can be changed any time)
+    if (!(await configRepository.getBool('Aurora_accentV2', false))) {
+        await configRepository.setString('Neon_accent', AURORA_ACCENT);
+        await configRepository.setBool('Aurora_accentV2', true);
+    }
+    accent.value = await configRepository.getString('Neon_accent', AURORA_ACCENT);
     apply();
     watch(accent, apply);
 }

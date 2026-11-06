@@ -32,12 +32,12 @@ public static class OverlayClient
         {
             var client = new ClientWebSocket();
             client.Options.KeepAliveInterval = TimeSpan.FromSeconds(5);
-            client.Options.SetRequestHeader("user-agent", "Neon Overlay Client");
+            client.Options.SetRequestHeader("user-agent", "Aurora Overlay Client");
             return client;
         });
         _websocketClient = new WebsocketClient(WebsocketUri, clientFactory)
         {
-            Name = "Neon Overlay Client",
+            Name = "Aurora Overlay Client",
             ReconnectTimeout = null,
             ErrorReconnectTimeout = TimeSpan.FromMilliseconds(300)
         };
@@ -48,7 +48,7 @@ public static class OverlayClient
             var message = new OverlayMessage
             {
                 Type = OverlayMessageType.OverlayConnected,
-                Data = "Neon Overlay Client Connected"
+                Data = "Aurora Overlay Client Connected"
             };
             _websocketClient.Send(JsonSerializer.Serialize(message));
         });

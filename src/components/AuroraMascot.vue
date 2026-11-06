@@ -1,6 +1,6 @@
 <template>
     <div class="aurora-mascot" :class="{ speaking: isSpeaking }" :style="{ width: size + 'px', height: size + 'px' }">
-        <img :src="src" alt="Neon" draggable="false" :style="{ filter: mascotTint }" />
+        <img :src="src" alt="Aurora" draggable="false" :style="{ filter: mascotTint }" />
     </div>
 </template>
 

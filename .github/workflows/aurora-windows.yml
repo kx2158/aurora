@@ -1,6 +1,6 @@
-name: Build Neon (Windows installer)
+name: Build Aurora (Windows installer)
 
-# Run it by hand: Actions tab > "Build Neon (Windows installer)" > Run workflow.
+# Run it by hand: Actions tab > "Build Aurora (Windows installer)" > Run workflow.
 # The installer shows up under "Artifacts" at the bottom of the finished run.
 on:
   workflow_dispatch:
@@ -57,13 +57,12 @@ jobs:
       - name: Stage installer and updater
         run: |
           mkdir -p stage
-          cp Installer/Neon_Setup_x64.exe stage/
-          cp Update-Neon.ps1 Update-Neon.bat stage/
+          cp Installer/Aurora_Setup_x64.exe stage/
 
       - name: Upload installer
         uses: actions/upload-artifact@v7
         with:
-          name: Neon-Setup
+          name: Aurora-Setup
           path: stage
           if-no-files-found: error
 
@@ -71,11 +70,11 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "v${VERSION}" stage/Neon_Setup_x64.exe \
-            --title "Neon ${VERSION}" --generate-notes --latest
+          gh release create "v${VERSION}" stage/Aurora_Setup_x64.exe \
+            --title "Aurora ${VERSION}" --generate-notes --latest
 
       - name: Upload portable folder
         uses: actions/upload-artifact@v7
         with:
-          name: Neon-Portable
+          name: Aurora-Portable
           path: build/Cef

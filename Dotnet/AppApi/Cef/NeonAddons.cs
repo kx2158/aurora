@@ -19,7 +19,7 @@ namespace VRCX
             if (!File.Exists(readme))
             {
                 File.WriteAllText(readme,
-                    "Neon add-ons\r\n\r\n" +
+                    "Aurora add-ons\r\n\r\n" +
                     "Make a folder for each add-on, for example addons\\rin\\ :\r\n\r\n" +
                     "  addon.json              optional, {\"name\":\"Rin\",\"author\":\"Rin\"}\r\n" +
                     "                          add \"hidden\":true to keep it out of the lists until its name is typed into the secret field\r\n" +
@@ -28,7 +28,7 @@ namespace VRCX
                     "  voice\\poke\\*.mp3        a voice: recordings per kind of line\r\n" +
                     "                          kinds: poke, idle, newFriend, noteReminder, announcement, event,\r\n" +
                     "                          update, lateNight, alarm, welcome, test\r\n\r\n" +
-                    "An add-on can have faces, a voice or both. Open Neon, go to the Neon page, press Refresh add-ons.\r\n" +
+                    "An add-on can have faces, a voice or both. Open Aurora, go to the Aurora page, press Refresh add-ons.\r\n" +
                     "Add-ons are only pictures and sound files. They cannot run code.\r\n");
             }
             return root;

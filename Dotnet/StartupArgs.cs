@@ -120,7 +120,7 @@ namespace VRCX
 
         private static bool IsDuplicateProcessRunning(VrcxLaunchArguments launchArguments)
         {
-            var processes = Process.GetProcessesByName("Neon");
+            var processes = Process.GetProcessesByName("Aurora");
             var isDuplicateProcessRunning = false;
             foreach (var process in processes)
             {

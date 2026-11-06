@@ -87,14 +87,14 @@
         "toggle_theme": "Toggle Theme",
         "home": "Home",
         "chatbox": "Chatbox",
-        "neon": "Neon",
+        "neon": "Aurora",
         "more": "More"
     },
     "nav_menu": {
         "resources": "RESOURCES",
         "wiki": "Wiki",
         "get_help": "GET HELP",
-        "github": "Neon on GitHub",
+        "github": "Aurora on GitHub",
         "discord": "Join our Discord",
         "changelog": "Changelog",
         "update_available": "Update available",
@@ -334,7 +334,7 @@
                 "search_placeholder": "Search",
                 "filter_placeholder": "Filter",
                 "chatbox_blacklist": "Chatbox Blacklist",
-                "status_tooltip": "Neon Companion Status"
+                "status_tooltip": "Aurora Companion Status"
             }
         },
         "my_avatars": {
@@ -571,7 +571,7 @@
                 "next_day": "Next Day",
                 "refresh": "Refresh",
                 "tips": {
-                    "online_time": "Online time refers to the game time recorded by Neon for the current day.",
+                    "online_time": "Online time refers to the game time recorded by Aurora for the current day.",
                     "click_Y_axis": "Click Y-axis label to navigate to the instance details or open User dialog.",
                     "click_instance_name": "Click instance name to open Previous Instance Info dialog."
                 },
@@ -709,7 +709,7 @@
             "export": {
                 "header": "Export",
                 "export_notes": "Export User Memos",
-                "export_notes_description": "Export Neon user memos to VRChat notes",
+                "export_notes_description": "Export Aurora user memos to VRChat notes",
                 "discord_names": "Discord Names",
                 "export_friend_list": "Export Friends List",
                 "export_own_avatars": "Export Own Avatars"
@@ -730,8 +730,8 @@
             },
             "shortcuts": {
                 "header": "Shortcuts",
-                "vrcx_data": "Neon Data",
-                "vrcx_data_description": "Open the Neon data folder",
+                "vrcx_data": "Aurora Data",
+                "vrcx_data_description": "Open the Aurora data folder",
                 "vrchat_data": "VRChat Data",
                 "vrchat_data_description": "Open the VRChat data folder",
                 "crash_dumps": "Crash Dumps",
@@ -789,7 +789,7 @@
                 "vr": "VR",
                 "media": "Media",
                 "integrations": "Integrations",
-                "aurora": "Neon"
+                "aurora": "Aurora"
             },
             "social": {
                 "interaction": {
@@ -855,7 +855,7 @@
                     "support": "Support"
                 },
                 "vrcx_updater": {
-                    "header": "Neon Updater",
+                    "header": "Aurora Updater",
                     "change_build": "Change Build",
                     "update_action": "Update Action",
                     "auto_update_off": "Off",
@@ -870,10 +870,10 @@
                     "minimized": "Start Minimized at System Startup",
                     "tray": "Minimize to Tray When Closing",
                     "disable_gpu_acceleration": "Disable GPU Acceleration",
-                    "disable_gpu_acceleration_tooltip": "Only change this option if you know what you're doing, may fix issues with UI, requires restarting Neon",
+                    "disable_gpu_acceleration_tooltip": "Only change this option if you know what you're doing, may fix issues with UI, requires restarting Aurora",
                     "disable_vr_overlay_gpu_acceleration": "Disable VR Overlay GPU Acceleration",
                     "proxy": "Proxy Settings",
-                    "startup_linux": "Add \"--startup\" arg to startup neon.desktop file to start Neon minimized at system startup"
+                    "startup_linux": "Add \"--startup\" arg to startup neon.desktop file to start Aurora minimized at system startup"
                 },
                 "favorites": {
                     "header": "Favorite Groups Filter",
@@ -914,9 +914,9 @@
                 },
                 "legal_notice": {
                     "header": "Legal Notice",
-                    "info": "Neon is a personal companion app for VRChat. It shows your friends, worlds, avatars and history, and adds a voiced assistant, chatbox tools and a SteamVR dashboard.",
-                    "disclaimer1": "Neon is not endorsed by VRChat and does not reflect the views or opinions of VRChat or anyone officially involved in producing or managing VRChat properties. VRChat and all associated properties are trademarks or registered trademarks of VRChat Inc.",
-                    "disclaimer2": "Use Neon at your own risk.",
+                    "info": "Aurora is a personal companion app for VRChat. It shows your friends, worlds, avatars and history, and adds a voiced assistant, chatbox tools and a SteamVR dashboard.",
+                    "disclaimer1": "Aurora is not endorsed by VRChat and does not reflect the views or opinions of VRChat or anyone officially involved in producing or managing VRChat properties. VRChat and all associated properties are trademarks or registered trademarks of VRChat Inc.",
+                    "disclaimer2": "Use Aurora at your own risk.",
                     "open_source_software_notice": "Open Source Software Notice"
                 },
                 "contributors": {
@@ -953,6 +953,8 @@
                     "theme_mode_light": "Light",
                     "theme_mode_dark": "Dark",
                     "theme_mode_midnight": "Midnight",
+                    "theme_mode_xray": "Aurora",
+                    "theme_mode_xraydark": "Aurora Dark",
                     "theme_mode_aurora": "Neon",
                     "theme_mode_auroralight": "Neon Light",
                     "theme_mode_blue": "Blue",
@@ -1042,8 +1044,8 @@
                     "header": "User Dialog",
                     "vrchat_notes": "VRChat Notes",
                     "vrchat_notes_description": "Shows notes stored in VRChat",
-                    "vrcx_memos": "Neon Memos",
-                    "vrcx_memos_description": "Shows notes saved locally in Neon",
+                    "vrcx_memos": "Aurora Memos",
+                    "vrcx_memos_description": "Shows notes saved locally in Aurora",
                     "recent_action_cooldown": "Recent Action Icon",
                     "recent_action_cooldown_description": "Show a clock icon on recent invite and request actions.",
                     "recent_action_cooldown_minutes": "Cooldown (Minutes)"
@@ -1168,7 +1170,7 @@
                 "rpc": {
                     "vr": "VR",
                     "desktop": "Desktop",
-                    "powered_by_vrcx": "Powered by Neon",
+                    "powered_by_vrcx": "Powered by Aurora",
                     "private_world": "Private World"
                 }
             },
@@ -1186,7 +1188,7 @@
                         "header": "VRChat"
                     },
                     "vrcx_settings": {
-                        "header": "Neon"
+                        "header": "Aurora"
                     },
                     "primary_password": {
                         "header": "Primary Password",
@@ -1210,11 +1212,11 @@
                     },
                     "anonymous_error_reporting": {
                         "header": "Anonymous Error Reporting (Nightly Only)",
-                        "description": "Help improve Neon by sending anonymous crash and error reports. No personal or VRChat data is collected.",
+                        "description": "Help improve Aurora by sending anonymous crash and error reports. No personal or VRChat data is collected.",
                         "consent_title": "Anonymous Error Reporting",
-                        "consent_description": "Allow anonymous error reporting to help improve Neon?\n\n• Crash and error data only\n• No personal or VRChat data\n• Nightly builds only\n• Can be disabled in Advanced Settings",
-                        "enabled_restart_description": "Error reporting enabled. Restart Neon to apply changes?",
-                        "disabled_restart_description": "Error reporting disabled. Restart Neon to apply changes?"
+                        "consent_description": "Allow anonymous error reporting to help improve Aurora?\n\n• Crash and error data only\n• No personal or VRChat data\n• Nightly builds only\n• Can be disabled in Advanced Settings",
+                        "enabled_restart_description": "Error reporting enabled. Restart Aurora to apply changes?",
+                        "disabled_restart_description": "Error reporting disabled. Restart Aurora to apply changes?"
                     },
                     "save_instance_prints_to_file": {
                         "header": "Save Instance Prints to File",
@@ -1235,7 +1237,7 @@
                     },
                     "delete_all_screenshot_metadata": {
                         "button": "Remove Screenshot Metadata",
-                        "ask": "Are you sure you want to delete all VRC & Neon screenshot metadata from your VRChat Pictures folder?",
+                        "ask": "Are you sure you want to delete all VRC & Aurora screenshot metadata from your VRChat Pictures folder?",
                         "confirm": "Deleting all screenshot metadata is a very destructive action and cannot be undone! This includes all prints, sub folders and other unrelated images in your VRChat Pictures folder, if these photos are precious to you, please make a backup before proceeding.",
                         "confirm_yes": "Yes",
                         "confirm_no": "No"
@@ -1268,7 +1270,7 @@
                         "header": "Launch Commands (Deep Links)",
                         "docs": "Launch Command Docs",
                         "show_confirmation_on_switch_avatar_enable": "Confirm Before Switching Avatars",
-                        "show_confirmation_on_switch_avatar_tooltip": "When disabled, Neon will not ask for confirmation before switching avatars.",
+                        "show_confirmation_on_switch_avatar_tooltip": "When disabled, Aurora will not ask for confirmation before switching avatars.",
                         "website_userscript": "VRC Website Userscript"
                     },
                     "screenshot_helper": {
@@ -1288,7 +1290,7 @@
                         "run_process_once": "Open Single Instance of App"
                     },
                     "cache_debug": {
-                        "header": "Neon Instance Cache/Debug",
+                        "header": "Aurora Instance Cache/Debug",
                         "udon_exception_logging": "Udon Exception Logging",
                         "disable_gamelog": "Disable GameLog",
                         "disable_gamelog_notice": "(will likely break things)",
@@ -1338,7 +1340,7 @@
                         "purge_confirm_title": "Purge Avatar Feed Data",
                         "purge_confirm_description_1": "This will permanently delete avatar change records from the database and reclaim disk space.",
                         "purge_confirm_description_2": "This action cannot be undone!",
-                        "purge_confirm_description_3": "Neon will restart after the operation completes.",
+                        "purge_confirm_description_3": "Aurora will restart after the operation completes.",
                         "purge_confirm_alert": "It is strongly recommended to back up your database file before proceeding!",
                         "purge_confirm_button": "Purge & Restart",
                         "purge_in_progress": "Purging avatar data...",
@@ -1386,14 +1388,14 @@
                 "chatbox_interval": "Update every (seconds)",
                 "chatbox_notify": "Play the chatbox sound",
                 "chatbox_preview": "Preview",
-                "companion": "Floating Neon",
-                "companion_desc": "Neon floats around the app, reacts to what happens and talks with her own face and mouth. Drag her anywhere.",
+                "companion": "Floating Aurora",
+                "companion_desc": "Aurora floats around the app, reacts to what happens and talks with her own face and mouth. Drag her anywhere.",
                 "note_reminders": "Remind me to add notes",
-                "note_reminders_desc": "When you add a new friend, Neon reminds you to write a note about them.",
+                "note_reminders_desc": "When you add a new friend, Aurora reminds you to write a note about them.",
                 "note_prompt": "You added {name}. Want to write a note so you remember who they are?",
                 "note_add": "Add note",
                 "note_later": "Later",
-                "poke": "Hey! I am Neon. I float around and keep an eye on things.",
+                "poke": "Hey! I am Aurora. I float around and keep an eye on things.",
                 "poke2": "Careful, that tickles. Need something?",
                 "poke3": "Still here, still watching your friends list.",
                 "poke4": "Click me again and I will start charging rent.",
@@ -1404,7 +1406,7 @@
                 "speed": "Speed",
                 "volume": "Volume",
                 "test": "Test voice",
-                "test_line": "Neon online. Tracking is running.",
+                "test_line": "Aurora online. Tracking is running.",
                 "error": "Could not load the voice model. Check your connection and try again.",
                 "fx_preset": "Robot effect",
                 "fx_clean": "Clean",
@@ -1417,7 +1419,7 @@
                 "ringMix": "Ring mod mix",
                 "glitch": "Stutter chance",
                 "lock": {
-                    "title": "Neon is locked",
+                    "title": "Aurora is locked",
                     "placeholder": "PIN",
                     "unlock": "Unlock",
                     "wrong": "Wrong PIN.",
@@ -1426,7 +1428,7 @@
                 "security": {
                     "header": "Security",
                     "status": "App lock",
-                    "desc": "Asks for a PIN when Neon starts and after being idle. It keeps people out of the app. It does not encrypt your data files on disk.",
+                    "desc": "Asks for a PIN when Aurora starts and after being idle. It keeps people out of the app. It does not encrypt your data files on disk.",
                     "on": "On",
                     "off": "Off",
                     "current_pin": "Current PIN",
@@ -1470,22 +1472,22 @@
                     "done": "Removed {n} entries.",
                     "failed": "Cleanup failed."
                 },
-                "tagline": "Your mascot, Neon. She glows when she talks.",
-                "home": "Where Neon stays",
+                "tagline": "Your mascot, Aurora. She glows when she talks.",
+                "home": "Where Aurora stays",
                 "home_desc": "Float around the whole app, or rest next to the info dock (current instance and announcements).",
                 "home_roam": "Float around",
                 "home_dock": "Rest at the dock",
                 "pack": "Voice pack",
-                "pack_desc": "Neon's lines are rendered once and saved in the app, so they play instantly and cost almost no CPU later. It builds quietly in the background and pauses while VRChat runs.",
+                "pack_desc": "Aurora's lines are rendered once and saved in the app, so they play instantly and cost almost no CPU later. It builds quietly in the background and pauses while VRChat runs.",
                 "pack_build": "Build now",
                 "pack_running": "Building...",
                 "alarms": "Alarms",
-                "alarm_label": "What should Neon remind you about?",
+                "alarm_label": "What should Aurora remind you about?",
                 "alarm_daily": "Daily",
                 "alarm_add": "Add alarm",
                 "alarm_test": "Test sound",
                 "accent": "Accent colour",
-                "accent_desc": "One colour for everything: the app, the VR panels and Neon herself.",
+                "accent_desc": "One colour for everything: the app, the VR panels and Aurora herself.",
                 "mm": "Music to mic",
                 "mm_desc": "Share one app's sound (Spotify, Apple Music, a browser) with people in VRChat. Needs a virtual audio cable like VB-Cable: pick its input as the output here, then pick the cable's other end as your microphone in VRChat.",
                 "mm_app": "App to share",
@@ -1515,15 +1517,15 @@
                 "character": "Mascot character",
                 "character_desc": "Pick which character appears as your companion. The accent colour still tints whichever you choose.",
                 "people": "Per-person rules",
-                "people_desc": "Pick a person by their VRChat name. While they are in your instance, Neon greets them and nags on a timer, on your screen only. Nothing is sent to them and nothing goes into your chatbox. {name} in a line becomes the nickname.",
+                "people_desc": "Pick a person by their VRChat name. While they are in your instance, Aurora greets them and nags on a timer, on your screen only. Nothing is sent to them and nothing goes into your chatbox. {name} in a line becomes the nickname.",
                 "people_name": "VRChat name",
-                "people_nick": "Name Neon uses",
+                "people_nick": "Name Aurora uses",
                 "people_greeting": "Greeting when they join",
                 "people_reminder": "Repeating line",
                 "people_escalate": "Faster each time",
                 "people_add": "Add person",
                 "boops": "Rin troll",
-                "boops_desc": "Send a boop that only another Neon can read. Each emoji means a line, scrambled by a shared passphrase, so to anyone else it is an ordinary boop. You both enter the same passphrase, and the receiver lists the sender as trusted. The receiver's Neon then says the line.",
+                "boops_desc": "Send a boop that only another Aurora can read. Each emoji means a line, scrambled by a shared passphrase, so to anyone else it is an ordinary boop. You both enter the same passphrase, and the receiver lists the sender as trusted. The receiver's Aurora then says the line.",
                 "boops_enabled": "Listen for secret boops",
                 "boops_pass": "Shared passphrase",
                 "boops_trusted": "Trusted senders",
@@ -1538,7 +1540,7 @@
                 "addons_open": "Open add-ons folder",
                 "addons_refresh": "Refresh add-ons",
                 "addons_voice": "Voice",
-                "addons_default_voice": "Neon's own voice",
+                "addons_default_voice": "Aurora's own voice",
                 "addons_faces": "{n} faces",
                 "addons_clips": "{n} kinds of recordings",
                 "addons_none": "No add-ons yet.",
@@ -1616,10 +1618,10 @@
             "no_news": "No announcements yet.",
             "not_in_world": "Not in a world",
             "players": "{n} players",
-            "update": "Neon {v} is ready. Update when you like."
+            "update": "Aurora {v} is ready. Update when you like."
         },
         "neon": {
-            "title": "Neon",
+            "title": "Aurora",
             "sub": "Everything you added, in one place",
             "jump_chatbox": "Chatbox",
             "jump_music": "Music to mic",
@@ -1716,8 +1718,8 @@
             },
             "info": {
                 "header": "Info",
-                "vrcx_info": "Neon Info",
-                "vrcx_info_tooltip": "Neon info may be inaccurate",
+                "vrcx_info": "Aurora Info",
+                "vrcx_info_tooltip": "Aurora info may be inaccurate",
                 "launch_invite_tooltip": "Launch/Invite",
                 "self_invite_tooltip": "Invite Yourself",
                 "open_in_vrchat_tooltip": "Open in VRChat",
@@ -2629,14 +2631,14 @@
         },
         "note_export": {
             "header": "Note Export",
-            "description1": "This process will export all of your Neon memos and import them into VRChat notes.",
+            "description1": "This process will export all of your Aurora memos and import them into VRChat notes.",
             "description2": "Be warned of the following limitations:",
             "description3": "- API endpoint has a rate limit that requires a large delay between requests.",
             "description4": "- Character limit of 256 per note.",
             "description5": "- Swear words filter (no fun allowed).",
             "description6": "- No new lines (they will replaced with a space).",
             "description7": "- This will overwrite any existing VRChat notes for these users.",
-            "description8": "- Any edits made here wont affect Neon memos but will affect VRChat notes once exported.",
+            "description8": "- Any edits made here wont affect Aurora memos but will affect VRChat notes once exported.",
             "refresh": "Refresh",
             "export": "Export",
             "cancel": "Cancel",
@@ -3078,9 +3080,9 @@
             "add_item": "Add Item"
         },
         "vrcx_updater": {
-            "header": "Neon Updater",
-            "latest_version": "Neon is up to date.",
-            "ready_for_update": "Ready for install, restart Neon to apply.",
+            "header": "Aurora Updater",
+            "latest_version": "Aurora is up to date.",
+            "ready_for_update": "Ready for install, restart Aurora to apply.",
             "branch_stable": "Stable",
             "branch_nightly": "Nightly",
             "nightly_title": "Nightly builds",
@@ -3092,14 +3094,14 @@
         },
         "change_log": {
             "header": "Change Log",
-            "description": "Consider donating to support future development of Neon",
+            "description": "Consider donating to support future development of Aurora",
             "close": "Close",
             "donate": "Donate",
             "github": "GitHub"
         },
         "open_source": {
             "header": "Open Source Software Notice",
-            "description": "Neon is based on open source software. It was possible because of their contribution.",
+            "description": "Aurora is based on open source software. It was possible because of their contribution.",
             "loading": "Loading generated third-party notices...",
             "unavailable": "No generated third-party notice manifest is available in this build. Run a production build to regenerate it.",
             "search_placeholder": "Search packages, versions, or licenses",
@@ -3131,7 +3133,7 @@
             "action": "Action",
             "auto_backup": "Auto backup every 3 days (deletes after 2 weeks)",
             "ask_to_restore": "Ask to restore when no VRC registry settings are present",
-            "restore_prompt": "Neon has noticed auto backup of VRChat registry settings is enabled but this computer doesn't have any, if you'd like to restore from backup you can do so from here."
+            "restore_prompt": "Aurora has noticed auto backup of VRChat registry settings is enabled but this computer doesn't have any, if you'd like to restore from backup you can do so from here."
         },
         "avatar_database_provider": {
             "header": "Avatar Database Provider",
@@ -3338,7 +3340,7 @@
             "input_error": "Valid number is required"
         },
         "auto_clear_cache": {
-            "header": "Clear Neon Cache Timer",
+            "header": "Clear Aurora Cache Timer",
             "description": "Enter amount of hours, larger values may impact RAM usage and performance (default: 24, disabled: 0)",
             "cancel": "Cancel",
             "ok": "OK",
@@ -3384,7 +3386,7 @@
         },
         "table_entries_settings": {
             "header": "Table Entries Settings",
-            "description": "Limit the number of entries the Neon logs from the database to the UI. A large number may impact RAM usage and performance",
+            "description": "Limit the number of entries the Aurora logs from the database to the UI. A large number may impact RAM usage and performance",
             "table_max_entries": "Table Max Entries",
             "table_max_entries_error": "Enter a number between {min} and {max}.",
             "table_max_entries_hint": "Valid range: {min} – {max}.",
@@ -3454,8 +3456,8 @@
         "database": {
             "upgrade_complete": "Database upgrade complete",
             "upgrade_in_progress_title": "Database upgrade in progress",
-            "upgrade_in_progress_description": "Updating database from version {from} to {to}. Please do not close Neon.",
-            "upgrade_in_progress_initializing": "Initializing database upgrade. Please do not close Neon.",
+            "upgrade_in_progress_description": "Updating database from version {from} to {to}. Please do not close Aurora.",
+            "upgrade_in_progress_initializing": "Initializing database upgrade. Please do not close Aurora.",
             "upgrade_in_progress_wait": "User actions are temporarily blocked until the upgrade finishes.",
             "upgrade_failed_title": "Database upgrade failed",
             "upgrade_failed_description": "Database upgrade failed. Check the console for details.",
@@ -3532,7 +3534,7 @@
             "delete_failed": "Failed to delete screenshot metadata"
         },
         "crash": {
-            "vrcx_reload": "Neon was reloaded for stability"
+            "vrcx_reload": "Aurora was reloaded for stability"
         },
         "image": {
             "downloading": "Downloading image...",
@@ -3819,7 +3821,7 @@
     },
     "onboarding": {
         "welcome": {
-            "title": "Welcome to Neon",
+            "title": "Welcome to Aurora",
             "subtitle": "Here are a few things you might not discover on your own.",
             "features": {
                 "user_profiles": {
@@ -3842,13 +3844,13 @@
             "cta": "Get Started"
         },
         "whatsnew": {
-            "title": "What's New in Neon",
+            "title": "What's New in Aurora",
             "subtitle": "Here's what changed in this update.",
             "cta": "Got It",
             "common": {
                 "got_it": "Got It",
                 "view_changelog": "View All Changes",
-                "support": "Support Neon"
+                "support": "Support Aurora"
             },
             "releases": {
                 "2026_05_03": {

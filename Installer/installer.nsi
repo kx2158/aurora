@@ -17,10 +17,10 @@
     VIProductVersion "${PRODUCT_VERSION}"
     VIFileVersion "${VERSION}"
     VIAddVersionKey "FileVersion" "${VERSION}"
-    VIAddVersionKey "ProductName" "Neon"
+    VIAddVersionKey "ProductName" "Aurora"
     VIAddVersionKey "ProductVersion" "${PRODUCT_VERSION}"
-    VIAddVersionKey "LegalCopyright" "Neon (MIT licensed, see LICENSE)"
-    VIAddVersionKey "FileDescription" "Neon - your VRChat companion"
+    VIAddVersionKey "LegalCopyright" "Aurora (MIT licensed, see LICENSE)"
+    VIAddVersionKey "FileDescription" "Aurora - your VRChat companion"
 
 ;--------------------------------
 ;Include Modern UI
@@ -37,10 +37,10 @@
     SetCompressor /SOLID lzma
     SetCompressorDictSize 16
     Unicode True
-    Name "Neon"
-    OutFile "Neon_Setup_x64.exe"
-    InstallDir "$LOCALAPPDATA\Programs\Neon"
-    InstallDirRegKey HKCU "Software\Neon" "InstallDir"
+    Name "Aurora"
+    OutFile "Aurora_Setup_x64.exe"
+    InstallDir "$LOCALAPPDATA\Programs\Aurora"
+    InstallDirRegKey HKCU "Software\Aurora" "InstallDir"
     RequestExecutionLevel user
     ShowInstDetails show
 
@@ -49,6 +49,7 @@
 
     VAR upgradeInstallation
     VAR legacyDir
+    VAR neonDir
 
 ;--------------------------------
 ;Interface Settings
@@ -75,10 +76,10 @@
     ;------------------------------
     ; Finish Page
 
-    ; Checkbox to launch Neon.
+    ; Checkbox to launch Aurora.
     !define MUI_FINISHPAGE_RUN
-    !define MUI_FINISHPAGE_RUN_TEXT "Launch Neon"
-    !define MUI_FINISHPAGE_RUN_FUNCTION launchNeon
+    !define MUI_FINISHPAGE_RUN_TEXT "Launch Aurora"
+    !define MUI_FINISHPAGE_RUN_FUNCTION launchAurora
 
     ; Checkbox to create desktop shortcut.
     !define MUI_FINISHPAGE_SHOWREADME
@@ -113,10 +114,18 @@ Function .onInit
     StrCpy $upgradeInstallation 0
 
     StrCpy $legacyDir ""
-    ReadRegStr $R0 HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Neon" "UninstallString"
+    StrCpy $neonDir ""
+    ReadRegStr $R0 HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Aurora" "UninstallString"
     StrCmp $R0 "" notInstalled
         StrCpy $upgradeInstallation 1
     notInstalled:
+
+    ; The app was called Neon before: remember where it lives, it is replaced below (your data stays)
+    ReadRegStr $R0 HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Aurora" "UninstallString"
+    StrCmp $R0 "" noNeon
+        ReadRegStr $neonDir HKCU "Software\Neon" "InstallDir"
+        StrCpy $upgradeInstallation 1
+    noNeon:
 
     ; An older install from before the rename: remember where it lives, it is replaced below
     ReadRegStr $R0 HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\VRCX" "UninstallString"
@@ -126,26 +135,31 @@ Function .onInit
     noLegacy:
 
     ; Never replace a newer install with an older installer
-    ReadRegStr $R0 HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Neon" "DisplayVersion"
+    ReadRegStr $R0 HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Aurora" "DisplayVersion"
     StrCmp $R0 "" noVersionCheck
         ${VersionCompare} "$R0" "${VERSION}" $R2
         ${If} $R2 = 1
-            MessageBox MB_YESNO|MB_ICONQUESTION "A newer Neon ($R0) is already installed. Install the older ${VERSION} anyway?" /SD IDNO IDYES noVersionCheck
+            MessageBox MB_YESNO|MB_ICONQUESTION "A newer Aurora ($R0) is already installed. Install the older ${VERSION} anyway?" /SD IDNO IDYES noVersionCheck
             Abort
         ${EndIf}
     noVersionCheck:
 
     StrCpy $R3 0
-    ; If Neon is already running, display a warning message
+    ; If Aurora is already running, display a warning message
     loop:
-    nsProcess::_FindProcess "Neon.exe"
+    nsProcess::_FindProcess "Aurora.exe"
     Pop $R1
+    ${If} $R1 <> 0
+        nsProcess::_FindProcess "Neon.exe"
+        Pop $R1
+    ${EndIf}
     ${If} $R1 <> 0
         nsProcess::_FindProcess "VRCX.exe"
         Pop $R1
     ${EndIf}
     ${If} $R1 = 0
-        MessageBox MB_OKCANCEL|MB_ICONEXCLAMATION "Neon is still running. $\n$\nClick `OK` to kill the running process or `Cancel` to cancel this installer." /SD IDOK IDCANCEL cancel
+        MessageBox MB_OKCANCEL|MB_ICONEXCLAMATION "Aurora is still running. $\n$\nClick `OK` to kill the running process or `Cancel` to cancel this installer." /SD IDOK IDCANCEL cancel
+            nsExec::ExecToStack "taskkill /IM Aurora.exe"
             nsExec::ExecToStack "taskkill /IM Neon.exe"
             nsExec::ExecToStack "taskkill /IM VRCX.exe"
     ${Else}
@@ -155,6 +169,7 @@ Function .onInit
     IntOp $R3 $R3 + 1
     ${If} $R3 > 20
         ; still running (for example it only hid itself to the tray), close it hard
+        nsExec::ExecToStack "taskkill /F /IM Aurora.exe"
         nsExec::ExecToStack "taskkill /F /IM Neon.exe"
     ${EndIf}
     Goto loop
@@ -166,17 +181,17 @@ FunctionEnd
 
 Function .onInstSuccess
     ${If} $upgradeInstallation = 1
-        Call launchNeon
+        Call launchAurora
     ${EndIf}
 FunctionEnd
 
 Function createDesktopShortcut
-    CreateShortcut "$DESKTOP\Neon.lnk" "$INSTDIR\Neon.exe"
+    CreateShortcut "$DESKTOP\Aurora.lnk" "$INSTDIR\Aurora.exe"
 FunctionEnd
 
-Function launchNeon
+Function launchAurora
     SetOutPath $INSTDIR
-    ShellExecAsUser::ShellExecAsUser "" "$INSTDIR\Neon.exe" ""
+    ShellExecAsUser::ShellExecAsUser "" "$INSTDIR\Aurora.exe" ""
 FunctionEnd
 
 ;--------------------------------
@@ -193,6 +208,20 @@ Section "Install" SecInstall
         DeleteRegKey HKLM "Software\VRCX"
         DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\VRCX"
     noLegacyCleanup:
+
+    ; remove the install from when the app was called Neon (program files only, your data is untouched)
+    StrCmp $neonDir "" noNeonCleanup
+        DetailPrint "Replacing Neon with Aurora..."
+        IfFileExists "$neonDir\Uninstall.exe" 0 +3
+            ExecWait '"$neonDir\Uninstall.exe" /S _?=$neonDir'
+            Delete "$neonDir\Uninstall.exe"
+        RMDir /r "$neonDir"
+        DeleteRegKey HKCU "Software\Neon"
+        DeleteRegKey HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Neon"
+        Delete "$SMPROGRAMS\Neon.lnk"
+        Delete "$DESKTOP\Neon.lnk"
+        DeleteRegValue HKCU "Software\Microsoft\Windows\CurrentVersion\Run" "Neon"
+    noNeonCleanup:
 
     IfFileExists "$INSTDIR\Uninstall.exe" 0 noOwnUninstall
         DetailPrint "Uninstall previous version..."
@@ -216,62 +245,66 @@ Section "Install" SecInstall
         Pop $0
     noOldBackup:
 
+    IfFileExists "$APPDATA\Neon\*.*" 0 noNeonBackup
+        DetailPrint "Backing up your data to Documents\Neon-backups ..."
+        nsExec::ExecToLog 'robocopy "$APPDATA\Neon" "$DOCUMENTS\Neon-backups\data-before-aurora" /E /R:1 /W:1 /NFL /NDL /NJH /NJS'
+        Pop $0
+    noNeonBackup:
+
     SetOutPath "$INSTDIR"
 
     File /r /x *.log /x *.pdb "..\build\Cef\*.*"
 
-    WriteRegStr HKCU "Software\Neon" "InstallDir" $INSTDIR
+    WriteRegStr HKCU "Software\Aurora" "InstallDir" $INSTDIR
     WriteUninstaller "$INSTDIR\Uninstall.exe"
-    WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Neon" "DisplayName" "Neon"
-    WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Neon" "Publisher" "Neon"
-    WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Neon" "DisplayVersion" "${VERSION}"
-    WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Neon" "DisplayArch" "x64"
-    WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Neon" "InstallLocation" "$INSTDIR"
-    WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Neon" "UninstallString" "$\"$INSTDIR\Uninstall.exe$\""
-    WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Neon" "DisplayIcon" "$\"$INSTDIR\Neon.ico$\""
+    WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Aurora" "DisplayName" "Aurora"
+    WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Aurora" "Publisher" "Aurora"
+    WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Aurora" "DisplayVersion" "${VERSION}"
+    WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Aurora" "DisplayArch" "x64"
+    WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Aurora" "InstallLocation" "$INSTDIR"
+    WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Aurora" "UninstallString" "$\"$INSTDIR\Uninstall.exe$\""
+    WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Aurora" "DisplayIcon" "$\"$INSTDIR\Neon.ico$\""
 
     ${GetSize} "$INSTDIR" "/S=0K" $0 $1 $2
     IntFmt $0 "0x%08X" $0
-    WriteRegDWORD HKCU  "Software\Microsoft\Windows\CurrentVersion\Uninstall\Neon" "EstimatedSize" "$0"
+    WriteRegDWORD HKCU  "Software\Microsoft\Windows\CurrentVersion\Uninstall\Aurora" "EstimatedSize" "$0"
 
     ${GetParameters} $R2
     ${GetOptions} $R2 /SKIP_SHORTCUT= $3
     StrCmp $3 "true" noShortcut
         Delete "$SMPROGRAMS\VRCX.lnk"
         Delete "$DESKTOP\VRCX.lnk"
-        Delete "$SMPROGRAMS\Aurora.lnk"
-        Delete "$DESKTOP\Aurora.lnk"
-        CreateShortCut "$SMPROGRAMS\Neon.lnk" "$INSTDIR\Neon.exe"
-        ApplicationID::Set "$SMPROGRAMS\Neon.lnk" "Neon"
-        CreateShortCut "$DESKTOP\Neon.lnk" "$INSTDIR\Neon.exe"
+        CreateShortCut "$SMPROGRAMS\Aurora.lnk" "$INSTDIR\Aurora.exe"
+        ApplicationID::Set "$SMPROGRAMS\Aurora.lnk" "Aurora"
+        CreateShortCut "$DESKTOP\Aurora.lnk" "$INSTDIR\Aurora.exe"
     noShortcut:
 
     WriteRegStr HKCU "Software\Classes\vrcx" "" "URL:vrcx"
-    WriteRegStr HKCU "Software\Classes\vrcx" "FriendlyTypeName" "Neon"
+    WriteRegStr HKCU "Software\Classes\vrcx" "FriendlyTypeName" "Aurora"
     WriteRegStr HKCU "Software\Classes\vrcx" "URL Protocol" ""
     WriteRegExpandStr HKCU "Software\Classes\vrcx\DefaultIcon" "" "$INSTDIR\Neon.ico"
     WriteRegStr HKCU "Software\Classes\vrcx\shell" "" "open"
-    WriteRegStr HKCU "Software\Classes\vrcx\shell\open" "FriendlyAppName" "Neon"
-    WriteRegStr HKCU "Software\Classes\vrcx\shell\open\command" "" '"$INSTDIR\Neon.exe" /uri="%1" /params="%2 %3 %4"'
+    WriteRegStr HKCU "Software\Classes\vrcx\shell\open" "FriendlyAppName" "Aurora"
+    WriteRegStr HKCU "Software\Classes\vrcx\shell\open\command" "" '"$INSTDIR\Aurora.exe" /uri="%1" /params="%2 %3 %4"'
 SectionEnd
 
 ;--------------------------------
 ;Uninstaller Section
 
 Section "Uninstall"
-    ; If Neon is already running, display a warning message and exit
-    StrCpy $1 "Neon.exe"
+    ; If Aurora is already running, display a warning message and exit
+    StrCpy $1 "Aurora.exe"
     nsProcess::_FindProcess "$1"
     Pop $R1
     ${If} $R1 = 0
-        MessageBox MB_OK|MB_ICONEXCLAMATION "Neon is still running. Cannot uninstall this software.$\nPlease close Neon and try again." /SD IDOK
+        MessageBox MB_OK|MB_ICONEXCLAMATION "Aurora is still running. Cannot uninstall this software.$\nPlease close Aurora and try again." /SD IDOK
         Abort
     ${EndIf}
 
     RMDir /r "$INSTDIR"
 
-    DeleteRegKey HKCU "Software\Neon"
-    DeleteRegKey HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Neon"
+    DeleteRegKey HKCU "Software\Aurora"
+    DeleteRegKey HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Aurora"
     DeleteRegKey HKCU "Software\Classes\vrcx"
 
     ${IfNot} ${Silent}

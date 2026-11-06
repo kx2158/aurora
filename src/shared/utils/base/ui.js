@@ -246,8 +246,8 @@ function applyAppCjkFontPack(packKey) {
 function changeAppThemeStyle(themeMode) {
     let isSystemMode = themeMode === 'system';
     if (isSystemMode) {
-        // follow Windows: Aurora at night, Aurora Light by day
-        themeMode = systemIsDarkMode() ? 'aurora' : 'auroralight';
+        // follow Windows: Aurora Dark at night, Aurora by day
+        themeMode = systemIsDarkMode() ? 'xraydark' : 'xray';
     }
 
     let themeConfig = THEME_CONFIG[themeMode];
@@ -478,11 +478,17 @@ async function getThemeMode(configRepository) {
     // After that the theme is yours to change in Settings.
     let initThemeMode;
     if (await configRepository.getBool('Aurora_themeApplied', false)) {
-        initThemeMode = await configRepository.getString('VRCX_ThemeMode', 'aurora');
+        initThemeMode = await configRepository.getString('VRCX_ThemeMode', 'system');
     } else {
-        initThemeMode = 'aurora';
-        await configRepository.setString('VRCX_ThemeMode', 'aurora');
+        initThemeMode = 'system';
+        await configRepository.setString('VRCX_ThemeMode', 'system');
         await configRepository.setBool('Aurora_themeApplied', true);
+    }
+    // the app became Aurora: move everyone to the new x-ray look once (Neon stays in the theme list)
+    if (!(await configRepository.getBool('Aurora_xrayApplied', false))) {
+        initThemeMode = 'system';
+        await configRepository.setString('VRCX_ThemeMode', 'system');
+        await configRepository.setBool('Aurora_xrayApplied', true);
     }
 
     let isDarkMode;

@@ -14,7 +14,7 @@
         </div>
         <div v-if="bubble" class="nx-status">
             <span class="nx-dot"></span>
-            <b>Neon</b><i>|</i><i>{{ speaking ? 'Talking' : 'Idle' }}</i>
+            <b>Aurora</b><i>|</i><i>{{ speaking ? 'Talking' : 'Idle' }}</i>
             <span class="nx-grow"></span>
             <span class="nx-tag">{{ settings.mascotVoiceEnabled ? 'VOICE: TTS' : 'VOICE: OFF' }}</span>
         </div>

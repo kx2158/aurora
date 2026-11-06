@@ -11,22 +11,22 @@
     <UseWindowsForms>true</UseWindowsForms>
     <ApplicationRevision>0</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
-    <AssemblyTitle>Neon</AssemblyTitle>
-    <Product>Neon</Product>
-    <Copyright>Neon (MIT licensed, see LICENSE)</Copyright>
+    <AssemblyTitle>Aurora</AssemblyTitle>
+    <Product>Aurora</Product>
+    <Copyright>Aurora (MIT licensed, see LICENSE)</Copyright>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
-    <Title>Neon</Title>
-    <Description>Neon</Description>
+    <Title>Aurora</Title>
+    <Description>Aurora</Description>
     <PackageIcon>..\images\Neon.png</PackageIcon>
     <RepositoryUrl>https://github.com/kx2158/aurora</RepositoryUrl>
     <ResourceLanguages>en</ResourceLanguages>
     <SatelliteResourceLanguages>en-US;en</SatelliteResourceLanguages>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
-    <AssemblyName>Neon</AssemblyName>
+    <AssemblyName>Aurora</AssemblyName>
     <RootNamespace>VRCX</RootNamespace>
-    <PackageId>Neon</PackageId>
-    <Company>Neon</Company>
+    <PackageId>Aurora</PackageId>
+    <Company>Aurora</Company>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
     <!-- Fix fail fast exception -->
@@ -117,7 +117,7 @@
   </Target>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="$(IsWindows)">
-    <Exec Command="&quot;$(ProjectDir)..\Dotnet\build-tools\Topten.nvpatch.exe&quot; --enable &quot;$(ProjectDir)..\build\Cef\Neon.exe&quot;" />
+    <Exec Command="&quot;$(ProjectDir)..\Dotnet\build-tools\Topten.nvpatch.exe&quot; --enable &quot;$(ProjectDir)..\build\Cef\Aurora.exe&quot;" />
   </Target>
 
   <ItemGroup>

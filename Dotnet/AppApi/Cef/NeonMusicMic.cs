@@ -83,6 +83,7 @@ namespace VRCX
                 string Str(string k) => r.TryGetProperty(k, out var v) ? v.GetString() ?? "" : "";
                 double Num(string k, double d) => r.TryGetProperty(k, out var v) && v.TryGetDouble(out var n) ? n : d;
                 var mix = new NeonMusicMic(Str("app"), Str("loopDevice"), Str("mic"), Str("out"), (float)Num("musicVol", 0.8), (float)Num("micVol", 1.0), (int)Num("latency", 30));
+                mix.InitialBass((float)Num("musicBass", 0), (float)Num("micBass", 0));
                 // audio objects must live in a multi-threaded apartment, the browser thread may not be one
                 Exception failure = null;
                 var starter = new Thread(() =>
@@ -123,6 +124,11 @@ namespace VRCX
             _neonMusicMic?.SetVolumes((float)music, (float)mic);
         }
 
+        public void NeonMusicMicBass(double music, double mic)
+        {
+            _neonMusicMic?.SetBass((float)music, (float)mic);
+        }
+
         public string NeonMusicMicStatus()
         {
             return JsonSerializer.Serialize(new Dictionary<string, object>
@@ -146,6 +152,8 @@ namespace VRCX
         private WasapiCapture _micCapture, _loopCapture;
         private WasapiOut _output;
         private VolumeSampleProvider _musicVol, _micVol;
+        private BassBoost _musicBass, _micBass;
+        private float _musicBassStart, _micBassStart;
         private float _musicStart, _micStart;
         private int _rate = 48000, _outChannels = 2;
         private readonly int _latency;
@@ -193,7 +201,8 @@ namespace VRCX
 
             if (musicBuf != null)
             {
-                _musicVol = new VolumeSampleProvider(Meter(To48kStereo(musicBuf.ToSampleProvider()), v => MusicPeak = v)) { Volume = _musicStart };
+                _musicBass = new BassBoost(Meter(To48kStereo(musicBuf.ToSampleProvider()), v => MusicPeak = v)) { Amount = _musicBassStart };
+                _musicVol = new VolumeSampleProvider(_musicBass) { Volume = _musicStart };
                 mixer.AddMixerInput(_musicVol);
             }
 
@@ -207,7 +216,8 @@ namespace VRCX
                 _micCapture.DataAvailable += (s, e) => { try { micBuf.AddSamples(e.Buffer, 0, e.BytesRecorded); } catch { } };
                 _micCapture.RecordingStopped += (s, e) => { if (e.Exception != null) Log.Error(e.Exception, "Microphone stopped"); };
                 _micCapture.StartRecording();
-                _micVol = new VolumeSampleProvider(Meter(To48kStereo(micBuf.ToSampleProvider()), v => MicPeak = v)) { Volume = _micStart };
+                _micBass = new BassBoost(Meter(To48kStereo(micBuf.ToSampleProvider()), v => MicPeak = v)) { Amount = _micBassStart };
+                _micVol = new VolumeSampleProvider(_micBass) { Volume = _micStart };
                 mixer.AddMixerInput(_micVol);
             }
 
@@ -231,6 +241,60 @@ namespace VRCX
                 _output = new WasapiOut(outDev, AudioClientShareMode.Shared, false, Math.Max(_latency, 40));
                 _output.Init(wave);
                 _output.Play();
+            }
+        }
+
+        public void InitialBass(float music, float mic)
+        {
+            _musicBassStart = music; _micBassStart = mic;
+        }
+
+        public void SetBass(float music, float mic)
+        {
+            if (_musicBass != null) _musicBass.Amount = music;
+            if (_micBass != null) _micBass.Amount = mic;
+        }
+
+        /// <summary>
+        /// Bass boost: a low shelf (up to +24 dB under ~150 Hz) followed by a little saturation, so the
+        /// top of the slider is properly heavy. Amount 0 = off, 1 = crazy.
+        /// </summary>
+        private sealed class BassBoost : ISampleProvider
+        {
+            private readonly ISampleProvider _src;
+            private BiQuadFilter[] _shelf = new BiQuadFilter[2];
+            private BiQuadFilter[] _punch = new BiQuadFilter[2];
+            private float _built = -1f;
+            private volatile float _amount;
+            public BassBoost(ISampleProvider src) { _src = src; }
+            public float Amount { get => _amount; set => _amount = Math.Clamp(value, 0f, 1f); }
+            public WaveFormat WaveFormat => _src.WaveFormat;
+
+            public int Read(float[] buffer, int offset, int count)
+            {
+                var n = _src.Read(buffer, offset, count);
+                var amount = _amount;
+                if (amount < 0.005f) return n;
+                if (Math.Abs(amount - _built) > 0.001f)
+                {
+                    var rate = _src.WaveFormat.SampleRate;
+                    for (var c = 0; c < 2; c++)
+                    {
+                        _shelf[c] = BiQuadFilter.LowShelf(rate, 150f, 1f, amount * 24f);
+                        _punch[c] = BiQuadFilter.PeakingEQ(rate, 60f, 1.2f, amount * 8f);
+                    }
+                    _built = amount;
+                }
+                var drive = 1f + amount * 2.5f;
+                var norm = 1f / MathF.Tanh(drive);
+                var channels = Math.Max(1, _src.WaveFormat.Channels);
+                for (var i = 0; i < n; i++)
+                {
+                    var c = (i % channels) & 1;
+                    var x = _punch[c].Transform(_shelf[c].Transform(buffer[offset + i]));
+                    buffer[offset + i] = MathF.Tanh(x * drive) * norm;
+                }
+                return n;
             }
         }
 

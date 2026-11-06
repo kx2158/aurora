@@ -13,6 +13,8 @@ export const mm = ref({
     out: '',
     musicVol: 0.8,
     micVol: 1,
+    musicBass: 0,
+    micBass: 0,
     micMuted: false,
     latency: 30,
     error: '',
@@ -40,8 +42,8 @@ export async function initMusicMic() {
 }
 
 function save() {
-    const { app, mic, out, musicVol, micVol, latency } = mm.value;
-    configRepository.setString('Neon_musicMic', JSON.stringify({ app, mic, out, musicVol, micVol, latency }));
+    const { app, mic, out, musicVol, micVol, musicBass, micBass, latency } = mm.value;
+    configRepository.setString('Neon_musicMic', JSON.stringify({ app, mic, out, musicVol, micVol, musicBass, micBass, latency }));
 }
 
 export async function refreshAudioLists() {
@@ -57,6 +59,10 @@ function sendVolumes() {
     AppApi.NeonMusicMicVolume(mm.value.musicVol, mm.value.micMuted ? 0 : mm.value.micVol);
 }
 
+function sendBass() {
+    AppApi.NeonMusicMicBass(mm.value.musicBass, mm.value.micBass);
+}
+
 /** Mutes your microphone in the mix, the music keeps playing. */
 export function toggleMicMute() {
     mm.value.micMuted = !mm.value.micMuted;
@@ -68,7 +74,9 @@ export function toggleMicMute() {
 export function setMm(key, value) {
     mm.value[key] = value;
     save();
-    if (mm.value.running && (key === 'musicVol' || key === 'micVol')) {
+    if (mm.value.running && (key === 'musicBass' || key === 'micBass')) {
+        sendBass();
+    } else if (mm.value.running && (key === 'musicVol' || key === 'micVol')) {
         sendVolumes();
     } else if (mm.value.running && (key === 'app' || key === 'mic' || key === 'out' || key === 'latency')) {
         // changing what is shared restarts the mix, an empty app means microphone only
@@ -79,7 +87,7 @@ export function setMm(key, value) {
 export async function startMusicMic() {
     mm.value.error = '';
     const ok = await AppApi.NeonMusicMicStart(
-        JSON.stringify({ app: mm.value.app, mic: mm.value.mic, out: mm.value.out, musicVol: mm.value.musicVol, micVol: mm.value.micVol })
+        JSON.stringify({ app: mm.value.app, mic: mm.value.mic, out: mm.value.out, musicVol: mm.value.musicVol, micVol: mm.value.micVol, musicBass: mm.value.musicBass, micBass: mm.value.micBass })
     );
     mm.value.running = !!ok;
     if (!ok) {

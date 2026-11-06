@@ -2,28 +2,29 @@
     <div
         v-if="companionEnabled"
         class="aurora-companion"
+        :class="{ soft: !neonLook }"
         :style="{ left: pos.x + 'px', top: pos.y + 'px' }"
         :class="{ dragging }">
         <div v-if="bubble" class="nx-dialog">
-            <div class="nx-name">&gt; neon:</div>
-            <div class="nx-text">{{ bubble }}<span class="nx-caret"></span></div>
+            <div class="nx-name">{{ neonLook ? '> neon:' : 'Aurora' }}</div>
+            <div class="nx-text">{{ bubble }}<span v-if="neonLook" class="nx-caret"></span></div>
             <div v-if="current" class="aurora-bubble-actions">
                 <button type="button" @click="addNote">{{ t('view.settings.aurora.note_add') }}</button>
                 <button type="button" class="ghost" @click="later">{{ t('view.settings.aurora.note_later') }}</button>
             </div>
         </div>
-        <div v-if="bubble" class="nx-status">
+        <div v-if="bubble && neonLook" class="nx-status">
             <span class="nx-dot"></span>
             <b>Aurora</b><i>|</i><i>{{ speaking ? 'Talking' : 'Idle' }}</i>
             <span class="nx-grow"></span>
             <span class="nx-tag">{{ settings.mascotVoiceEnabled ? 'VOICE: TTS' : 'VOICE: OFF' }}</span>
         </div>
         <div class="aurora-body nx-portrait" @pointerdown="startDrag" @click="poke">
-            <div class="nx-tab"></div>
+            <div v-if="neonLook" class="nx-tab"></div>
             <div class="nx-frame">
                 <AuroraMascot :size="120" />
             </div>
-            <span class="nx-label">NEON.EXE</span>
+            <span v-if="neonLook" class="nx-label">NEON.EXE</span>
         </div>
     </div>
 </template>
@@ -37,6 +38,7 @@
     import { buildVoicePack, categoryOf, pickLine } from '../services/auroraLines';
     import { autoUnlockFor, initAddons, pickClip } from '../services/auroraAddons';
     import { takeUnspoken } from '../services/auroraNews';
+    import { effectiveFx, isNeonTheme } from '../services/auroraVoiceFx';
     import { setMood, speak, speakEntry, speaking } from '../services/auroraVoice';
     import { useAuroraSettingsStore, useGameStore, useUserStore } from '../stores';
     import AuroraMascot from './AuroraMascot.vue';
@@ -50,6 +52,14 @@
         { immediate: true }
     );
     const game = useGameStore();
+
+    // the pink cyberpunk dock is only for the Neon theme, Aurora gets a soft outlined one
+    const neonLook = ref(isNeonTheme());
+    const themeWatcher = new MutationObserver(() => {
+        neonLook.value = isNeonTheme();
+    });
+    themeWatcher.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    onBeforeUnmount(() => themeWatcher.disconnect());
 
     const pos = ref({ x: 300, y: 300 });
     const dragging = ref(false);
@@ -91,7 +101,7 @@
             voice: settings.mascotVoice,
             speed: settings.mascotVoiceSpeed,
             volume: settings.mascotVoiceVolume,
-            fx: { ...settings.mascotFx }
+            fx: effectiveFx(settings.mascotFx, settings.mascotReverb)
         };
     }
 
@@ -404,5 +414,64 @@
         background: transparent;
         color: #fff;
         border: 1px solid var(--primary);
+    }
+
+    /* ---------- Aurora look: soft, outlined, no cyberpunk ---------- */
+    .soft {
+        font-family: var(--xr-font, 'Segoe UI', system-ui, sans-serif);
+    }
+    .soft .nx-dialog {
+        background: color-mix(in oklch, var(--card) 88%, transparent);
+        color: var(--foreground);
+        border: 1px solid var(--ax-line, var(--border));
+        border-radius: 18px;
+        clip-path: none;
+        box-shadow: 0 14px 34px -22px oklch(0 0 0 / 55%);
+        backdrop-filter: blur(14px);
+        padding: 10px 16px 12px;
+    }
+    .soft .nx-name {
+        color: var(--muted-foreground);
+        font-weight: 500;
+        font-size: 10px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+    }
+    .soft .nx-text {
+        font-size: 13px;
+        line-height: 1.55;
+        font-weight: 400;
+    }
+    .soft .aurora-bubble-actions button {
+        background: transparent;
+        color: var(--foreground);
+        border: 1px solid var(--ax-line, var(--border));
+        border-radius: 999px;
+        font-weight: 500;
+        letter-spacing: 0.04em;
+    }
+    .soft .aurora-bubble-actions button.ghost {
+        border-color: var(--border);
+        color: var(--muted-foreground);
+    }
+    .soft .nx-portrait {
+        margin-top: 4px;
+    }
+    .soft .nx-frame {
+        padding: 0;
+        background: transparent;
+        border: 1px solid var(--ax-line, var(--border));
+        border-radius: 50%;
+        clip-path: none;
+        filter: drop-shadow(0 0 14px var(--ax-glow, transparent));
+        overflow: hidden;
+    }
+    .soft .nx-frame :deep(.aurora-mascot) {
+        background: transparent;
+        clip-path: none;
+        border-radius: 50%;
+    }
+    .soft .nx-frame :deep(img) {
+        object-position: 50% 30%;
     }
 </style>

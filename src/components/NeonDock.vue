@@ -1,7 +1,7 @@
 <template>
     <div v-if="dockVisible" class="nx-dock" :class="{ collapsed }">
         <button type="button" class="nx-dock-head" @click="collapsed = !collapsed">
-            <span>NEON // {{ t('view.dock.title') }}</span>
+            <span>{{ neonLook ? 'NEON' : 'AURORA' }} // {{ t('view.dock.title') }}</span>
             <span>{{ collapsed ? '+' : '-' }}</span>
         </button>
         <template v-if="!collapsed">
@@ -23,11 +23,12 @@
 </template>
 
 <script setup>
-    import { computed, ref, watch } from 'vue';
+    import { computed, onBeforeUnmount, ref, watch } from 'vue';
     import { useI18n } from 'vue-i18n';
 
     import { companionEnabled, companionHome } from '../services/auroraCompanion';
     import { newsItems, pushNews } from '../services/auroraNews';
+    import { isNeonTheme } from '../services/auroraVoiceFx';
     import { parseLocation, resolveRegion } from '../shared/utils/location';
     import { useLocationStore, useVRCXUpdaterStore } from '../stores';
 
@@ -35,6 +36,12 @@
     const locationStore = useLocationStore();
     const updater = useVRCXUpdaterStore();
     const collapsed = ref(false);
+    const neonLook = ref(isNeonTheme());
+    const themeWatcher = new MutationObserver(() => {
+        neonLook.value = isNeonTheme();
+    });
+    themeWatcher.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    onBeforeUnmount(() => themeWatcher.disconnect());
 
     const dockVisible = computed(() => companionEnabled.value && companionHome.value === 'dock');
 

@@ -119,6 +119,14 @@
                     <span class="w-56">{{ t('view.settings.aurora.mm_mic_vol') }} {{ Math.round(mm.micVol * 100) }}%</span>
                     <input type="range" min="0" max="5" step="0.05" :value="mm.micVol" class="flex-1" @input="(e) => setMm('micVol', Number(e.target.value))" />
                 </label>
+                <label class="flex items-center gap-2 text-sm">
+                    <span class="w-56">{{ t('view.settings.aurora.mm_music_bass') }} {{ Math.round(mm.musicBass * 100) }}%</span>
+                    <input type="range" min="0" max="1" step="0.01" :value="mm.musicBass" class="flex-1" @input="(e) => setMm('musicBass', Number(e.target.value))" />
+                </label>
+                <label class="flex items-center gap-2 text-sm">
+                    <span class="w-56">{{ t('view.settings.aurora.mm_mic_bass') }} {{ Math.round(mm.micBass * 100) }}%</span>
+                    <input type="range" min="0" max="1" step="0.01" :value="mm.micBass" class="flex-1" @input="(e) => setMm('micBass', Number(e.target.value))" />
+                </label>
                 <div class="flex items-center gap-2">
                     <Button size="sm" @click="toggleMusicMic">{{ mm.running ? t('view.settings.aurora.mm_stop') : t('view.settings.aurora.mm_start') }}</Button>
                     <Button size="sm" :variant="mm.micMuted ? 'destructive' : 'outline'" @click="toggleMicMute">{{
@@ -356,7 +364,18 @@
                     @update:modelValue="(v) => setMascotVoiceVolume(v[0])" />
             </SettingsItem>
 
-            <SettingsItem :label="t('view.settings.aurora.fx_preset')">
+            <SettingsItem v-if="!neonTheme" :label="t('view.settings.aurora.fx_reverb') + ' ' + Math.round(mascotReverb * 100) + '%'">
+                <Slider
+                    class="w-48"
+                    :model-value="[mascotReverb]"
+                    :min="0"
+                    :max="1"
+                    :step="0.05"
+                    :disabled="!mascotVoiceEnabled"
+                    @update:modelValue="(v) => setMascotReverb(v[0])" />
+            </SettingsItem>
+
+            <SettingsItem v-if="neonTheme" :label="t('view.settings.aurora.fx_preset')">
                 <Select
                     :model-value="mascotFxPreset"
                     :disabled="!mascotVoiceEnabled"
@@ -375,7 +394,7 @@
             </SettingsItem>
 
             <SettingsItem
-                v-for="s in fxSliders"
+                v-for="s in neonTheme ? fxSliders : []"
                 :key="s.key"
                 :label="t('view.settings.aurora.' + s.key) + ' ' + mascotFx[s.key]">
                 <Slider
@@ -580,6 +599,7 @@
 
     import { useAuroraSettingsStore } from '@/stores';
     import { speak, VOICES } from '@/services/auroraVoice';
+    import { effectiveFx, isNeonTheme } from '@/services/auroraVoiceFx';
     import { isValidPin } from '@/services/auroraSecurity';
     import { CLEANUP_KEYS, cleanCategories, countCategory } from '@/services/auroraCleanup';
 
@@ -589,7 +609,7 @@
 
     const { t } = useI18n();
     const store = useAuroraSettingsStore();
-    const { mascotVoiceEnabled, mascotVoice, mascotVoiceSpeed, mascotVoiceVolume, mascotFxPreset, mascotFx, appLockEnabled, autoLockMinutes, cleanupSelected, cleanupKeepDays, cleanupAuto } =
+    const { mascotVoiceEnabled, mascotVoice, mascotVoiceSpeed, mascotVoiceVolume, mascotFxPreset, mascotFx, mascotReverb, appLockEnabled, autoLockMinutes, cleanupSelected, cleanupKeepDays, cleanupAuto } =
         storeToRefs(store);
     const {
         setMascotVoiceEnabled,
@@ -597,6 +617,7 @@
         setMascotVoiceSpeed,
         setMascotVoiceVolume,
         setMascotFxPreset,
+        setMascotReverb,
         setMascotFxValue,
         setAutoLockMinutes,
         lockNow,
@@ -669,6 +690,11 @@
         }
     }
 
+    const neonTheme = ref(isNeonTheme());
+    new MutationObserver(() => {
+        neonTheme.value = isNeonTheme();
+    }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
     const fxSliders = [
         { key: 'bitDepth', min: 2, max: 16, step: 1 },
         { key: 'downsample', min: 1, max: 12, step: 1 },
@@ -686,7 +712,7 @@
                 voice: mascotVoice.value,
                 speed: mascotVoiceSpeed.value,
                 volume: mascotVoiceVolume.value,
-                fx: { ...mascotFx.value }
+                fx: effectiveFx(mascotFx.value, mascotReverb.value)
             });
         } catch (err) {
             console.error(err);
@@ -706,7 +732,7 @@
         buildVoicePack({
             voice: mascotVoice.value,
             speed: mascotVoiceSpeed.value,
-            fx: { ...mascotFx.value }
+            fx: effectiveFx(mascotFx.value, mascotReverb.value)
         });
     }
 

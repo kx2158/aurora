@@ -223,3 +223,68 @@
     font-family: var(--xr-mono);
     letter-spacing: 0.08em;
 }
+
+/* ---------- Aurora: the news dock and status bar become soft glass, no cyberpunk ---------- */
+:root:is([data-theme='xray'], [data-theme='xraydark']) .nx-dock {
+    font-family: var(--xr-font);
+    color: var(--foreground);
+    background: color-mix(in oklch, var(--popover) 90%, transparent);
+    backdrop-filter: blur(14px);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    box-shadow: 0 16px 38px -24px oklch(0 0 0 / 55%);
+    overflow: hidden;
+}
+:root:is([data-theme='xray'], [data-theme='xraydark']) .nx-dock-head {
+    background: transparent;
+    color: var(--muted-foreground);
+    font-weight: 500;
+    letter-spacing: 0.2em;
+}
+:root:is([data-theme='xray'], [data-theme='xraydark']) .nx-dock .nx-sec {
+    border-top-color: var(--border);
+}
+:root:is([data-theme='xray'], [data-theme='xraydark']) .nx-dock .nx-lab {
+    color: var(--muted-foreground);
+    font-weight: 500;
+}
+:root:is([data-theme='xray'], [data-theme='xraydark']) .nx-dock .nx-kind {
+    color: var(--foreground);
+    border: 1px solid var(--ax-line);
+    border-radius: 999px;
+}
+
+/* ---------- Aurora is outlines only: no solid fills, hairlines instead ---------- */
+:root:is([data-theme='xray'], [data-theme='xraydark']) {
+    --radius: 0.75rem;
+}
+:root:is([data-theme='xray'], [data-theme='xraydark']) .x-container,
+:root:is([data-theme='xray'], [data-theme='xraydark']) [data-slot='card'] {
+    background-color: color-mix(in oklch, var(--background) 35%, transparent);
+    border: 1px solid var(--ax-line);
+    border-radius: var(--radius);
+    box-shadow: none;
+}
+:root:is([data-theme='xray'], [data-theme='xraydark']) [data-slot='button'][data-variant='default'],
+:root:is([data-theme='xray'], [data-theme='xraydark']) [data-slot='button']:not([data-variant]) {
+    background: transparent;
+    color: var(--foreground);
+    border: 1px solid var(--ax-line);
+    box-shadow: none;
+}
+:root:is([data-theme='xray'], [data-theme='xraydark']) [data-slot='button'][data-variant='default']:hover:not(:disabled) {
+    background: color-mix(in oklch, var(--ax) 14%, transparent);
+    border-color: var(--ax);
+}
+:root:is([data-theme='xray'], [data-theme='xraydark']) [data-slot='badge'] {
+    background: transparent;
+    border-radius: 999px;
+}
+:root:is([data-theme='xray'], [data-theme='xraydark']) [data-slot='sidebar'] {
+    background: transparent;
+}
+:root:is([data-theme='xray'], [data-theme='xraydark']) :is(.nx-chip, .nx-card, .nx-troll) {
+    background: transparent;
+    border: 1px solid var(--ax-line);
+    border-radius: var(--radius);
+}

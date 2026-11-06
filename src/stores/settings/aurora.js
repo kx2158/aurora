@@ -13,6 +13,7 @@ export const useAuroraSettingsStore = defineStore('AuroraSettings', () => {
     const mascotVoiceVolume = ref(0.8);
     const mascotFxPreset = ref('robot');
     const mascotFx = ref({ ...FX_PRESETS.robot });
+    const mascotReverb = ref(0.25); // Aurora voice: soft reverb amount, 0 to 1
 
     // data cleanup
     const cleanupSelected = ref([...DEFAULT_SELECTED]);
@@ -63,6 +64,7 @@ export const useAuroraSettingsStore = defineStore('AuroraSettings', () => {
         mascotVoiceSpeed.value = speed;
         mascotVoiceVolume.value = volume;
         mascotFxPreset.value = preset;
+        mascotReverb.value = Number(await configRepository.getString('Aurora_mascotReverb', '0.25')) || 0;
         try {
             mascotFx.value = fxJson ? { ...FX_PRESETS.robot, ...JSON.parse(fxJson) } : { ...(FX_PRESETS[preset] || FX_PRESETS.robot) };
         } catch {
@@ -162,6 +164,11 @@ export const useAuroraSettingsStore = defineStore('AuroraSettings', () => {
         configRepository.setInt('Aurora_autoLockMinutes', value);
     }
 
+    function setMascotReverb(value) {
+        mascotReverb.value = Math.max(0, Math.min(1, Number(value) || 0));
+        configRepository.setString('Aurora_mascotReverb', String(mascotReverb.value));
+    }
+
     function setMascotFxPreset(name) {
         mascotFxPreset.value = name;
         configRepository.setString('Aurora_mascotFxPreset', name);
@@ -198,6 +205,8 @@ export const useAuroraSettingsStore = defineStore('AuroraSettings', () => {
         setAutoLockMinutes,
         mascotFxPreset,
         mascotFx,
+        mascotReverb,
+        setMascotReverb,
         setMascotFxPreset,
         setMascotFxValue,
         mascotVoiceEnabled,

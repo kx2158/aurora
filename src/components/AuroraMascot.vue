@@ -3,7 +3,7 @@
         class="aurora-mascot"
         :class="{ speaking: isSpeaking }"
         :style="{ width: size + 'px', height: size + 'px', '--lvl': lvl.toFixed(3) }">
-        <div class="stage" :style="{ filter: character === 'neon' ? mascotTint : 'none' }">
+        <div class="stage" :class="{ feather: character !== 'neon' }" :style="{ filter: character === 'neon' ? mascotTint : 'none' }">
             <img
                 v-for="url in layers"
                 :key="url"
@@ -137,6 +137,12 @@
         transform-origin: 50% 70%;
         will-change: transform;
     }
+    /* no box around the picture: its edges fade into whatever is behind it */
+    .stage.feather {
+        border-radius: 0;
+        -webkit-mask-image: radial-gradient(closest-side at 50% 46%, #000 60%, transparent 100%);
+        mask-image: radial-gradient(closest-side at 50% 46%, #000 60%, transparent 100%);
+    }
     .aurora-mascot img {
         position: absolute;
         inset: 0;
@@ -147,7 +153,7 @@
         user-select: none;
     }
     .aurora-mascot.speaking {
-        filter: drop-shadow(0 0 14px var(--aurora-pink, #ff7fb0));
+        filter: drop-shadow(0 0 14px var(--ax-glow, var(--aurora-pink, #ff7fb0)));
         animation: aurora-bob 1.1s ease-in-out infinite alternate;
     }
     @keyframes aurora-bob {

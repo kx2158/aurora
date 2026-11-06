@@ -462,21 +462,22 @@
         height: 136px;
     }
     .soft .nx-frame :deep(.stage) {
-        border-radius: 50%;
+        border-radius: 0;
     }
     .soft .nx-frame {
         padding: 0;
-        background: transparent;
-        border: 1px solid var(--ax-line, var(--border));
-        border-radius: 50%;
+        background: none;
+        border: 0;
+        box-shadow: none;
         clip-path: none;
-        filter: drop-shadow(0 0 14px var(--ax-glow, transparent));
-        overflow: hidden;
+        filter: none;
+        overflow: visible;
     }
     .soft .nx-frame :deep(.aurora-mascot) {
         background: transparent;
         clip-path: none;
-        border-radius: 50%;
+        border-radius: 0;
+        filter: none;
     }
     .soft .nx-frame :deep(img) {
         object-position: 50% 50%;

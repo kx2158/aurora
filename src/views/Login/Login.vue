@@ -181,6 +181,15 @@
                     >Map1en</a
                 >
             </p>
+            <p>
+                Aurora fork &copy; 2026
+                <a
+                    class="cursor-pointer text-foreground hover:underline"
+                    @click="openExternalLink('https://github.com/kx2158')"
+                    >xoliexen</a
+                >
+                (AIXENI). Based on VRCX, MIT License.
+            </p>
             <p>{{ t('view.settings.general.legal_notice.info') }}</p>
             <p>{{ t('view.settings.general.legal_notice.disclaimer1') }}</p>
             <p>{{ t('view.settings.general.legal_notice.disclaimer2') }}</p>

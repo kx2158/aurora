@@ -23,6 +23,19 @@ namespace VRCX
         private static readonly Logger logger = LogManager.GetCurrentClassLogger();
         public static AppApi AppApiInstance { get; private set; }
 
+        private static void CopyMissing(string from, string to)
+        {
+            Directory.CreateDirectory(to);
+            foreach (var file in Directory.GetFiles(from))
+            {
+                var target = Path.Join(to, Path.GetFileName(file));
+                if (!File.Exists(target))
+                    File.Copy(file, target);
+            }
+            foreach (var dir in Directory.GetDirectories(from))
+                CopyMissing(dir, Path.Join(to, Path.GetFileName(dir)));
+        }
+
         private static void SetProgramDirectories()
         {
             if (string.IsNullOrEmpty(AppDataDirectory))
@@ -37,6 +50,23 @@ namespace VRCX
                     try
                     {
                         Directory.Move(legacyDirectory, neonDirectory);
+                    }
+                    catch
+                    {
+                        neonDirectory = legacyDirectory;
+                    }
+                }
+
+                // Neon folder already exists (an earlier run made it) but holds no history: pull the old data in
+                else if (Directory.Exists(neonDirectory) && Directory.Exists(legacyDirectory)
+                         && !File.Exists(Path.Join(neonDirectory, "Neon.sqlite3"))
+                         && !File.Exists(Path.Join(neonDirectory, "VRCX.sqlite3"))
+                         && (File.Exists(Path.Join(legacyDirectory, "VRCX.sqlite3"))
+                             || File.Exists(Path.Join(legacyDirectory, "Neon.sqlite3"))))
+                {
+                    try
+                    {
+                        CopyMissing(legacyDirectory, neonDirectory);
                     }
                     catch
                     {

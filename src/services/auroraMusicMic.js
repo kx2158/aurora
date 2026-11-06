@@ -115,7 +115,7 @@ export async function nextMusicSource() {
 }
 
 export function nudgeMusicVolume(delta) {
-    setMm('musicVol', Math.min(1.5, Math.max(0, Math.round((mm.value.musicVol + delta) * 100) / 100)));
+    setMm('musicVol', Math.min(10, Math.max(0, Math.round((mm.value.musicVol + delta) * 100) / 100)));
 }
 
 // while the mix runs, show what is actually coming in so problems are easy to find

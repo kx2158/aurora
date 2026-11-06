@@ -212,7 +212,8 @@ namespace VRCX
             }
 
             // the mix goes to the chosen output (the virtual cable)
-            ISampleProvider final = Meter(mixer, v => OutPeak = v);
+            // gain above 100% can push the mix past full scale, so round the peaks off instead of crackling
+            ISampleProvider final = Meter(new SoftLimit(mixer), v => OutPeak = v);
             Info = (_micCapture != null ? "mic " + _micCapture.WaveFormat + " | " : "") + "out " + outDev.FriendlyName + " " + outDev.AudioClient.MixFormat;
             if (_outChannels == 1)
                 final = new StereoToMonoSampleProvider(final);
@@ -235,8 +236,31 @@ namespace VRCX
 
         public void SetVolumes(float music, float mic)
         {
-            if (_musicVol != null) _musicVol.Volume = Math.Clamp(music, 0f, 2f);
-            if (_micVol != null) _micVol.Volume = Math.Clamp(mic, 0f, 2f);
+            if (_musicVol != null) _musicVol.Volume = Math.Clamp(music, 0f, 10f);
+            if (_micVol != null) _micVol.Volume = Math.Clamp(mic, 0f, 5f);
+        }
+
+        private sealed class SoftLimit : ISampleProvider
+        {
+            private readonly ISampleProvider _src;
+            public SoftLimit(ISampleProvider src) { _src = src; }
+            public WaveFormat WaveFormat => _src.WaveFormat;
+            public int Read(float[] buffer, int offset, int count)
+            {
+                var n = _src.Read(buffer, offset, count);
+                for (var i = 0; i < n; i++)
+                {
+                    var x = buffer[offset + i];
+                    var a = Math.Abs(x);
+                    if (a > 0.7f)
+                    {
+                        // smooth curve from 0.7 up to a ceiling of 1.0
+                        var y = 0.7f + 0.3f * MathF.Tanh((a - 0.7f) / 0.3f);
+                        buffer[offset + i] = x < 0 ? -y : y;
+                    }
+                }
+                return n;
+            }
         }
 
         // some devices (like the Steam streaming microphone) report an "extensible" format that

@@ -113,11 +113,11 @@
                 </label>
                 <label class="flex items-center gap-2 text-sm">
                     <span class="w-56">{{ t('view.settings.aurora.mm_music_vol') }} {{ Math.round(mm.musicVol * 100) }}%</span>
-                    <input type="range" min="0" max="1.5" step="0.05" :value="mm.musicVol" class="flex-1" @input="(e) => setMm('musicVol', Number(e.target.value))" />
+                    <input type="range" min="0" max="10" step="0.1" :value="mm.musicVol" class="flex-1" @input="(e) => setMm('musicVol', Number(e.target.value))" />
                 </label>
                 <label class="flex items-center gap-2 text-sm">
                     <span class="w-56">{{ t('view.settings.aurora.mm_mic_vol') }} {{ Math.round(mm.micVol * 100) }}%</span>
-                    <input type="range" min="0" max="1.5" step="0.05" :value="mm.micVol" class="flex-1" @input="(e) => setMm('micVol', Number(e.target.value))" />
+                    <input type="range" min="0" max="5" step="0.05" :value="mm.micVol" class="flex-1" @input="(e) => setMm('micVol', Number(e.target.value))" />
                 </label>
                 <div class="flex items-center gap-2">
                     <Button size="sm" @click="toggleMusicMic">{{ mm.running ? t('view.settings.aurora.mm_stop') : t('view.settings.aurora.mm_start') }}</Button>

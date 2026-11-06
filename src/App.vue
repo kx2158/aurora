@@ -38,6 +38,7 @@
     import { createGlobalStores } from './stores';
     import { initNoty } from './plugins/noty';
     import { initChatbox } from './services/auroraChatbox';
+    import { backupDatabase } from './services/auroraBackup';
     import { initMusicMic } from './services/auroraMusicMic';
 import { initAccent } from './services/auroraAccent';
 import { initAlarms } from './services/auroraAlarms';
@@ -70,6 +71,7 @@ import { initIntegrations } from './services/auroraIntegrations';
     initIntegrations();
     initAccent();
     initMusicMic();
+    setTimeout(backupDatabase, 30000);
     initAlarms();
     initVrBridge();
 

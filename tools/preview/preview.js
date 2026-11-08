@@ -161,6 +161,22 @@ window.__seedPreview = async function seedPreview(prefix) {
             );
         }
     }
+    // a mutual friend graph with three loose circles of friends
+    people.forEach((p, i) => {
+        query(`INSERT OR IGNORE INTO ${prefix}_mutual_graph_friends (friend_id) VALUES (@a)`, { a: p.id });
+        query(`INSERT OR IGNORE INTO ${prefix}_mutual_graph_meta (friend_id, last_fetched_at, opted_out) VALUES (@a,@b,0)`, {
+            a: p.id,
+            b: iso(now - DAY)
+        });
+        people.forEach((q, j) => {
+            if (j <= i) return;
+            const same = i % 3 === j % 3;
+            if (rnd() < (same ? 0.75 : 0.08)) {
+                query(`INSERT OR IGNORE INTO ${prefix}_mutual_graph_links (friend_id, mutual_id) VALUES (@a,@b)`, { a: p.id, b: q.id });
+                query(`INSERT OR IGNORE INTO ${prefix}_mutual_graph_links (friend_id, mutual_id) VALUES (@a,@b)`, { a: q.id, b: p.id });
+            }
+        });
+    });
     people.forEach((p, i) => {
         query(
             `INSERT INTO ${prefix}_friend_log_history (created_at, type, user_id, display_name, previous_display_name, trust_level, previous_trust_level, friend_number) VALUES (@a,'Friend',@b,@c,'','','',@d)`,

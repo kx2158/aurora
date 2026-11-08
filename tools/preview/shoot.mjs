@@ -33,8 +33,11 @@ try {
 }
 await page.evaluate(() => window.$pinia?.appearanceSettings?.setNavCollapsed?.(false));
 for (const [name, path] of Object.entries(routes)) {
+    await page.keyboard.press('Escape');
     await page.evaluate((p) => (window.location.hash = `#/${p}`), path);
     await page.waitForTimeout(2500);
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(400);
     await page.screenshot({ path: `${out}/${name}.jpg`, type: 'jpeg', quality: 80 });
 }
 // the sidebar folded down to icons

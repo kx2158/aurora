@@ -15,8 +15,7 @@ const routes = {
     'friend-list': 'social/friend-list',
     'game-log': 'game-log',
     tools: 'tools',
-    settings: 'settings',
-    network: 'charts/mutual'
+    settings: 'settings'
 };
 const browser = await chromium.launch({ args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 });
@@ -24,8 +23,13 @@ const logs = [];
 page.on('console', (m) => {
     if (m.type() === 'error' || m.type() === 'warning') logs.push(`[${m.type()}] ${m.text()}`.slice(0, 300));
 });
+page.on('framenavigated', (f) => {
+    if (f === page.mainFrame()) logs.push(`[navigated] ${f.url()}`);
+});
 page.on('pageerror', (e) => logs.push(`[pageerror] ${e.message}`.slice(0, 300)));
 await page.goto(`${base}/preview.html`, { waitUntil: 'load' });
+await page.waitForTimeout(1200);
+await page.screenshot({ path: `${out}/login.jpg`, type: 'jpeg', quality: 80 });
 try {
     await page.waitForFunction(() => window.__previewReady === true, null, { timeout: 60000 });
 } catch {
@@ -39,17 +43,24 @@ for (const [name, path] of Object.entries(routes)) {
     await page.keyboard.press('Escape');
     await page.waitForTimeout(400);
     await page.screenshot({ path: `${out}/${name}.jpg`, type: 'jpeg', quality: 80 });
+    logs.push(`--- after ${name}: ${page.url()}`);
+    fs.writeFileSync(`${out}/console.txt`, logs.join('\n') + '\n');
 }
 // the sidebar folded down to icons
 await page.evaluate(() => (window.location.hash = '#/insights'));
-await page.evaluate(() => window.$pinia.appearanceSettings.setNavCollapsed?.(true));
+await page.evaluate(() => window.$pinia?.appearanceSettings?.setNavCollapsed?.(true));
 await page.waitForTimeout(1200);
 await page.screenshot({ path: `${out}/collapsed.jpg`, type: 'jpeg', quality: 80 });
-await page.evaluate(() => window.$pinia.appearanceSettings.setNavCollapsed?.(false));
+await page.evaluate(() => window.$pinia?.appearanceSettings?.setNavCollapsed?.(false));
 // collapsed sidebar and light theme on Home
 await page.evaluate(() => (window.location.hash = '#/home'));
-await page.evaluate(() => window.$pinia.appearanceSettings.setThemeMode('xray'));
+await page.evaluate(() => window.$pinia?.appearanceSettings?.setThemeMode('xray'));
 await page.waitForTimeout(1500);
 await page.screenshot({ path: `${out}/home-light.jpg`, type: 'jpeg', quality: 82 });
+// the friend network last: it needs WebGL, which is shaky in CI
+await page.evaluate(() => window.$pinia?.appearanceSettings?.setThemeMode('xraydark'));
+await page.evaluate(() => (window.location.hash = '#/charts/mutual'));
+await page.waitForTimeout(5000);
+await page.screenshot({ path: `${out}/network.jpg`, type: 'jpeg', quality: 80 });
 fs.writeFileSync(`${out}/console.txt`, logs.join('\n'));
 await browser.close();

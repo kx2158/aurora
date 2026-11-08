@@ -1472,7 +1472,7 @@
                     "done": "Removed {n} entries.",
                     "failed": "Cleanup failed."
                 },
-                "tagline": "Your mascot, Aurora. She glows when she talks.",
+                "tagline": "Your accent colour, app lock and data cleanup.",
                 "home": "Where Aurora stays",
                 "home_desc": "Float around the whole app, or rest next to the info dock (current instance and announcements).",
                 "home_roam": "Float around",
@@ -1487,7 +1487,7 @@
                 "alarm_add": "Add alarm",
                 "alarm_test": "Test sound",
                 "accent": "Accent colour",
-                "accent_desc": "One colour for everything: the app, the VR panels and Aurora herself.",
+                "accent_desc": "One colour for everything: the app, charts and the VR panels.",
                 "mm": "Music to mic",
                 "mm_desc": "Share one app's sound (Spotify, Apple Music, a browser) with people in VRChat. Needs a virtual audio cable like VB-Cable: pick its input as the output here, then pick the cable's other end as your microphone in VRChat.",
                 "mm_app": "App to share",

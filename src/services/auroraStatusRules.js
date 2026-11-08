@@ -26,6 +26,8 @@ export function newRule(partial = {}) {
         id: `rule_${nextId++}`,
         enabled: true,
         people: [],
+        // also count friends whose VRChat profile lists one of these languages (ISO 639-3, e.g. ces, slk)
+        langs: [],
         onlineStatus: 'join me',
         onlineDesc: '',
         waitMin: 10,
@@ -38,11 +40,11 @@ export function newRule(partial = {}) {
     };
 }
 
-/** settings: { enabled, rules: [...], avoid: { people: [], status, desc } } */
+/** settings: { enabled, rules: [...], avoid: { people: [], langs: [], status, desc } } */
 export const statusRules = ref({
     enabled: true,
     rules: [],
-    avoid: { people: [], status: 'ask me', desc: '' }
+    avoid: { people: [], langs: [], status: 'ask me', desc: '' }
 });
 
 /** Live state per rule id: { phase: 'waiting'|'fallback'|'joined', since, until } for the cards. */
@@ -50,6 +52,8 @@ export const ruleState = ref({});
 
 let loaded = false;
 const onlineNow = new Set();
+/** bumps whenever someone comes online or goes offline, so the cards can refresh */
+const onlineTick = ref(0);
 const timers = new Map();
 let before = null; // your status before any rule touched it
 let lastApplied = null; // what the rules last set, to notice manual changes
@@ -67,7 +71,7 @@ export async function initStatusRules() {
             statusRules.value = {
                 ...statusRules.value,
                 ...saved,
-                avoid: { ...statusRules.value.avoid, ...(saved.avoid || {}) },
+                avoid: { ...statusRules.value.avoid, langs: [], ...(saved.avoid || {}) },
                 rules: saved.rules.map((r) => newRule(r))
             };
         }
@@ -147,8 +151,40 @@ export function removePerson(list, id) {
     }
 }
 
-const has = (people, id) => people.some((p) => p.id === id);
-const anyOnline = (people) => people.some((p) => onlineNow.has(p.id));
+/** Languages a friend lists on their VRChat profile (tags like language_ces). */
+function friendLangs(id) {
+    try {
+        const f = useFriendStore().friends.get(id);
+        const tags = f?.ref?.tags || [];
+        return tags.filter((t) => typeof t === 'string' && t.startsWith('language_')).map((t) => t.slice(9));
+    } catch {
+        return [];
+    }
+}
+/** Is this friend part of a rule or list: picked by name, or speaking one of its languages. */
+function has(group, id) {
+    if (group.people.some((p) => p.id === id)) {
+        return true;
+    }
+    const langs = group.langs || [];
+    return langs.length > 0 && friendLangs(id).some((l) => langs.includes(l));
+}
+const anyOnline = (group) => [...onlineNow].some((id) => has(group, id));
+/** Online friends that match a group only through their language (for the cards). */
+export function languageMatches(group) {
+    void onlineTick.value;
+    if (!group.langs?.length) {
+        return [];
+    }
+    const out = [];
+    for (const id of onlineNow) {
+        if (!group.people.some((p) => p.id === id) && has(group, id)) {
+            const f = useFriendStore().friends.get(id);
+            out.push({ id, name: f?.name || f?.ref?.displayName || id });
+        }
+    }
+    return out;
+}
 
 function clearTimer(id) {
     const t = timers.get(id);
@@ -213,7 +249,7 @@ function desired() {
         }
         if (st.phase === 'joined') {
             const avoid = statusRules.value.avoid;
-            if (avoid.people.length && anyOnline(avoid.people)) {
+            if ((avoid.people.length || avoid.langs?.length) && anyOnline(avoid)) {
                 return { status: avoid.status, desc: avoid.desc, rule };
             }
             if (rule.joinedStatus === 'keep') {
@@ -276,14 +312,15 @@ export async function statusRuleFriendChange(id, isOnline) {
     } else {
         onlineNow.delete(id);
     }
+    onlineTick.value++;
     for (const rule of statusRules.value.rules) {
-        if (!rule.enabled || !has(rule.people, id)) {
+        if (!rule.enabled || !has(rule, id)) {
             continue;
         }
         const st = ruleState.value[rule.id];
         if (isOnline && !st) {
             startWaiting(rule);
-        } else if (!isOnline && st && !anyOnline(rule.people)) {
+        } else if (!isOnline && st && !anyOnline(rule)) {
             endRule(rule);
         }
     }
@@ -300,7 +337,7 @@ export async function statusRulePlayerJoined(id) {
     let changed = false;
     for (const rule of statusRules.value.rules) {
         const st = ruleState.value[rule.id];
-        if (rule.enabled && st && st.phase !== 'joined' && has(rule.people, id)) {
+        if (rule.enabled && st && st.phase !== 'joined' && has(rule, id)) {
             clearTimer(rule.id);
             setPhase(rule, 'joined');
             changed = true;

@@ -114,6 +114,7 @@
                         <div class="rule-step-body">
                             <span class="rule-step-label">{{ t('view.automations.step_who') }}</span>
                             <PeoplePicker :people="rule.people" :placeholder="t('view.automations.friend_name')" />
+                            <LangPick :group="rule" />
                         </div>
                     </div>
                     <div class="rule-step">
@@ -177,6 +178,7 @@
                         <div class="rule-step-body">
                             <span class="rule-step-label">{{ t('view.automations.avoid_who') }}</span>
                             <PeoplePicker :people="statusRules.avoid.people" :placeholder="t('view.automations.friend_name')" />
+                            <LangPick :group="statusRules.avoid" />
                         </div>
                     </div>
                     <div class="rule-step">
@@ -197,6 +199,7 @@
     import { useI18n } from 'vue-i18n';
 
     import AuroraIcon from '../../components/AuroraIcon.vue';
+    import LangPick from './components/LangPick.vue';
     import PeoplePicker from './components/PeoplePicker.vue';
     import StatusPick from './components/StatusPick.vue';
     import { addAlarm, addTimer, alarms, initAlarms, removeAlarm, ringAlarm } from '../../services/auroraAlarms';
@@ -222,10 +225,11 @@
     onBeforeUnmount(() => clearInterval(tick));
 
     function ruleTitle(rule) {
-        if (!rule.people.length) {
+        const langs = (rule.langs || []).map((l) => t(`view.automations.lang_${l}`));
+        if (!rule.people.length && !langs.length) {
             return t('view.automations.rule_empty');
         }
-        const names = rule.people.map((p) => p.name);
+        const names = [...rule.people.map((p) => p.name), ...(langs.length ? [t('view.automations.speakers', { langs: langs.join(' / ') })] : [])];
         return names.length > 3 ? `${names.slice(0, 3).join(', ')} +${names.length - 3}` : names.join(', ');
     }
 

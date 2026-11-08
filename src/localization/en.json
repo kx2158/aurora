@@ -1601,7 +1601,12 @@
             "avoid": "Keep away list",
             "avoid_desc": "People you would rather not have following you. When someone from a rule joins you and anyone on this list is online, Aurora uses this status instead.",
             "avoid_who": "People",
-            "avoid_status": "While any of them are online, use"
+            "avoid_status": "While any of them are online, use",
+            "langs_label": "Also anyone whose profile lists",
+            "lang_ces": "Czech",
+            "lang_slk": "Slovak",
+            "langs_now": "Online now through language: {names}",
+            "speakers": "{langs} speakers"
         },
         "insights": {
             "title": "Insights",

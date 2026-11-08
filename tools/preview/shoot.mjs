@@ -56,7 +56,7 @@ await page.screenshot({ path: `${out}/settings-aurora.jpg`, type: 'jpeg', qualit
 // the lower half of Automations
 await page.evaluate(() => (window.location.hash = '#/automations'));
 await page.waitForTimeout(1500);
-await page.evaluate(() => document.querySelector('.a-page')?.scrollTo(0, 700));
+await page.evaluate(() => document.querySelector('.a-page')?.scrollTo(0, 99999));
 await page.waitForTimeout(800);
 await page.screenshot({ path: `${out}/automations-2.jpg`, type: 'jpeg', quality: 80 });
 // the lower half of Insights, and Mic while it is running

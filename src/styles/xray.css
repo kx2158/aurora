@@ -78,7 +78,7 @@
 /* section labels in the sidebar */
 .aurora-nav-section {
     list-style: none;
-    padding: 14px 10px 4px;
+    padding: 11px 10px 3px;
     font-size: 0.7rem;
     font-weight: 500;
     color: var(--muted-foreground);
@@ -96,9 +96,9 @@
 /* menu items: quiet rows, the current page gets a soft fill and an accent icon */
 :root:is([data-theme='xray'], [data-theme='xraydark']) [data-slot='sidebar-menu-button'],
 :root:is([data-theme='xray'], [data-theme='xraydark']) [data-slot='sidebar-menu-sub-button'] {
-    height: 34px;
+    height: 31px;
     border-radius: 8px;
-    font-size: 0.86rem;
+    font-size: 0.85rem;
     color: color-mix(in oklch, var(--foreground) 78%, transparent);
     letter-spacing: 0;
     transition:

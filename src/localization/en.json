@@ -1603,10 +1603,9 @@
             "avoid_who": "People",
             "avoid_status": "While any of them are online, use",
             "langs_label": "Also anyone whose profile lists",
-            "lang_ces": "Czech",
-            "lang_slk": "Slovak",
             "langs_now": "Online now through language: {names}",
-            "speakers": "{langs} speakers"
+            "speakers": "{langs} speakers",
+            "langs_add": "Add a language"
         },
         "insights": {
             "title": "Insights",

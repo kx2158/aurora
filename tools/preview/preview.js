@@ -260,7 +260,7 @@ try {
         sr.newRule({ people: [{ id: friendsList[4].id, name: friendsList[4].name }], onlineStatus: 'ask me', joinedStatus: 'busy', waitMin: 20 })
     ];
     sr.statusRules.value.avoid.people = [{ id: friendsList[9].id, name: friendsList[9].name }];
-    sr.statusRules.value.avoid.langs = ['ces', 'slk'];
+    sr.statusRules.value.avoid.langs = ['ces', 'slk', 'pol'];
     for (const f of friendsList.slice(0, 7)) await sr.statusRuleFriendChange(f.id, true);
     await sr.statusRuleFriendChange(friendsList[0].id, true);
 } catch (e) {

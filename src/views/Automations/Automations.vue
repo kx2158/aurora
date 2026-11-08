@@ -212,7 +212,16 @@
         statusRules
     } from '../../services/auroraStatusRules';
 
-    const { t } = useI18n();
+    const { t, locale } = useI18n();
+
+    function langName(code) {
+        try {
+            const n = new Intl.DisplayNames([locale.value || 'en', 'en'], { type: 'language' }).of(code);
+            return n ? n.charAt(0).toUpperCase() + n.slice(1) : code;
+        } catch {
+            return code;
+        }
+    }
 
     // ticks once a second so the countdowns move
     const now = ref(Date.now());
@@ -225,7 +234,7 @@
     onBeforeUnmount(() => clearInterval(tick));
 
     function ruleTitle(rule) {
-        const langs = (rule.langs || []).map((l) => t(`view.automations.lang_${l}`));
+        const langs = (rule.langs || []).map((l) => langName(l));
         if (!rule.people.length && !langs.length) {
             return t('view.automations.rule_empty');
         }

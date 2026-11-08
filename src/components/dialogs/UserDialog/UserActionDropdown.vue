@@ -178,6 +178,10 @@
                                 <Flag class="size-4" />
                                 {{ t('dialog.user.actions.report_user') }}
                             </DropdownMenuItem>
+                            <DropdownMenuItem @click="toggleWatched(userDialog.ref.id, userDialog.ref.displayName)">
+                                <Eye class="size-4" />
+                                {{ watched ? t('dialog.user.actions.aurora_unwatch') : t('dialog.user.actions.aurora_watch') }}
+                            </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem
                                 v-if="userDialog.isBlock"
@@ -286,6 +290,7 @@
         CheckCircle,
         Clock,
         Copy,
+        Eye,
         Flag,
         LineChart,
         Mail,
@@ -324,6 +329,7 @@
     } from '../../ui/dropdown-menu';
     import { useGameStore, useLocationStore, useUserStore } from '../../../stores';
     import { useInviteChecks } from '../../../composables/useInviteChecks';
+    import { instanceWatch, toggleWatched } from '../../../services/auroraWatch';
     import { isActionRecent } from '../../../composables/useRecentActions';
     import { invertHexColor } from '@/shared/utils';
 
@@ -350,6 +356,9 @@
             userDialog.value.isInteractOff ||
             userDialog.value.isHideAvatar
     );
+
+    // Aurora's instance watch list
+    const watched = computed(() => instanceWatch.value.people.some((p) => p.id === userDialog.value?.ref?.id));
 
     function onCommand(command) {
         props.userDialogCommand(command);

@@ -6,11 +6,12 @@ import { ref, watch } from 'vue';
 import configRepository from './config';
 
 export const DEFAULT_ACCENT = '#ff3d9a';
-/** Aurora's own default, the violet edge of an aurora. DEFAULT_ACCENT stays the Neon pink. */
-export const AURORA_ACCENT = '#a48cff';
-export const accent = ref(AURORA_ACCENT);
 export const GRAY_ACCENT = '#b4b4b4';
+/** Aurora's own default: plain gray. DEFAULT_ACCENT stays the Neon pink. */
+export const AURORA_ACCENT = GRAY_ACCENT;
+export const accent = ref(AURORA_ACCENT);
 export const ACCENT_PRESETS = [
+    { name: 'Grayscale', hex: GRAY_ACCENT },
     { name: 'Violet aurora', hex: '#a48cff' },
     { name: 'Glacier', hex: '#7cc4ff' },
     { name: 'Arctic teal', hex: '#3dd6c6' },
@@ -18,7 +19,6 @@ export const ACCENT_PRESETS = [
     { name: 'Pale lime', hex: '#c8f06e' },
     { name: 'Rose dawn', hex: '#ff8fb3' },
     { name: 'Moonlight', hex: '#d9dde6' },
-    { name: 'Grayscale', hex: GRAY_ACCENT },
     { name: 'Hot pink', hex: '#ff3d9a' },
     { name: 'Orange', hex: '#ff8a1f' },
     { name: 'Gold', hex: '#ffd21f' },
@@ -90,10 +90,10 @@ export async function initAccent() {
         return;
     }
     started = true;
-    // one time: the new Aurora colour, violet (it can be changed any time)
-    if (!(await configRepository.getBool('Aurora_accentV3', false))) {
+    // one time: everyone goes back to the gray base (it can be changed any time in Settings)
+    if (!(await configRepository.getBool('Aurora_accentV4', false))) {
         await configRepository.setString('Neon_accent', AURORA_ACCENT);
-        await configRepository.setBool('Aurora_accentV3', true);
+        await configRepository.setBool('Aurora_accentV4', true);
     }
     accent.value = await configRepository.getString('Neon_accent', AURORA_ACCENT);
     apply();

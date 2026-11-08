@@ -136,7 +136,7 @@ await vr
     .evaluate(() =>
         window.$vr?.neonState?.(
             JSON.stringify({
-                accent: '#a48cff',
+                accent: '#b4b4b4',
                 chatbox: true,
                 mm: true,
                 mmMuted: false,

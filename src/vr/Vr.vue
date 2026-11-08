@@ -5,15 +5,40 @@
                 <AuroraIcon name="alarm" :size="18" /> {{ alarmBanner.time }} {{ alarmBanner.label }}
             </div>
             <div class="vr-top">
-                <div class="vr-clock">
-                    <span class="vr-time">{{ clock.hm }}</span>
-                    <span class="vr-date">{{ clock.day }}, {{ clock.date }}</span>
+                <!-- a round, wired clock: rings, ticks, thin hands and an orbiting second -->
+                <svg class="vr-orb" viewBox="0 0 200 200" aria-hidden="true">
+                    <defs>
+                        <pattern id="vr-scan" width="4" height="4" patternUnits="userSpaceOnUse">
+                            <rect width="4" height="1" fill="currentColor" opacity="0.06" />
+                        </pattern>
+                    </defs>
+                    <circle cx="100" cy="100" r="96" class="orb-face" />
+                    <circle cx="100" cy="100" r="96" fill="url(#vr-scan)" />
+                    <circle cx="100" cy="100" r="88" class="orb-ring" />
+                    <circle cx="100" cy="100" r="62" class="orb-ring faint" />
+                    <circle cx="100" cy="100" r="34" class="orb-ring faint dashed" />
+                    <line x1="100" y1="6" x2="100" y2="194" class="orb-cross" />
+                    <line x1="6" y1="100" x2="194" y2="100" class="orb-cross" />
+                    <g v-for="i in 60" :key="i" :transform="`rotate(${i * 6} 100 100)`">
+                        <line x1="100" :y1="i % 5 === 0 ? 8 : 11" x2="100" y2="16" :class="i % 5 === 0 ? 'orb-tick big' : 'orb-tick'" />
+                    </g>
+                    <path :d="secondArc" class="orb-arc" />
+                    <line x1="100" y1="100" x2="100" y2="50" class="orb-hand hour" :transform="`rotate(${clock.ha} 100 100)`" />
+                    <line x1="100" y1="100" x2="100" y2="30" class="orb-hand" :transform="`rotate(${clock.ma} 100 100)`" />
+                    <circle cx="100" cy="12" r="3.2" class="orb-sec" :transform="`rotate(${clock.sa} 100 100)`" />
+                    <circle cx="100" cy="100" r="3" class="orb-core" />
+                    <text x="100" y="140" class="orb-digits">{{ clock.hm }}<tspan class="orb-secs">{{ clock.sec }}</tspan></text>
+                    <text x="100" y="74" class="orb-label">layer {{ clock.layer }}</text>
+                </svg>
+                <div class="vr-side">
+                    <span class="vr-day">{{ clock.day }}</span>
+                    <span class="vr-date">{{ clock.date }}</span>
+                    <span class="vr-wire">connected<span class="vr-blink">_</span></span>
+                    <div v-if="neonState.song" class="vr-now">
+                        <span class="vr-eq" :class="{ live: neonState.playing }"><i></i><i></i><i></i><i></i></span>
+                        <span class="vr-now-text">{{ musicLine }}</span>
+                    </div>
                 </div>
-                <AuroraLogo :size="30" class="vr-logo" />
-            </div>
-            <div v-if="neonState.song" class="vr-now">
-                <span class="vr-eq" :class="{ live: neonState.playing }"><i></i><i></i><i></i><i></i></span>
-                <span class="vr-now-text">{{ musicLine }}</span>
             </div>
             <div class="vr-chips">
                 <span class="vr-chip" :class="{ on: neonState.chatbox }"><i></i>Chatbox</span>
@@ -1590,10 +1615,10 @@
 
 
     // Aurora in the headset: a tiny synth blip for events, alarms and the quick controls.
-    const neonState = reactive({ accent: '#a48cff', mm: false, mmMuted: false, mmApp: '', mmVol: 80, song: '', artist: '', playing: false, chatbox: false, sounds: true, afk: false, music: false, preview: '', nextAlarm: '' });
+    const neonState = reactive({ accent: '#b4b4b4', mm: false, mmMuted: false, mmApp: '', mmVol: 80, song: '', artist: '', playing: false, chatbox: false, sounds: true, afk: false, music: false, preview: '', nextAlarm: '' });
     function neonStateUpdate(json) {
         Object.assign(neonState, JSON.parse(json));
-        document.documentElement.style.setProperty('--vr-accent', neonState.accent || '#a48cff');
+        document.documentElement.style.setProperty('--vr-accent', neonState.accent || '#b4b4b4');
     }
     function dashPress(cmd) {
         try {
@@ -1703,7 +1728,7 @@
         blip(r.notes);
     }
 
-    const clock = reactive({ day: '', date: '', hm: '', sec: '' });
+    const clock = reactive({ day: '', date: '', hm: '', sec: '', ha: 0, ma: 0, sa: 0, layer: '01' });
     let clockTimer = null;
     function tickClock() {
         const now = new Date();
@@ -1711,7 +1736,22 @@
         clock.date = now.toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' });
         clock.hm = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
         clock.sec = ':' + String(now.getSeconds()).padStart(2, '0');
+        // angles for the round clock
+        const sec = now.getSeconds();
+        const min = now.getMinutes() + sec / 60;
+        clock.sa = sec * 6;
+        clock.ma = min * 6;
+        clock.ha = ((now.getHours() % 12) + min / 60) * 30;
+        clock.layer = String((now.getHours() % 12) + 1).padStart(2, '0');
     }
+    // the thin arc that fills up as the minute goes by
+    const secondArc = computed(() => {
+        const a = ((clock.sa || 0.0001) * Math.PI) / 180;
+        const r = 75;
+        const x = 100 + r * Math.sin(a);
+        const y = 100 - r * Math.cos(a);
+        return `M 100 ${100 - r} A ${r} ${r} 0 ${clock.sa > 180 ? 1 : 0} 1 ${x.toFixed(2)} ${y.toFixed(2)}`;
+    });
 
 
     const { t, locale } = useI18n();

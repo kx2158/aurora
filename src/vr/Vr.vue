@@ -3,7 +3,6 @@
         <div class="wrist" :class="{ background: config && config.backgroundEnabled }">
             <div v-if="alarmBanner" class="neon-alarm">ALARM {{ alarmBanner.time }} - {{ alarmBanner.label }}</div>
             <div class="neon-clock">
-                <img class="neon-face" :class="{ pop: neon.pop }" :src="neonFace" :style="{ filter: neonTint }" alt="" />
                 <div class="neon-clock-day">{{ clock.day }}</div>
                 <div class="neon-clock-time">
                     {{ clock.hm }}<span class="neon-clock-sec">{{ clock.sec }}</span>
@@ -22,7 +21,7 @@
                 <span v-if="neonState.nextAlarm" class="neon-chip on">ALARM {{ neonState.nextAlarm }}</span>
             </div>
             <div class="neon-ticker">
-                <span>AURORA//SYS ONLINE</span><span>LINK STABLE</span><span>NIGHT CITY TIME {{ clock.hm }}</span>
+                <span>AURORA</span><span>{{ clock.hm }}</span>
             </div>
             <div class="x-container" style="flex: 1">
                 <div class="x-friend-list" ref="list" style="color: var(--vr-text-secondary)">
@@ -1578,33 +1577,12 @@
 
 
     // Neon in the headset: one small picture, a tiny synth blip, a short pop. No voice model here, so it stays light.
-    const neonSprites = import.meta.glob('../../images/aurora/mascot/*.png', { eager: true, import: 'default' });
-    const neonBySlug = {};
-    for (const [path, url] of Object.entries(neonSprites)) {
-        neonBySlug[path.split('/').pop().replace('.png', '')] = url;
-    }
     const neon = reactive({ face: 'neutral', pop: false });
     const neonState = reactive({ accent: '#ff3d9a', mm: false, mmMuted: false, mmApp: '', mmVol: 80, song: '', artist: '', playing: false, chatbox: false, voice: true, sounds: true, afk: false, music: false, preview: '', nextAlarm: '' });
     function neonStateUpdate(json) {
         Object.assign(neonState, JSON.parse(json));
         document.documentElement.style.setProperty('--vr-accent', neonState.accent || '#ff3d9a');
     }
-    // turns the pink Neon picture into the accent colour
-    const neonTint = computed(() => {
-        const hex = String(neonState.accent || '#ff3d9a');
-        const n = parseInt(hex.slice(1), 16);
-        const r = ((n >> 16) & 255) / 255;
-        const g = ((n >> 8) & 255) / 255;
-        const b = (n & 255) / 255;
-        const max = Math.max(r, g, b);
-        const d = max - Math.min(r, g, b);
-        let h = 0;
-        if (d) {
-            h = max === r ? ((g - b) / d) % 6 : max === g ? (b - r) / d + 2 : (r - g) / d + 4;
-            h = (h * 60 + 360) % 360;
-        }
-        return `hue-rotate(${Math.round(h - 330)}deg)`;
-    });
     function dashPress(cmd) {
         try {
             AppApiVr.NeonCommand(cmd);
@@ -1630,7 +1608,6 @@
         { cmd: 'timer60', icon: '\u23F0', label: '1 HOUR' },
         { cmd: 'stopAlarm', icon: '\u25A0', label: 'STOP ALARM', warn: true },
         { cmd: 'music', icon: '\u266A', label: 'MUSIC LINE', state: onOff(neonState.music), on: neonState.music },
-        { cmd: 'voice', icon: '\u263A', label: 'AURORA VOICE', state: onOff(neonState.voice), on: neonState.voice },
         { cmd: 'sounds', icon: '\u266B', label: 'VR BEEPS', state: onOff(neonState.sounds), on: neonState.sounds }
     ]);
     const musicLine = computed(() =>
@@ -1661,7 +1638,6 @@
             neon.pop = false;
         }, 20000);
     }
-    const neonFace = computed(() => neonBySlug[neon.face] || neonBySlug.neutral);
     let neonTimer = null;
     let neonLastKey = '';
     let audioCtx = null;

@@ -491,6 +491,12 @@ async function getThemeMode(configRepository) {
         await configRepository.setString('VRCX_ThemeMode', 'system');
         await configRepository.setBool('Aurora_xrayApplied', true);
     }
+    // the minimal redesign: everyone starts on Aurora Dark once (any theme can still be picked after)
+    if (!(await configRepository.getBool('Aurora_minimalApplied', false))) {
+        initThemeMode = 'xraydark';
+        await configRepository.setString('VRCX_ThemeMode', 'xraydark');
+        await configRepository.setBool('Aurora_minimalApplied', true);
+    }
 
     let isDarkMode;
     if (initThemeMode === 'light') {

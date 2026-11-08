@@ -164,7 +164,7 @@
                     <pre
                         class="text-xs font-[inherit]"
                         style="white-space: pre-wrap; max-height: 210px; overflow-y: auto"
-                        >{{ bioCache.translated || replaceBioSymbols(userDialog.publicProfileRef?.bio) || '—' }}</pre>
+                        >{{ bioCache.translated || replaceBioSymbols(userDialog.publicProfileRef?.bio) || '-' }}</pre>
                     <div
                         v-if="userDialog.publicProfileRef?.bioLinks && userDialog.publicProfileRef?.bioLinks.length"
                         class="flex flex-wrap items-center gap-1.5 mt-2">
@@ -200,7 +200,7 @@
                         class="text-xs font-[inherit]"
                         style="white-space: pre-wrap; max-height: 210px; overflow-y: auto"
                         >{{ userDialog.note }}</pre>
-                    <pre class="text-xs font-[inherit] text-muted-foreground" v-else>—</pre>
+                    <pre class="text-xs font-[inherit] text-muted-foreground" v-else>-</pre>
                 </div>
 
                 <div
@@ -222,7 +222,7 @@
                         class="text-xs font-[inherit]"
                         style="white-space: pre-wrap; max-height: 210px; overflow-y: auto"
                         >{{ userDialog.memo }}</pre>
-                    <pre class="text-xs font-[inherit] text-muted-foreground" v-else>—</pre>
+                    <pre class="text-xs font-[inherit] text-muted-foreground" v-else>-</pre>
                 </div>
             </div>
 
@@ -323,7 +323,7 @@
                                         t('dialog.user.info.join_count')
                                     }}</span>
                                     <span class="text-right text-muted-foreground">{{
-                                        userDialog.joinCount || '—'
+                                        userDialog.joinCount || '-'
                                     }}</span>
                                 </div>
                             </TooltipWrapper>

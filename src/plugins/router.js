@@ -2,11 +2,11 @@ import { createRouter, createWebHashHistory } from 'vue-router';
 
 import { watchState } from '../services/watchState';
 
-import FavoritesAvatar from './../views/Favorites/FavoritesAvatar.vue';
 import FavoritesFriend from './../views/Favorites/FavoritesFriend.vue';
 import FavoritesWorld from './../views/Favorites/FavoritesWorld.vue';
 import Chatbox from './../views/Chatbox/Chatbox.vue';
-import Neon from './../views/Neon/Neon.vue';
+import Mic from './../views/Mic/Mic.vue';
+import Automations from './../views/Automations/Automations.vue';
 import Home from './../views/Home/Home.vue';
 import Feed from './../views/Feed/Feed.vue';
 import FriendList from './../views/FriendList/FriendList.vue';
@@ -18,7 +18,6 @@ import GameLog from './../views/GameLog/GameLog.vue';
 import Login from './../views/Login/Login.vue';
 import MainLayout from '../views/Layout/MainLayout.vue';
 import Moderation from './../views/Moderation/Moderation.vue';
-import MyAvatars from './../views/MyAvatars/MyAvatars.vue';
 import Notification from './../views/Notifications/Notification.vue';
 import PlayerList from './../views/PlayerList/PlayerList.vue';
 import ScreenshotMetadata from './../views/Tools/ScreenshotMetadata.vue';
@@ -41,7 +40,14 @@ const routes = [
             { path: '', redirect: { name: 'home' } },
             { path: 'home', name: 'home', component: Home },
             { path: 'feed', name: 'feed', component: Feed },
-            { path: 'neon', name: 'neon', component: Neon },
+            { path: 'neon', name: 'neon', redirect: { name: 'mic' } },
+            { path: 'mic', name: 'mic', component: Mic },
+            { path: 'automations', name: 'automations', component: Automations },
+            {
+                path: 'insights',
+                name: 'insights',
+                component: () => import('./../views/Insights/Insights.vue')
+            },
             { path: 'chatbox', name: 'chatbox', component: Chatbox },
             {
                 path: 'friends-locations',
@@ -68,11 +74,7 @@ const routes = [
                 name: 'favorite-worlds',
                 component: FavoritesWorld
             },
-            {
-                path: 'favorites/avatars',
-                name: 'favorite-avatars',
-                component: FavoritesAvatar
-            },
+            { path: 'favorites/avatars', name: 'favorite-avatars', redirect: { name: 'home' } },
             {
                 path: 'social/friend-log',
                 name: 'friend-log',
@@ -83,11 +85,8 @@ const routes = [
                 name: 'moderation',
                 component: Moderation
             },
-            {
-                path: 'my-avatars',
-                name: 'my-avatars',
-                component: MyAvatars
-            },
+            // avatars were taken out of Aurora; old links land on Home
+            { path: 'my-avatars', name: 'my-avatars', redirect: { name: 'home' } },
             {
                 path: 'notification',
                 name: 'notification',

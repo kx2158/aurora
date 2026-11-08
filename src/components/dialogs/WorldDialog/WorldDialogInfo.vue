@@ -25,7 +25,7 @@
                             {{ t('dialog.world.info.visit_count') }}
                         </span>
                         <span class="text-right text-muted-foreground">
-                            {{ worldDialog.visitCount === 0 ? '—' : worldDialog.visitCount }}
+                            {{ worldDialog.visitCount === 0 ? '-' : worldDialog.visitCount }}
                         </span>
                     </div>
                 </TooltipWrapper>
@@ -107,7 +107,7 @@
                         <span class="text-muted-foreground shrink-0">{{ t('dialog.world.info.author_tags') }}</span>
 
                         <span class="max-w-30 truncate text-right text-muted-foreground">
-                            {{ worldTags || '—' }}
+                            {{ worldTags || '-' }}
                         </span>
                     </div>
                 </TooltipWrapper>

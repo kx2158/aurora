@@ -79,7 +79,7 @@ function gameLogSearchFilter(row, searchQuery) {
  * @returns {number} Millisecond timestamp, or 0 if unparseable
  */
 function getGameLogCreatedAtTs(row) {
-    // dynamic import avoided — dayjs is a lightweight dep already used by the
+    // dynamic import avoided - dayjs is a lightweight dep already used by the
     // consumer; we import it lazily to keep the module usable without bundler
     // context in tests (dayjs is a CJS/ESM dual package).
     const createdAtRaw = row?.created_at ?? row?.createdAt ?? row?.dt;
@@ -89,7 +89,7 @@ function getGameLogCreatedAtTs(row) {
     }
 
     const createdAt = typeof createdAtRaw === 'string' ? createdAtRaw : '';
-    // dayjs is imported at the call site (store) — here we do a simple
+    // dayjs is imported at the call site (store) - here we do a simple
     // Date.parse fallback to stay dependency-free.
     const ts = Date.parse(createdAt);
     return Number.isFinite(ts) ? ts : 0;

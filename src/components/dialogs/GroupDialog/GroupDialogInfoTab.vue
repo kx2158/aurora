@@ -63,7 +63,7 @@
                 {{ t('dialog.group.info.header') }}
             </div>
             <pre class="text-xs font-[inherit]" style="white-space: pre-wrap; max-height: 210px; overflow-y: auto">{{
-                groupDialog.ref.description || '—'
+                groupDialog.ref.description || '-'
             }}</pre>
         </div>
 
@@ -160,7 +160,7 @@
                     </TooltipWrapper>
                 </div>
             </div>
-            <pre v-else class="text-xs font-[inherit] text-muted-foreground">—</pre>
+            <pre v-else class="text-xs font-[inherit] text-muted-foreground">-</pre>
         </div>
 
         <!-- Upcoming Events card -->
@@ -179,7 +179,7 @@
                     mode="grid"
                     card-class="group-dialog-grid-card" />
             </div>
-            <span v-else class="text-xs text-muted-foreground">—</span>
+            <span v-else class="text-xs text-muted-foreground">-</span>
         </div>
 
         <!-- Past Events card -->
@@ -200,7 +200,7 @@
                     mode="grid"
                     card-class="group-dialog-grid-card" />
             </div>
-            <span v-else class="text-xs text-muted-foreground">—</span>
+            <span v-else class="text-xs text-muted-foreground">-</span>
         </div>
 
         <!-- Rules card -->
@@ -210,7 +210,7 @@
                 {{ t('dialog.group.info.rules') }}
             </div>
             <pre class="text-xs font-[inherit]" style="white-space: pre-wrap; max-height: 210px; overflow-y: auto">{{
-                groupDialog.ref.rules || '—'
+                groupDialog.ref.rules || '-'
             }}</pre>
         </div>
     </div>

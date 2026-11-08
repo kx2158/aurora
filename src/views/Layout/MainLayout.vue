@@ -16,7 +16,6 @@
                     @pointerdown.prevent="startNavResize" />
 
                 <SidebarInset class="min-w-0 bg-sidebar">
-                    <NeonStatusBar />
                     <ResizablePanelGroup
                         direction="horizontal"
                         auto-save-id="vrcx-main-layout-right-sidebar"
@@ -86,7 +85,6 @@
 </template>
 
 <script setup>
-    import NeonStatusBar from '../../components/NeonStatusBar.vue';
     import { computed, nextTick, onUnmounted, ref, watch } from 'vue';
     import { storeToRefs } from 'pinia';
     import { useRouter } from 'vue-router';

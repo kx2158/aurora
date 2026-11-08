@@ -383,13 +383,13 @@
                             <div class="flex items-start justify-between gap-2 text-xs">
                                 <span class="text-muted-foreground shrink-0">{{ t('dialog.avatar.info.tags') }}</span>
                                 <span class="max-w-30 truncate text-right text-muted-foreground">
-                                    {{ avatarTags || '—' }}
+                                    {{ avatarTags || '-' }}
                                 </span>
                             </div>
                         </TooltipWrapper>
                         <div class="flex justify-between items-start gap-2 text-xs">
                             <span class="text-muted-foreground shrink-0">{{ t('dialog.avatar.info.version') }}</span>
-                            <span class="text-right text-muted-foreground">{{ avatarDialog.ref.version || '—' }}</span>
+                            <span class="text-right text-muted-foreground">{{ avatarDialog.ref.version || '-' }}</span>
                         </div>
                         <TooltipWrapper side="right" :content="avatarDialogPlatform" :disabled="!avatarDialogPlatform">
                             <div class="flex items-start justify-between gap-2 text-xs">
@@ -398,7 +398,7 @@
                                 }}</span>
                                 <span
                                     class="block max-w-25 truncate whitespace-nowrap text-right text-muted-foreground">
-                                    {{ avatarDialogPlatform || '—' }}
+                                    {{ avatarDialogPlatform || '-' }}
                                 </span>
                             </div>
                         </TooltipWrapper>
@@ -429,7 +429,7 @@
                     <div class="flex justify-between items-start gap-2 text-xs">
                         <span class="text-muted-foreground shrink-0">{{ t('dialog.avatar.info.time_spent') }}</span>
                         <span class="text-right text-muted-foreground">
-                            {{ avatarDialog.timeSpent ? timeToText(avatarDialog.timeSpent) : '—' }}
+                            {{ avatarDialog.timeSpent ? timeToText(avatarDialog.timeSpent) : '-' }}
                         </span>
                     </div>
                 </div>

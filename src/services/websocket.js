@@ -20,7 +20,7 @@ import { request } from './request';
 import { runUpdateFriendFlow } from '../coordinators/friendPresenceCoordinator';
 import { runSetCurrentUserLocationFlow } from '../coordinators/locationCoordinator';
 import { watchState } from './watchState';
-import { queueNewFriend } from './auroraCompanion';
+import { queueNewFriend } from './auroraNotes';
 
 import * as workerTimers from 'worker-timers';
 

@@ -4,11 +4,11 @@
  * Offloads CPU-heavy confusable-character normalization and
  * locale-aware string search from the main thread.
  *
- * Protocol — Main → Worker:
+ * Protocol - Main → Worker:
  * { type: 'updateIndex', payload: { friends, avatars, worlds, groups, favAvatars, favWorlds } }
  * { type: 'search', payload: { seq, query, currentUserId, language } }
  *
- * Protocol — Worker → Main: { type: 'searchResult', payload: { seq, friends, ownAvatars, favAvatars, ownWorlds,
+ * Protocol - Worker → Main: { type: 'searchResult', payload: { seq, friends, ownAvatars, favAvatars, ownWorlds,
  * favWorlds, ownGroups, joinedGroups } }
  */
 

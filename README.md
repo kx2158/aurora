@@ -2,30 +2,30 @@
 
 # <img src="./images/aurora/icon.png" width="64" height="64" alt=""> Aurora
 
-A personal, privacy-first VRChat companion with a baby pink look, a robot mascot voice and built-in data cleanup.
+A minimal, privacy-first VRChat companion: your friends and history, clear insights, a mic mixer with noise suppression and chatbox tools.
 
 </div>
 
-Aurora is a personal fork of [VRCX](https://github.com/vrcx-team/VRCX) (MIT licensed). It is the full VRCX app, so friends, worlds, avatars, the feed, the game log and the rest all work the way you know, plus the changes below. It is not made by or affiliated with VRChat Inc. or the VRCX team.
+Aurora is a personal fork of [VRCX](https://github.com/vrcx-team/VRCX) (MIT licensed) by xoliexen. It keeps VRCX's features (friends, worlds, the feed, the game log, favorites, moderation) under a new, minimal interface. It is not made by or affiliated with VRChat Inc. or the VRCX team.
 
 ## What is different
 
-- **Aurora look, dark and light:** a dark pink theme (default) and a baby pink light theme, both under `Settings > Interface > Theme`. Choose *System* and Aurora follows Windows: dark at night, light by day.
-- **Meet Aurora:** the app's mascot is Aurora, a cat-eared cyber spirit in baby pink. Her picture is the app icon (`images/aurora/icon.png`) and she glows and bobs when she talks.
-- **Mascot voice:** short spoken lines from a local text-to-speech model (Kokoro-82M, runs on the CPU, nothing leaves your PC), with robot effects: bitcrusher, sample crush, ring modulation and stutter.
-- **Data cleanup:** removes invite data, expired notifications, download logs, caches and old feed entries. Preview first, confirm, optional automatic run after login.
-- **App lock:** optional PIN with idle auto-lock and growing delays after wrong tries. It keeps people out of the app. It does not encrypt files on disk, so use BitLocker for that.
-- **No calls home:** the updater and the crash reporter are switched off.
-- **Hardening:** sandboxed windows in the Electron build, no extra windows, no navigating away, no camera, microphone or location requests.
-- **Safe by design:** Aurora reads your VRChat logs and uses VRChat's normal API the way VRCX does. It has no auto-kick, bulk moderation or other automation, because that can get an account banned.
-
-All Aurora settings live in `Settings > Aurora`.
+- **A calm, minimal look:** Aurora Dark and Aurora Light, flat surfaces, one accent colour (or grayscale), its own icon set and logo. Neon, the old pink look, is still in the theme list.
+- **A sidebar that makes sense:** grouped into People, Worlds, Insights and Aurora, with the Aurora tools one click away.
+- **Mic:** mixes one app's music with your voice into a virtual cable, with noise suppression (fans, keyboard, room noise), bass boost, up to 500% voice and 1000% music, and it turns on by itself when VRChat opens.
+- **Insights:** time played per day, your week as a heat map, who you spend time with, when friends come online, friends over time, where you hang out and how many people you meet.
+- **Chatbox:** live text in the VRChat chatbox with pages and integrations (time, music, system stats...).
+- **Automations:** alarms and timers, and a status that switches itself while chosen friends are online.
+- **Data safety:** daily database backups, and Aurora never deletes your time together or online history.
+- **Data cleanup and app lock:** remove clutter (invites, expired notifications, caches), and an optional PIN.
+- **No calls home:** the crash reporter is off; the updater only reads this repository's releases.
+- **Safe by design:** no auto-kick, bulk moderation or other automation that can get an account banned.
 
 ## Get the app
 
-1. Go to the [Releases page](https://github.com/kx2158/aurora/releases/latest) and download **`Neon_Setup_x64.exe`**. That one file is all you need.
+1. Go to the [Releases page](https://github.com/kx2158/aurora/releases/latest) and download **`Aurora_Setup_x64.exe`**. That one file is all you need.
 2. Run it. If you have VRCX installed, Aurora replaces it, copies your data to `Documents\Aurora-backups` as a safety backup (the data itself stays where it is, so your history, favorites and settings carry over), and puts **Aurora** shortcuts on your desktop and Start menu.
-3. Open **Aurora**. It starts in the pink Aurora theme.
+3. Open **Aurora**. It starts in Aurora Dark.
 
 After that Aurora updates itself: it checks this repository's releases and offers new versions in the app (`Settings > System`).
 
@@ -60,4 +60,4 @@ Aurora is built on VRCX by the VRCX team and contributors, released under the MI
 
 ## Fork it
 
-See [docs/GUIDE.md](docs/GUIDE.md) for how the code is laid out, how to add settings, pages and features, how to restyle the app and how to change the assistant.
+See [docs/GUIDE.md](docs/GUIDE.md) for how the code is laid out, how to add settings, pages and features, and how to restyle the app.

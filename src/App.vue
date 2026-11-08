@@ -16,8 +16,6 @@
             <DatabaseUpgradeDialog></DatabaseUpgradeDialog>
 
             <VRCXUpdateDialog></VRCXUpdateDialog>
-            <NeonDock></NeonDock>
-            <AuroraCompanion></AuroraCompanion>
             <AuroraLockScreen></AuroraLockScreen>
         </div>
         <div id="x-dialog-portal" class="x-dialog-portal"></div>
@@ -40,13 +38,11 @@
     import { initChatbox } from './services/auroraChatbox';
     import { backupDatabase } from './services/auroraBackup';
     import { initMusicMic, watchGameForMic } from './services/auroraMusicMic';
-import { initAccent } from './services/auroraAccent';
-import { initAlarms } from './services/auroraAlarms';
-import { initVrBridge, neonCommand } from './services/auroraVrBridge';
-import { initIntegrations } from './services/auroraIntegrations';
+    import { initAccent } from './services/auroraAccent';
+    import { initAlarms } from './services/auroraAlarms';
+    import { initVrBridge, neonCommand } from './services/auroraVrBridge';
+    import { initIntegrations } from './services/auroraIntegrations';
 
-    import NeonDock from './components/NeonDock.vue';
-    import AuroraCompanion from './components/AuroraCompanion.vue';
     import AuroraLockScreen from './components/AuroraLockScreen.vue';
     import AlertDialogModal from './components/ui/alert-dialog/AlertDialogModal.vue';
     import DatabaseUpgradeDialog from './components/dialogs/DatabaseUpgradeDialog.vue';

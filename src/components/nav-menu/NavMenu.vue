@@ -2,25 +2,11 @@
     <Sidebar side="left" variant="sidebar" collapsible="icon">
         <SidebarHeader class="px-2 pt-3 pb-1">
             <div class="aurora-brand" :class="{ 'justify-center': isCollapsed }">
-                <AuroraMascot :size="isCollapsed ? 28 : 36" />
-                <span v-show="!isCollapsed" class="aurora-brand-name">AURORA</span>
+                <AuroraLogo :size="isCollapsed ? 24 : 26" />
+                <span v-show="!isCollapsed" class="aurora-brand-name">aurora</span>
             </div>
         </SidebarHeader>
-        <SidebarHeader v-if="showNewDashboardButton" class="px-2 py-2">
-            <SidebarMenu>
-                <SidebarMenuItem>
-                    <SidebarMenuButton
-                        :tooltip="t('dashboard.new_dashboard')"
-                        class="border border-dashed border-primary/40 text-primary hover:bg-primary/10"
-                        @click="handleQuickCreateDashboard">
-                        <div class="flex items-center gap-3 pl-1 group-data-[collapsible=icon]:pl-0">
-                            <Plus class="size-4" />
-                            <span v-show="!isCollapsed">{{ t('dashboard.new_dashboard') }}</span>
-                        </div>
-                    </SidebarMenuButton>
-                </SidebarMenuItem>
-            </SidebarMenu>
-        </SidebarHeader>
+        <!-- new dashboards are made from the sidebar's right-click menu -->
 
         <ContextMenu>
             <ContextMenuTrigger as-child>
@@ -29,6 +15,13 @@
                         <SidebarGroupContent>
                             <SidebarMenu v-if="navLayoutReady">
                                 <template v-for="item in menuItems" :key="item.index">
+                                    <li
+                                        v-if="sectionLabels[item.index]"
+                                        class="aurora-nav-section"
+                                        :class="{ collapsed: isCollapsed }"
+                                        role="presentation">
+                                        <span v-show="!isCollapsed">{{ t(sectionLabels[item.index]) }}</span>
+                                    </li>
                                     <SidebarMenuItem v-if="!item.children?.length">
                                         <ContextMenu>
                                             <ContextMenuTrigger as-child>
@@ -37,8 +30,8 @@
                                                     :tooltip="getItemTooltip(item)"
                                                     @click="handleMenuItemClick(item)">
                                                     <i
-                                                        :class="item.icon"
-                                                        class="inline-flex size-6 items-center justify-center text-lg relative">
+                                                        :class="navIconClass(item.icon)"
+                                                        class="inline-flex size-6 items-center justify-center text-lg relative"><AuroraIcon v-if="isAuroraIcon(item.icon)" :name="auroraIconName(item.icon)" :size="18" />
                                                         <span
                                                             v-if="isNavItemNotified(item)"
                                                             class="notify-dot-not-collapsed bg-red-500"
@@ -165,7 +158,9 @@
 </template>
 
 <script setup>
-    import AuroraMascot from '@/components/AuroraMascot.vue';
+    import AuroraIcon from '@/components/AuroraIcon.vue';
+    import { auroraIconName, isAuroraIcon, navIconClass } from '@/shared/utils/navIcon';
+    import AuroraLogo from '@/components/AuroraLogo.vue';
     import { computed, h, onMounted, ref, watch } from 'vue';
 
     import { storeToRefs } from 'pinia';
@@ -207,7 +202,7 @@
         useVRCXUpdaterStore
     } from '../../stores';
     import { isEntryNotified as checkEntryNotified } from './navMenuUtils';
-    import { DASHBOARD_NAV_KEY_PREFIX, links } from '../../shared/constants';
+    import { DASHBOARD_NAV_KEY_PREFIX, links, navSections } from '../../shared/constants';
     import { openExternalLink } from '../../shared/utils';
 
     import NavMenuFolderItem from './NavMenuFolderItem.vue';
@@ -242,7 +237,7 @@
         tableDensity,
         isDarkMode,
         isNavCollapsed: isCollapsed,
-        showNewDashboardButton
+
     } = storeToRefs(appearanceSettingsStore);
 
     const {
@@ -288,12 +283,26 @@
         triggerTool
     });
 
+    // a small label above the first entry of each section (People, Worlds, Insights, Aurora)
+    const sectionLabels = computed(() => {
+        const labels = {};
+        let previous = '';
+        for (const item of menuItems.value) {
+            const section = item.children?.length ? previous : item.section || '';
+            if (section && section !== previous && navSections[section]) {
+                labels[item.index] = navSections[section];
+            }
+            previous = section;
+        }
+        return labels;
+    });
+
     const collapsedDropdownOpenId = ref(null);
     const customNavDialogVisible = ref(false);
 
     const hasNotifications = computed(() => notifiedMenus.value.length > 0);
     const version = computed(() => appVersion.value?.replace(/^\D+/, '') || '-');
-    const vrcxLogo = new URL('../../../images/Neon.png', import.meta.url).href;
+    const vrcxLogo = new URL('../../../images/aurora/logo.svg', import.meta.url).href;
 
     const isEntryNotified = (entry) => checkEntryNotified(entry, notifiedMenus.value);
 

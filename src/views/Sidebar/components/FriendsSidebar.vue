@@ -21,7 +21,7 @@
                                     <span class="ml-1.5">
                                         {{ item.row.label }}
                                         <template v-if="item.row.count !== null && item.row.count !== undefined">
-                                            &horbar; {{ item.row.count }}
+                                            · {{ item.row.count }}
                                         </template>
                                     </span>
                                 </div>

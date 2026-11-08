@@ -54,7 +54,7 @@
                     </button>
                 </div>
             </div>
-            <div v-else class="p-3 text-center text-sm text-muted-foreground">—</div>
+            <div v-else class="p-3 text-center text-sm text-muted-foreground">-</div>
         </ScrollArea>
 
         <Separator />

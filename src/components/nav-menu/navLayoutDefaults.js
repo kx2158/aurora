@@ -1,37 +1,29 @@
 import { DASHBOARD_NAV_KEY_PREFIX } from '../../shared/constants';
 
 export function createBaseDefaultNavLayout(t) {
+    void t;
+    // flat list, the sidebar draws section labels from each entry's section
     return [
         { type: 'item', key: 'home' },
-        { type: 'item', key: 'neon' },
-        { type: 'item', key: 'chatbox' },
-        { type: 'item', key: 'friends-locations' },
         { type: 'item', key: 'feed' },
+        { type: 'item', key: 'friends-locations' },
         { type: 'item', key: 'notification' },
-        {
-            type: 'folder',
-            id: 'default-folder-more',
-            nameKey: 'nav_tooltip.more',
-            name: t('nav_tooltip.more'),
-            icon: 'ri-apps-2-line',
-            items: [
-                'game-log',
-                'player-list',
-                'search',
-                'favorite-friends',
-                'favorite-worlds',
-                'favorite-avatars',
-                'friend-log',
-                'friend-list',
-                'moderation',
-                'my-avatars',
-                'charts-instance',
-                'charts-mutual',
-                'charts-hot-worlds'
-            ]
-        },
+        { type: 'item', key: 'search' },
+        { type: 'item', key: 'mic' },
+        { type: 'item', key: 'chatbox' },
+        { type: 'item', key: 'automations' },
         { type: 'item', key: 'tools' },
-        { type: 'item', key: 'direct-access' }
+        { type: 'item', key: 'friend-list' },
+        { type: 'item', key: 'friend-log' },
+        { type: 'item', key: 'favorite-friends' },
+        { type: 'item', key: 'moderation' },
+        { type: 'item', key: 'favorite-worlds' },
+        { type: 'item', key: 'game-log' },
+        { type: 'item', key: 'player-list' },
+        { type: 'item', key: 'insights' },
+        { type: 'item', key: 'charts-mutual' },
+        { type: 'item', key: 'charts-instance' },
+        { type: 'item', key: 'charts-hot-worlds' }
     ];
 }
 

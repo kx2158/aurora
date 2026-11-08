@@ -12,9 +12,9 @@
                                 :is-active="item.children?.some((e) => e.index === activeMenuIndex)"
                                 :tooltip="item.titleIsCustom ? item.title : t(item.title || '')">
                                 <i
-                                    :class="item.icon"
+                                    :class="navIconClass(item.icon)"
                                     class="inline-flex size-6 items-center justify-center text-lg relative"
-                                    ><span
+                                    ><AuroraIcon v-if="isAuroraIcon(item.icon)" :name="auroraIconName(item.icon)" :size="18" /><span
                                         v-if="isNavItemNotified(item)"
                                         class="notify-dot bg-red-500 -right-1!"
                                         aria-hidden="true"></span
@@ -31,9 +31,9 @@
                                 @select="(event) => emit('collapsed-submenu-select', event, entry)">
                                 <i
                                     v-if="entry.icon"
-                                    :class="entry.icon"
+                                    :class="navIconClass(entry.icon)"
                                     class="inline-flex size-4 items-center justify-center text-base relative"
-                                    ><span
+                                    ><AuroraIcon v-if="isAuroraIcon(entry.icon)" :name="auroraIconName(entry.icon)" :size="18" /><span
                                         v-if="isEntryNotified(entry)"
                                         class="notify-dot bg-red-500 -right-1! top-0.5!"
                                         aria-hidden="true"></span
@@ -54,9 +54,9 @@
                                     :is-active="item.children?.some((e) => e.index === activeMenuIndex)"
                                     :tooltip="item.titleIsCustom ? item.title : t(item.title || '')">
                                     <i
-                                        :class="item.icon"
+                                        :class="navIconClass(item.icon)"
                                         class="inline-flex size-6 items-center justify-center text-lg relative"
-                                        ><span
+                                        ><AuroraIcon v-if="isAuroraIcon(item.icon)" :name="auroraIconName(item.icon)" :size="18" /><span
                                             v-if="isNavItemNotified(item)"
                                             class="notify-dot bg-red-500"
                                             aria-hidden="true"></span
@@ -81,9 +81,9 @@
                                                     @click="emit('submenu-click', entry)">
                                                     <i
                                                         v-if="entry.icon"
-                                                        :class="entry.icon"
+                                                        :class="navIconClass(entry.icon)"
                                                         class="inline-flex size-5 items-center justify-center text-base relative"
-                                                        ><span
+                                                        ><AuroraIcon v-if="isAuroraIcon(entry.icon)" :name="auroraIconName(entry.icon)" :size="18" /><span
                                                             v-if="isEntryNotified(entry)"
                                                             class="notify-dot bg-red-500 -right-0.5!"
                                                             aria-hidden="true"></span
@@ -142,6 +142,8 @@
 </template>
 
 <script setup>
+    import AuroraIcon from '@/components/AuroraIcon.vue';
+    import { auroraIconName, isAuroraIcon, navIconClass } from '@/shared/utils/navIcon';
     import { ChevronRight } from 'lucide-vue-next';
     import { useI18n } from 'vue-i18n';
 

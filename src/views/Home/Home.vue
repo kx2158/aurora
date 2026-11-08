@@ -1,132 +1,126 @@
 <template>
-    <div class="nx-home x-container">
-        <div class="nx-head">
-            <div>
-                <h1 class="nx-title">{{ greeting }}</h1>
-                <p class="nx-sub">{{ t('view.home.online_line', { n: onlineCount }) }}</p>
-            </div>
-            <div class="nx-clock">{{ clock }}</div>
-        </div>
+    <div class="a-page">
+        <div class="a-page-inner">
+            <header class="a-head">
+                <div>
+                    <h1 class="a-title">{{ greeting }}</h1>
+                    <p class="a-sub">{{ t('view.home.online_line', { n: onlineCount }) }}</p>
+                </div>
+                <div class="home-clock">{{ clock }}</div>
+            </header>
 
-        <div class="nx-tiles">
-            <div v-for="tile in tiles" :key="tile.label" class="nx-card nx-tile">
-                <span class="nx-meta">{{ tile.label }}</span>
-                <span class="nx-num">{{ tile.value }}</span>
-                <span v-if="tile.sub" class="nx-meta">{{ tile.sub }}</span>
-            </div>
-        </div>
-
-        <div class="nx-card nx-panel nx-week">
-            <h2 class="nx-h2">{{ t('view.home.week') }}</h2>
-            <div class="nx-bars">
-                <div v-for="b in stats.bars" :key="b.label" class="nx-bar">
-                    <span class="nx-bar-fill" :style="{ height: barHeight(b.ms) + '%' }"></span>
-                    <span class="nx-meta">{{ b.label }}</span>
-                    <span class="nx-meta">{{ b.ms ? fmtDuration(b.ms) : '' }}</span>
+            <div class="a-grid a-grid-4">
+                <div v-for="tile in tiles" :key="tile.label" class="a-card a-stat">
+                    <span class="a-stat-label">{{ tile.label }}</span>
+                    <span class="a-stat-value">{{ tile.value }}</span>
+                    <span v-if="tile.sub" class="a-stat-sub">{{ tile.sub }}</span>
                 </div>
             </div>
-        </div>
 
-        <div class="nx-grid">
-            <div class="nx-card nx-panel">
-                <h2 class="nx-h2">
-                    {{ t('view.home.worlds_visited') }}
-                    <span class="nx-count">{{ stats.worldCount }}</span>
-                </h2>
-                <div class="nx-tabs">
-                    <button type="button" :class="{ on: worldTab === 'recent' }" @click="worldTab = 'recent'">
-                        {{ t('view.home.tab_recent') }}
-                    </button>
-                    <button type="button" :class="{ on: worldTab === 'top' }" @click="worldTab = 'top'">
-                        {{ t('view.home.tab_top') }}
-                    </button>
-                </div>
-                <button
-                    v-for="w in worldTab === 'recent' ? stats.recent : stats.top"
-                    :key="w.id"
-                    type="button"
-                    class="nx-row nx-btn"
-                    @click="showWorldDialog(w.id)">
-                    <span class="nx-avatar">{{ initial(w.name) }}</span>
-                    <span class="nx-grow">
-                        <b>{{ w.name }}</b>
-                        <span class="nx-meta">
-                            {{ t('view.home.visits', { n: w.visits }) }} - {{ fmtDuration(w.time) }}
-                        </span>
-                    </span>
-                    <span class="nx-tag">{{ agoDate(w.last) }}</span>
-                </button>
-                <p v-if="!stats.worldCount" class="nx-meta">{{ t('view.home.empty') }}</p>
-            </div>
+            <div class="home-grid">
+                <div class="flex min-w-0 flex-col gap-4">
+                    <section class="a-card">
+                        <h2 class="a-h2">
+                            {{ t('view.home.week') }}
+                            <router-link :to="{ name: 'insights' }" class="a-h2-aside home-link">
+                                {{ t('view.home.more_insights') }} <AuroraIcon name="arrow" :size="13" />
+                            </router-link>
+                        </h2>
+                        <div class="home-bars">
+                            <div v-for="b in stats.bars" :key="b.label" class="home-bar" :title="b.ms ? fmtDuration(b.ms) : ''">
+                                <span class="home-bar-track"><i :style="{ height: barHeight(b.ms) + '%' }"></i></span>
+                                <span class="home-bar-label">{{ b.label }}</span>
+                            </div>
+                        </div>
+                    </section>
 
-            <div class="nx-side">
-                <div class="nx-card nx-panel">
-                    <h2 class="nx-h2">{{ t('view.home.friends_online') }}</h2>
-                    <button
-                        v-for="f in online"
-                        :key="f.id"
-                        type="button"
-                        class="nx-row nx-btn"
-                        @click="showUserDialog(f.id)">
-                        <span class="nx-avatar">{{ initial(f.name) }}<i class="nx-status"></i></span>
-                        <span class="nx-grow">
-                            <b>{{ f.name }}</b>
-                            <span class="nx-meta">{{ f.ref?.statusDescription || f.ref?.status || '' }}</span>
-                        </span>
-                    </button>
-                    <p v-if="!online.length" class="nx-meta">{{ t('view.home.nobody') }}</p>
+                    <section class="a-card">
+                        <h2 class="a-h2">
+                            {{ t('view.home.worlds_visited') }}
+                            <span class="a-pill">{{ stats.worldCount }}</span>
+                            <span class="a-h2-aside a-seg">
+                                <button type="button" :class="{ on: worldTab === 'recent' }" @click="worldTab = 'recent'">
+                                    {{ t('view.home.tab_recent') }}
+                                </button>
+                                <button type="button" :class="{ on: worldTab === 'top' }" @click="worldTab = 'top'">
+                                    {{ t('view.home.tab_top') }}
+                                </button>
+                            </span>
+                        </h2>
+                        <button
+                            v-for="w in worldTab === 'recent' ? stats.recent : stats.top"
+                            :key="w.id"
+                            type="button"
+                            class="a-row"
+                            @click="showWorldDialog(w.id)">
+                            <span class="a-initial">{{ initial(w.name) }}</span>
+                            <span class="a-row-main">
+                                <span class="a-row-title">{{ w.name }}</span>
+                                <span class="a-row-meta">
+                                    {{ t('view.home.visits', { n: w.visits }) }} - {{ fmtDuration(w.time) }}
+                                </span>
+                            </span>
+                            <span class="a-pill">{{ agoDate(w.last) }}</span>
+                        </button>
+                        <p v-if="!stats.worldCount" class="a-empty">{{ t('view.home.empty') }}</p>
+                    </section>
                 </div>
 
-                <div v-if="stats.met.length" class="nx-card nx-panel">
-                    <h2 class="nx-h2">
-                        {{ t('view.home.met_today') }}
-                        <span class="nx-count">{{ stats.met.length }}</span>
-                    </h2>
-                    <button
-                        v-for="p in stats.met"
-                        :key="p.id"
-                        type="button"
-                        class="nx-row nx-btn"
-                        @click="showUserDialog(p.id)">
-                        <span class="nx-avatar">{{ initial(p.name) }}</span>
-                        <span class="nx-grow">
-                            <b>{{ p.name }}</b>
-                            <span class="nx-meta">{{ t('view.home.met_in', { n: p.n }) }}</span>
-                        </span>
-                    </button>
-                </div>
+                <div class="flex min-w-0 flex-col gap-4">
+                    <section class="a-card">
+                        <h2 class="a-h2">
+                            {{ t('view.home.friends_online') }}
+                            <span class="a-pill">{{ onlineCount }}</span>
+                        </h2>
+                        <button v-for="f in online" :key="f.id" type="button" class="a-row" @click="showUserDialog(f.id)">
+                            <span class="a-initial online">{{ initial(f.name) }}</span>
+                            <span class="a-row-main">
+                                <span class="a-row-title">{{ f.name }}</span>
+                                <span class="a-row-meta">{{ f.ref?.statusDescription || f.ref?.status || '' }}</span>
+                            </span>
+                        </button>
+                        <p v-if="!online.length" class="a-empty">{{ t('view.home.nobody') }}</p>
+                    </section>
 
-                <div v-if="stats.memories.length" class="nx-card nx-panel">
-                    <h2 class="nx-h2">{{ t('view.home.on_this_day') }}</h2>
-                    <button
-                        v-for="m in stats.memories"
-                        :key="m.at"
-                        type="button"
-                        class="nx-row nx-btn"
-                        @click="showWorldDialog(m.id)">
-                        <span class="nx-avatar">{{ initial(m.name) }}</span>
-                        <span class="nx-grow">
-                            <b>{{ m.name }}</b>
-                            <span class="nx-meta">{{ m.at.slice(0, 4) }} - {{ fmtDuration(m.time) }}</span>
-                        </span>
-                    </button>
-                </div>
+                    <section v-if="stats.met.length" class="a-card">
+                        <h2 class="a-h2">
+                            {{ t('view.home.met_today') }}
+                            <span class="a-pill">{{ stats.met.length }}</span>
+                        </h2>
+                        <button v-for="p in stats.met" :key="p.id" type="button" class="a-row" @click="showUserDialog(p.id)">
+                            <span class="a-initial">{{ initial(p.name) }}</span>
+                            <span class="a-row-main">
+                                <span class="a-row-title">{{ p.name }}</span>
+                                <span class="a-row-meta">{{ t('view.home.met_in', { n: p.n }) }}</span>
+                            </span>
+                        </button>
+                    </section>
 
-                <div class="nx-card nx-panel nx-notes">
-                    <h2 class="nx-h2">
-                        {{ t('view.home.no_notes') }}
-                        <span class="nx-count">{{ pendingNotes.length }}</span>
-                    </h2>
-                    <p class="nx-meta">{{ t('view.home.no_notes_desc') }}</p>
-                    <div v-for="f in pendingNotes.slice(0, 4)" :key="f.id" class="nx-row">
-                        <span class="nx-avatar">{{ initial(f.name) }}</span>
-                        <span class="nx-grow">
-                            <b>{{ f.name }}</b>
-                            <span class="nx-meta">{{ ago(f.at) }}</span>
-                        </span>
-                        <button type="button" class="nx-add" @click="addNote(f)">{{ t('view.settings.aurora.note_add') }}</button>
-                    </div>
-                    <p v-if="!pendingNotes.length" class="nx-meta">{{ t('view.home.all_noted') }}</p>
+                    <section v-if="pendingNotes.length" class="a-card">
+                        <h2 class="a-h2">
+                            {{ t('view.home.no_notes') }}
+                            <span class="a-pill">{{ pendingNotes.length }}</span>
+                        </h2>
+                        <div v-for="f in pendingNotes.slice(0, 4)" :key="f.id" class="a-row">
+                            <span class="a-initial">{{ initial(f.name) }}</span>
+                            <span class="a-row-main">
+                                <span class="a-row-title">{{ f.name }}</span>
+                                <span class="a-row-meta">{{ ago(f.at) }}</span>
+                            </span>
+                            <button type="button" class="a-btn" @click="addNote(f)">{{ t('view.home.add_note') }}</button>
+                        </div>
+                    </section>
+
+                    <section v-if="stats.memories.length" class="a-card">
+                        <h2 class="a-h2">{{ t('view.home.on_this_day') }}</h2>
+                        <button v-for="m in stats.memories" :key="m.at" type="button" class="a-row" @click="showWorldDialog(m.id)">
+                            <span class="a-initial">{{ initial(m.name) }}</span>
+                            <span class="a-row-main">
+                                <span class="a-row-title">{{ m.name }}</span>
+                                <span class="a-row-meta">{{ m.at.slice(0, 4) }} - {{ fmtDuration(m.time) }}</span>
+                            </span>
+                        </button>
+                    </section>
                 </div>
             </div>
         </div>
@@ -140,7 +134,8 @@
     import { showUserDialog } from '../../coordinators/userCoordinator';
     import { showWorldDialog } from '../../coordinators/worldCoordinator';
     import { fmtDuration, loadStats } from '../../services/auroraStats';
-    import { clearPending, initCompanion, pendingNotes } from '../../services/auroraCompanion';
+    import { clearPending, initPendingNotes, pendingNotes } from '../../services/auroraNotes';
+    import AuroraIcon from '../../components/AuroraIcon.vue';
     import { useFriendStore, useLocationStore } from '../../stores';
 
     const { t } = useI18n();
@@ -155,11 +150,11 @@
         try {
             stats.value = await loadStats();
         } catch (e) {
-            console.error('Neon stats', e);
+            console.error('Aurora stats', e);
         }
     }
     onMounted(() => {
-        initCompanion();
+        initPendingNotes();
         refreshStats();
         timer = setInterval(() => {
             now.value = new Date();
@@ -219,212 +214,64 @@
 </script>
 
 <style scoped>
-    .nx-home {
-        display: flex;
-        flex-direction: column;
-        gap: 18px;
-        padding: 22px 26px 34px;
-        overflow-y: auto;
+    .home-clock {
+        font-size: 1.55rem;
+        font-weight: 300;
+        letter-spacing: 0.02em;
+        color: var(--a-muted);
+        font-variant-numeric: tabular-nums;
     }
-    .nx-head {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-end;
-    }
-    .nx-title {
-        font-size: 2rem;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
-        color: var(--foreground);
-        text-shadow: 3px 0 var(--primary), -3px 0 color-mix(in oklch, var(--foreground) 70%, transparent);
-    }
-    .nx-sub,
-    .nx-meta {
-        font-family: 'Share Tech Mono', ui-monospace, monospace;
-        font-size: 12px;
-        color: var(--muted-foreground);
-    }
-    .nx-clock {
-        font-family: 'Share Tech Mono', ui-monospace, monospace;
-        font-size: 1.6rem;
-        letter-spacing: 0.12em;
-        color: var(--primary);
-    }
-    .nx-tiles {
+    .home-grid {
         display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 14px;
-    }
-    .nx-card {
-        background: var(--card);
-        border: 1px solid var(--border);
-        clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 18px 100%, 0 calc(100% - 18px));
-    }
-    .nx-tile {
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        gap: 8px;
-        padding: 16px 18px;
-        min-height: 92px;
-    }
-    .nx-num {
-        font-size: 2rem;
-        font-weight: 800;
-        color: var(--primary);
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
-    .nx-grid {
-        display: grid;
-        grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
-        gap: 14px;
+        grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+        gap: 16px;
         align-items: start;
     }
-    .nx-side {
-        display: flex;
-        flex-direction: column;
-        gap: 14px;
+    @media (max-width: 960px) {
+        .home-grid {
+            grid-template-columns: minmax(0, 1fr);
+        }
     }
-    .nx-panel {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-        padding: 18px 20px;
-    }
-    .nx-notes {
-        background: linear-gradient(160deg, color-mix(in oklch, var(--primary) 14%, transparent), var(--card) 70%);
-    }
-    .nx-h2 {
-        display: flex;
+    .home-link {
+        display: inline-flex;
         align-items: center;
-        gap: 10px;
-        font-size: 0.95rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.14em;
-        color: var(--primary);
-        margin-bottom: 4px;
+        gap: 4px;
+        color: var(--a-muted);
     }
-    .nx-count {
-        min-width: 22px;
-        padding: 0 7px;
-        font-size: 12px;
-        text-align: center;
-        background: var(--primary);
-        color: var(--primary-foreground);
-    }
-    .nx-row {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        min-height: 46px;
-        padding: 0 8px;
-        border-left: 3px solid transparent;
-        text-align: left;
+    .home-link:hover {
         color: var(--foreground);
-        transition: background-color 0.12s ease;
     }
-    .nx-row:hover {
-        background: color-mix(in oklch, var(--primary) 12%, transparent);
-        border-left-color: var(--primary);
-    }
-    .nx-btn {
-        width: 100%;
-    }
-    .nx-grow {
-        flex: 1;
-        min-width: 0;
-        display: flex;
-        flex-direction: column;
-    }
-    .nx-grow b {
-        font-weight: 600;
-        font-size: 14px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
-    .nx-avatar {
-        position: relative;
-        width: 34px;
-        height: 34px;
-        flex: none;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 800;
-        color: var(--primary-foreground);
-        background: linear-gradient(135deg, var(--primary), color-mix(in oklch, var(--primary) 40%, white));
-    }
-    .nx-status {
-        position: absolute;
-        right: -3px;
-        bottom: -3px;
-        width: 10px;
-        height: 10px;
-        background: var(--foreground);
-        border: 2px solid var(--card);
-        border-radius: 50%;
-    }
-    .nx-tag {
-        padding: 2px 10px;
-        font-family: 'Share Tech Mono', ui-monospace, monospace;
-        font-size: 11px;
-        color: var(--primary);
-        border: 1px solid var(--primary);
-    }
-    .nx-tabs {
-        display: flex;
-        gap: 6px;
-        margin-bottom: 4px;
-    }
-    .nx-tabs button {
-        height: 26px;
-        padding: 0 12px;
-        font-size: 12px;
-        font-weight: 700;
-        color: var(--muted-foreground);
-        border: 1px solid var(--border);
-    }
-    .nx-tabs button.on {
-        color: var(--primary-foreground);
-        background: var(--primary);
-        border-color: var(--primary);
-    }
-    .nx-bars {
+    .home-bars {
         display: grid;
-        grid-template-columns: repeat(7, 1fr);
-        gap: 10px;
-        height: 130px;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+        gap: 12px;
+        height: 132px;
     }
-    .nx-bar {
+    .home-bar {
         display: flex;
         flex-direction: column;
-        justify-content: flex-end;
         align-items: center;
-        gap: 2px;
-        min-height: 0;
+        gap: 8px;
+        min-width: 0;
     }
-    .nx-bar-fill {
+    .home-bar-track {
+        position: relative;
+        flex: 1;
         width: 100%;
-        max-width: 46px;
-        background: linear-gradient(180deg, var(--primary), color-mix(in oklch, var(--primary) 30%, transparent));
-        box-shadow: 0 0 14px color-mix(in oklch, var(--primary) 50%, transparent);
+        max-width: 28px;
+        border-radius: 8px;
+        background: color-mix(in oklch, var(--foreground) 6%, transparent);
+        overflow: hidden;
+    }
+    .home-bar-track i {
+        position: absolute;
+        inset: auto 0 0 0;
+        border-radius: 8px;
+        background: linear-gradient(to top, color-mix(in oklch, var(--a-accent) 45%, transparent), var(--a-accent));
         transition: height 0.4s ease;
     }
-    .nx-add {
-        height: 28px;
-        padding: 0 12px;
-        font-size: 12px;
-        font-weight: 700;
-        color: var(--primary);
-        border: 1px solid var(--primary);
-    }
-    .nx-add:hover {
-        background: var(--primary);
-        color: var(--primary-foreground);
+    .home-bar-label {
+        font-size: 0.72rem;
+        color: var(--a-muted);
     }
 </style>

@@ -1,6 +1,6 @@
 # Aurora developer guide
 
-This is for anyone who forks Aurora and wants to add features, restyle it or swap the assistant. Aurora is a fork of VRCX (MIT), so everything in VRCX still works the same way. This guide covers what Aurora added on top.
+This is for anyone who forks Aurora and wants to add features or restyle it. Aurora is a fork of VRCX (MIT), so everything in VRCX still works the same way. This guide covers what Aurora added on top.
 
 ## 1. Get it running
 
@@ -13,20 +13,22 @@ This is for anyone who forks Aurora and wants to add features, restyle it or swa
 
 | What | Where |
 | --- | --- |
-| All Aurora settings page | `src/views/Settings/components/Tabs/AuroraTab.vue` (one `SettingsGroup` per feature, each with an `id` like `nx-voice`) |
-| The Aurora hub page (jump chips) | `src/views/Neon/Neon.vue` |
+| Sidebar entries, icons and sections | `src/shared/constants/ui.js` (`navDefinitions`, `navSections`), order in `src/components/nav-menu/navLayoutDefaults.js` |
+| Aurora's icon set | `src/shared/constants/auroraIcons.js`, drawn by `src/components/AuroraIcon.vue` |
+| Logo | `src/components/AuroraLogo.vue`, `images/aurora/logo.svg`, app icons `images/Neon.ico` / `Neon.png` |
+| Aurora pages | `src/views/Home`, `Mic`, `Insights`, `Automations`, `Chatbox` |
+| Page building blocks (cards, rows, sliders, toggles) | `src/styles/aurora-pages.css` (`a-page`, `a-card`, `a-field`, `a-btn`...) |
 | Aurora services (logic, no UI) | `src/services/aurora*.js` |
-| Aurora settings store | `src/stores/settings/aurora.js` |
-| Home page stats | `src/views/Home/Home.vue`, `src/services/auroraStats.js` |
-| Floating assistant | `src/components/AuroraCompanion.vue`, `AuroraMascot.vue`, `NeonDock.vue` |
+| Aurora settings (accent, PIN, cleanup) | `src/views/Settings/components/Tabs/AuroraTab.vue`, store `src/stores/settings/aurora.js` |
 | VR wrist panel and SteamVR dashboard | `src/vr/` (UI) and `Dotnet/Overlay/` (native) |
 | Windows only C# features | `Dotnet/AppApi/Cef/*.cs` (stubs for Electron in `Dotnet/AppApi/Electron/`) |
 | Themes | `src/styles/themes/*.css`, registry `src/shared/constants/themes.js` |
 | Shared look layers | `src/styles/xray.css` (Aurora) and `src/styles/aurora-ui.css` (Neon) |
+| Browser preview with fake data | `tools/preview/` (used by `.github/workflows/check.yml` for screenshots) |
 | Installer | `Installer/installer.nsi` |
 | Texts and translations | `src/localization/en.json` (other locales fall back to English) |
 
-Some names still say Neon or VRCX on purpose (config keys like `Neon_accent`, `VRCX_ThemeMode`, the data folder `%APPDATA%\Neon`, file names such as `Neon.sqlite3`, the `vrcx://` protocol). They keep old data working. Do not rename them unless you also write a migration.
+Some names still say Neon or VRCX on purpose (config keys like `Neon_accent`, `VRCX_ThemeMode`, the data folder `%APPDATA%\Neon`, file names such as `Neon.sqlite3`, the `vrcx://` protocol, `AppApi` methods like `NeonMusicMicStart`). They keep old data working. Do not rename them unless you also write a migration.
 
 ## 3. Add a setting
 
@@ -38,16 +40,17 @@ If the feature has no store, a small service with its own `ref` and a `configRep
 
 ## 4. Add a feature with logic
 
-Make a service in `src/services/auroraYourThing.js`, export reactive state and functions, and call its `init...()` from `src/App.vue` next to `initMusicMic()` and friends. Feed the assistant by calling `pushNews({ kind, title, text })` from `src/services/auroraNews.js`: it shows in the dock and the assistant says it.
+Make a service in `src/services/auroraYourThing.js`, export reactive state and functions, and call its `init...()` from `src/App.vue` next to `initMusicMic()` and friends. To tell the user something, call `pushNews({ kind, title, text })` from `src/services/auroraNews.js` (alarms pop up as a notice) or use `toast` from `vue-sonner`.
 
-React to VRChat events from the coordinators in `src/coordinators/` (for example `gameLogCoordinator.js` for joins and leaves, `friendPresenceCoordinator.js` for friends going online) and to notifications in `src/stores/notification/index.js`. `src/services/auroraPranks.js` and `auroraStatusRules.js` show the pattern.
+React to VRChat events from the coordinators in `src/coordinators/` (for example `gameLogCoordinator.js` for joins and leaves, `friendPresenceCoordinator.js` for friends going online) and to notifications in `src/stores/notification/index.js`. `src/services/auroraStatusRules.js` shows the pattern.
 
 ## 5. Add a page
 
-1. Create `src/views/YourPage/YourPage.vue`.
+1. Create `src/views/YourPage/YourPage.vue`. Start from `src/views/Automations/Automations.vue`: an `a-page` with an `a-head` and `a-card`s.
 2. Add a route in `src/plugins/router.js`.
-3. Add a nav entry in `src/shared/constants/ui.js` (`navDefinitions`) and place it in `src/components/nav-menu/navLayoutDefaults.js`.
-4. Existing users keep their saved sidebar. To push a new layout to everyone once, change the migration flag in `src/components/nav-menu/composables/useNavLayout.js` (`Neon_navV2`).
+3. Add a nav entry in `src/shared/constants/ui.js` with an icon (`icon: 'a:<name>'` from `auroraIcons.js`, or a Remix icon class) and a `section`, then place it in `src/components/nav-menu/navLayoutDefaults.js`.
+4. Existing users keep their saved sidebar. To push a new layout to everyone once, change the migration flag in `src/components/nav-menu/composables/useNavLayout.js` (`Aurora_navV3`).
+5. Check it in the browser preview: push to a `wip/...` branch and the Check workflow posts screenshots of every page.
 
 ## 6. Add a Windows (C#) feature
 
@@ -58,56 +61,24 @@ React to VRChat events from the coordinators in `src/coordinators/` (for example
 
 ## 7. Themes and colour
 
-- Aurora (light), Aurora Dark: ids `xray` and `xraydark`. Colours are tokens in `src/styles/themes/xray.css` and `xray-dark.css`; the shared look (glass panels, corner brackets, fog, grain) is `src/styles/xray.css`.
+- Aurora Light, Aurora Dark: ids `xray` and `xraydark`. Colours are tokens in `src/styles/themes/xray.css` and `xray-dark.css`; the shared look (flat sheet, sidebar, controls, notices) is `src/styles/xray.css`.
 - Neon, Neon Light: ids `aurora` and `auroralight`, the old pink cyberpunk look, in `aurora.css`, `aurora-light.css` and `aurora-ui.css`.
 - Add a theme: write `src/styles/themes/yours.css` scoped to `:root[data-theme='yours']`, then register it in `THEME_CONFIG` in `src/shared/constants/themes.js` and add a `theme_mode_yours` label in `en.json`.
-- The accent colour is one value (`src/services/auroraAccent.js`). It sets `--axh` (hue) for Aurora themes, `--aurora-pink` for Neon, and tints the assistant and the VR panels. Edit `ACCENT_PRESETS` to change the swatches.
-- Theme specific code: `isNeonTheme()` in `src/services/auroraVoiceFx.js` tells you if the Neon look is active, and the `data-theme` attribute on `<html>` changes live (use a `MutationObserver`, see `AuroraCompanion.vue`).
+- The accent colour is one value (`src/services/auroraAccent.js`). It sets `--axh` (hue) and `--axk` (0 for grayscale) for Aurora themes, `--aurora-pink` for Neon, and colours the VR panels. Edit `ACCENT_PRESETS` to change the swatches.
+- Charts read their colours from the theme at runtime (`readColors()` in `src/views/Insights/Insights.vue`), so they follow light, dark and the accent.
 
-## 8. Change the assistant
+## 8. Icons and logo
 
-**Looks.** The default sprites are in `images/aurora/mascot/` (`neutral.png`, `joy.png`, `sad.png`, `sleepy.png`, `angry.png`, `surprised.png`, `smug.png`, `error.png`, plus mouth shapes `m-*.png`). Replace the files to restyle the built in character. `src/services/auroraCharacter.js` picks the face from the mood.
+- Icons are plain SVG paths on a 24 grid with a 1.6 stroke. Add one to `AURORA_ICONS` and use it with `<AuroraIcon name="..." />` or `icon: 'a:...'` in the sidebar.
+- The logo is a planet rim with an aurora ribbon in front (`AuroraLogo.vue`). The app and tray icons are PNG/ICO renders of it in `images/`.
 
-**Characters without code.** A character can be dropped in as an add-on (section 9): a folder with `faces/neutral.png` and any other face names. It then shows in the character picker.
+## 9. Insights
 
-**What it says.** `src/services/auroraLines.js` holds the line pools by category (greetings, idle, poke, alarms...). Add or edit lines there. The voice pre-renders them, so lines never contain names or numbers.
+`src/services/auroraInsights.js` reads the local database (game log, friend feed, friend log) and returns plain arrays; `src/views/Insights/Insights.vue` draws them with ECharts through the small `AChart.vue` wrapper. To add a chart, add the numbers to `loadInsights()` and a `computed` option plus an `<AChart>` card on the page.
 
-**How it speaks.** `src/services/auroraVoice.js` runs the Kokoro text to speech model in a worker (`src/workers/auroraTtsWorker.js`). Voice effects live in `src/services/auroraVoiceFx.js`: `applyVoiceFx` (bitcrusher, sample reducer, ring modulator, glitch), `addReverb`, and `effectiveFx` which decides the settings per theme (Neon is crunchy, Aurora is clean with a reverb slider). Add your own effect as another function in that file and add its key to the fx object.
+## 10. Mic
 
-**Moods.** `setMood` in `auroraVoice.js` and the `mood` argument of `say()` in `AuroraCompanion.vue`.
-
-**Bubble, portrait and dock look.** Styles at the bottom of `AuroraCompanion.vue` (Neon) and the `.soft` block (Aurora), and `NeonDock.vue`. Aurora overrides for the dock are in `src/styles/xray.css`.
-
-**Name.** The visible name is plain text in `AuroraCompanion.vue`, `AuroraMascot.vue`, `NeonDock.vue` and `auroraLines.js`.
-
-## 9. Add-ons (for people who do not touch code)
-
-A folder in the data folder, `%APPDATA%\Neon\addons\<name>\`:
-
-```
-addon.json            { "id": "name", "name": "Display name", "author": "you" }
-faces\neutral.png     required for a character; add joy, sad, sleepy, angry, surprised, smug, error
-voice\poke\*.mp3      recordings played instead of the generated voice
-voice\idle\*.wav      kinds are the categories in auroraLines.js
-```
-
-Behaviour: add a `"behavior"` object to `addon.json` so the assistant acts like your character while it is shown:
-
-```
-"behavior": {
-  "address": "darling",
-  "persona": "You are Fox, sarcastic and warm. Short answers.",
-  "lines": { "poke": ["Hm?", "What now."], "idle": ["..."] }
-}
-```
-
-`lines` replace the built-in lines for each kind you list (kinds are the keys in `auroraLines.js`). `persona` is read with `getPersona()` from `auroraLines.js`, use it as the system prompt for any AI feature so it matches the character. It is plain text, not code.
-
-Add-ons are only pictures, sound and text, they cannot run code. The loader is `src/services/auroraAddons.js` with the file access in `Dotnet/AppApi/Cef/NeonAddons.cs`.
-
-## 10. Music to mic
-
-Mixes one app's sound with your microphone into a virtual cable (VB-Cable or similar). Code: `src/services/auroraMusicMic.js` and `Dotnet/AppApi/Cef/NeonMusicMic.cs` (NAudio, WASAPI process loopback). Gain goes up to 500% for the mic and 1000% for music, each source has a bass boost (low shelf plus saturation), and a soft limiter on the mix stops hard clipping.
+Mixes one app's sound with your microphone into a virtual cable (VB-Cable or similar). Code: `src/services/auroraMusicMic.js`, the page `src/views/Mic/Mic.vue` and `Dotnet/AppApi/Cef/NeonMusicMic.cs` (NAudio, WASAPI process loopback). Chain for the voice: noise suppression (`NoiseSuppressor`: 512-point STFT, learned noise floor, Wiener gain, soft gate, about 11 ms of delay), bass boost (low shelf plus saturation), volume. A soft limiter on the mix stops hard clipping. It starts and stops with VRChat when "Start with VRChat" is on (`watchGameForMic`).
 
 ## 11. Data and safety
 
@@ -120,7 +91,7 @@ Mixes one app's sound with your microphone into a virtual cable (VB-Cable or sim
 
 - Keep `Neon_*`, `Aurora_*` and `VRCX_*` config keys stable.
 - Every `AppApi` method needs an Electron stub.
-- New texts go in `en.json` under `view.settings.aurora` (or the relevant group); missing keys fall back to English.
+- New texts go in `en.json` (`view.mic`, `view.insights`, `view.automations`, `nav_aurora`...); missing keys fall back to English.
 - Test on Windows. Check the log at `%APPDATA%\Neon\logs\Neon.log` when something crashes.
 
 > AI assistants: see CLAUDE.md before helping with a fork.

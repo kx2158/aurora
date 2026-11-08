@@ -1,154 +1,188 @@
 import { toolNavDefinitions } from './tools';
 
+/**
+ * Sidebar entries. icon 'a:<name>' uses Aurora's own icon set (shared/constants/auroraIcons.js).
+ * section groups entries under a small label in the sidebar.
+ */
 const navDefinitions = [
     {
         key: 'home',
-        icon: 'ri-home-4-line',
-        tooltip: 'nav_tooltip.home',
-        labelKey: 'nav_tooltip.home',
-        routeName: 'home'
-    },
-    {
-        key: 'neon',
-        icon: 'ri-flashlight-line',
-        tooltip: 'nav_tooltip.neon',
-        labelKey: 'nav_tooltip.neon',
-        routeName: 'neon'
-    },
-    {
-        key: 'chatbox',
-        icon: 'ri-chat-3-line',
-        tooltip: 'nav_tooltip.chatbox',
-        labelKey: 'nav_tooltip.chatbox',
-        routeName: 'chatbox'
+        icon: 'a:home',
+        tooltip: 'nav_aurora.home',
+        labelKey: 'nav_aurora.home',
+        routeName: 'home',
+        section: ''
     },
     {
         key: 'feed',
-        icon: 'ri-rss-line',
-        tooltip: 'nav_tooltip.feed',
-        labelKey: 'nav_tooltip.feed',
-        routeName: 'feed'
+        icon: 'a:feed',
+        tooltip: 'nav_aurora.feed',
+        labelKey: 'nav_aurora.feed',
+        routeName: 'feed',
+        section: ''
     },
     {
         key: 'friends-locations',
-        icon: 'ri-user-location-line',
-        tooltip: 'nav_tooltip.friends_locations',
-        labelKey: 'nav_tooltip.friends_locations',
-        routeName: 'friends-locations'
-    },
-    {
-        key: 'game-log',
-        icon: 'ri-history-line',
-        tooltip: 'nav_tooltip.game_log',
-        labelKey: 'nav_tooltip.game_log',
-        routeName: 'game-log'
-    },
-    {
-        key: 'player-list',
-        icon: 'ri-group-3-line',
-        tooltip: 'nav_tooltip.player_list',
-        labelKey: 'nav_tooltip.player_list',
-        routeName: 'player-list'
-    },
-    {
-        key: 'search',
-        icon: 'ri-search-line',
-        tooltip: 'nav_tooltip.search',
-        labelKey: 'nav_tooltip.search',
-        routeName: 'search'
-    },
-    {
-        key: 'favorite-friends',
-        icon: 'ri-user-heart-line',
-        tooltip: 'nav_tooltip.favorite_friends',
-        labelKey: 'nav_tooltip.favorite_friends',
-        routeName: 'favorite-friends'
-    },
-    {
-        key: 'favorite-worlds',
-        icon: 'ri-earth-line',
-        tooltip: 'nav_tooltip.favorite_worlds',
-        labelKey: 'nav_tooltip.favorite_worlds',
-        routeName: 'favorite-worlds'
-    },
-    {
-        key: 'favorite-avatars',
-        icon: 'ri-empathize-line',
-        tooltip: 'nav_tooltip.favorite_avatars',
-        labelKey: 'nav_tooltip.favorite_avatars',
-        routeName: 'favorite-avatars'
-    },
-    {
-        key: 'friend-log',
-        icon: 'ri-contacts-line',
-        tooltip: 'nav_tooltip.friend_log',
-        labelKey: 'nav_tooltip.friend_log',
-        routeName: 'friend-log'
-    },
-    {
-        key: 'friend-list',
-        icon: 'ri-booklet-line',
-        tooltip: 'nav_tooltip.friend_list',
-        labelKey: 'nav_tooltip.friend_list',
-        routeName: 'friend-list'
-    },
-    {
-        key: 'moderation',
-        icon: 'ri-shield-user-line',
-        tooltip: 'nav_tooltip.moderation',
-        labelKey: 'nav_tooltip.moderation',
-        routeName: 'moderation'
+        icon: 'a:friends',
+        tooltip: 'nav_aurora.friends',
+        labelKey: 'nav_aurora.friends',
+        routeName: 'friends-locations',
+        section: ''
     },
     {
         key: 'notification',
-        icon: 'ri-notification-2-line',
-        tooltip: 'nav_tooltip.notification',
-        labelKey: 'nav_tooltip.notification',
-        routeName: 'notification'
+        icon: 'a:bell',
+        tooltip: 'nav_aurora.notifications',
+        labelKey: 'nav_aurora.notifications',
+        routeName: 'notification',
+        section: ''
     },
     {
-        key: 'my-avatars',
-        icon: 'ri-contacts-book-3-line',
-        tooltip: 'nav_tooltip.my_avatars',
-        labelKey: 'nav_tooltip.my_avatars',
-        routeName: 'my-avatars'
+        key: 'search',
+        icon: 'a:search',
+        tooltip: 'nav_aurora.search',
+        labelKey: 'nav_aurora.search',
+        routeName: 'search',
+        section: ''
     },
     {
-        key: 'charts-instance',
-        icon: 'ri-bar-chart-horizontal-line',
-        tooltip: 'view.charts.instance_activity.header',
-        labelKey: 'view.charts.instance_activity.header',
-        routeName: 'charts-instance'
+        key: 'friend-list',
+        icon: 'a:people',
+        tooltip: 'nav_aurora.friend_list',
+        labelKey: 'nav_aurora.friend_list',
+        routeName: 'friend-list',
+        section: 'people'
+    },
+    {
+        key: 'friend-log',
+        icon: 'a:history',
+        tooltip: 'nav_aurora.friend_log',
+        labelKey: 'nav_aurora.friend_log',
+        routeName: 'friend-log',
+        section: 'people'
+    },
+    {
+        key: 'favorite-friends',
+        icon: 'a:heart',
+        tooltip: 'nav_aurora.favorite_friends',
+        labelKey: 'nav_aurora.favorite_friends',
+        routeName: 'favorite-friends',
+        section: 'people'
+    },
+    {
+        key: 'moderation',
+        icon: 'a:shield',
+        tooltip: 'nav_aurora.moderation',
+        labelKey: 'nav_aurora.moderation',
+        routeName: 'moderation',
+        section: 'people'
+    },
+    {
+        key: 'favorite-worlds',
+        icon: 'a:globe',
+        tooltip: 'nav_aurora.favorite_worlds',
+        labelKey: 'nav_aurora.favorite_worlds',
+        routeName: 'favorite-worlds',
+        section: 'worlds'
+    },
+    {
+        key: 'game-log',
+        icon: 'a:log',
+        tooltip: 'nav_aurora.game_log',
+        labelKey: 'nav_aurora.game_log',
+        routeName: 'game-log',
+        section: 'worlds'
+    },
+    {
+        key: 'player-list',
+        icon: 'a:instance',
+        tooltip: 'nav_aurora.player_list',
+        labelKey: 'nav_aurora.player_list',
+        routeName: 'player-list',
+        section: 'worlds'
+    },
+    {
+        key: 'insights',
+        icon: 'a:chart',
+        tooltip: 'nav_aurora.insights',
+        labelKey: 'nav_aurora.insights',
+        routeName: 'insights',
+        section: 'insights'
     },
     {
         key: 'charts-mutual',
-        icon: 'ri-group-2-line',
-        tooltip: 'view.charts.mutual_friend.tab_label',
-        labelKey: 'view.charts.mutual_friend.tab_label',
-        routeName: 'charts-mutual'
+        icon: 'a:network',
+        tooltip: 'nav_aurora.network',
+        labelKey: 'nav_aurora.network',
+        routeName: 'charts-mutual',
+        section: 'insights'
+    },
+    {
+        key: 'charts-instance',
+        icon: 'a:sessions',
+        tooltip: 'nav_aurora.sessions',
+        labelKey: 'nav_aurora.sessions',
+        routeName: 'charts-instance',
+        section: 'insights'
     },
     {
         key: 'charts-hot-worlds',
-        icon: 'ri-fire-line',
-        tooltip: 'view.charts.hot_worlds.tab_label',
-        labelKey: 'view.charts.hot_worlds.tab_label',
-        routeName: 'charts-hot-worlds'
+        icon: 'a:flame',
+        tooltip: 'nav_aurora.hot_worlds',
+        labelKey: 'nav_aurora.hot_worlds',
+        routeName: 'charts-hot-worlds',
+        section: 'insights'
+    },
+    {
+        key: 'mic',
+        icon: 'a:mic',
+        tooltip: 'nav_aurora.mic',
+        labelKey: 'nav_aurora.mic',
+        routeName: 'mic',
+        section: 'aurora'
+    },
+    {
+        key: 'chatbox',
+        icon: 'a:chat',
+        tooltip: 'nav_aurora.chatbox',
+        labelKey: 'nav_aurora.chatbox',
+        routeName: 'chatbox',
+        section: 'aurora'
+    },
+    {
+        key: 'automations',
+        icon: 'a:bolt',
+        tooltip: 'nav_aurora.automations',
+        labelKey: 'nav_aurora.automations',
+        routeName: 'automations',
+        section: 'aurora'
     },
     {
         key: 'tools',
-        icon: 'ri-tools-line',
-        tooltip: 'nav_tooltip.tools',
-        labelKey: 'nav_tooltip.tools',
-        routeName: 'tools'
+        icon: 'a:tool',
+        tooltip: 'nav_aurora.tools',
+        labelKey: 'nav_aurora.tools',
+        routeName: 'tools',
+        section: 'aurora'
     },
     {
         key: 'direct-access',
-        icon: 'ri-compass-3-line',
-        tooltip: 'prompt.direct_access_omni.header',
-        labelKey: 'prompt.direct_access_omni.header',
-        action: 'direct-access'
+        icon: 'a:command',
+        tooltip: 'nav_aurora.direct_access',
+        labelKey: 'nav_aurora.direct_access',
+        action: 'direct-access',
+        section: 'aurora'
     },
     ...toolNavDefinitions
 ];
 
-export { navDefinitions };
+/** The order of sidebar sections and their labels. */
+const navSections = {
+    '': '',
+    aurora: 'nav_aurora.section_aurora',
+    people: 'nav_aurora.section_people',
+    worlds: 'nav_aurora.section_worlds',
+    insights: 'nav_aurora.section_insights'
+};
+
+export { navDefinitions, navSections };

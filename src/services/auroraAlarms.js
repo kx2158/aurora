@@ -1,5 +1,5 @@
 /**
- * Neon alarms: set a time, she makes a noise and says it out loud, on the desktop and on the VR wrist.
+ * Alarms: set a time, Aurora beeps and shows a notice, on the desktop and on the VR wrist.
  */
 import { ref, watch } from 'vue';
 

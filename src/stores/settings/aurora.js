@@ -3,18 +3,9 @@ import { ref } from 'vue';
 
 import { hashPin, isValidPin, lockoutSeconds, verifyPin } from '../../services/auroraSecurity';
 import { DEFAULT_SELECTED } from '../../services/auroraCleanup';
-import { FX_PRESETS } from '../../services/auroraVoiceFx';
 import configRepository from '../../services/config';
 
 export const useAuroraSettingsStore = defineStore('AuroraSettings', () => {
-    const mascotVoiceEnabled = ref(false);
-    const mascotVoice = ref('af_heart');
-    const mascotVoiceSpeed = ref(1);
-    const mascotVoiceVolume = ref(0.8);
-    const mascotFxPreset = ref('robot');
-    const mascotFx = ref({ ...FX_PRESETS.robot });
-    const mascotReverb = ref(0.25); // Aurora voice: soft reverb amount, 0 to 1
-
     // data cleanup
     const cleanupSelected = ref([...DEFAULT_SELECTED]);
     const cleanupKeepDays = ref(90);
@@ -30,13 +21,7 @@ export const useAuroraSettingsStore = defineStore('AuroraSettings', () => {
     let pinHash = '';
 
     async function initAuroraSettings() {
-        const [enabled, voice, speed, volume, preset, fxJson, lockHash, autoMin, fails, until, selRaw, keepDays, autoClean] = await Promise.all([
-            configRepository.getBool('Aurora_mascotVoiceEnabled', false),
-            configRepository.getString('Aurora_mascotVoice', 'af_heart'),
-            configRepository.getFloat('Aurora_mascotVoiceSpeed', 1),
-            configRepository.getFloat('Aurora_mascotVoiceVolume', 0.8),
-            configRepository.getString('Aurora_mascotFxPreset', 'robot'),
-            configRepository.getString('Aurora_mascotFx', ''),
+        const [lockHash, autoMin, fails, until, selRaw, keepDays, autoClean] = await Promise.all([
             configRepository.getString('Aurora_pinHash', ''),
             configRepository.getInt('Aurora_autoLockMinutes', 10),
             configRepository.getInt('Aurora_failedAttempts', 0),
@@ -59,34 +44,6 @@ export const useAuroraSettingsStore = defineStore('AuroraSettings', () => {
         lockedUntil.value = until;
         locked.value = appLockEnabled.value; // locked at every start when a PIN is set
         ready.value = true;
-        mascotVoiceEnabled.value = enabled;
-        mascotVoice.value = voice;
-        mascotVoiceSpeed.value = speed;
-        mascotVoiceVolume.value = volume;
-        mascotFxPreset.value = preset;
-        mascotReverb.value = Number(await configRepository.getString('Aurora_mascotReverb', '0.25')) || 0;
-        try {
-            mascotFx.value = fxJson ? { ...FX_PRESETS.robot, ...JSON.parse(fxJson) } : { ...(FX_PRESETS[preset] || FX_PRESETS.robot) };
-        } catch {
-            mascotFx.value = { ...FX_PRESETS.robot };
-        }
-    }
-
-    function setMascotVoiceEnabled(value) {
-        mascotVoiceEnabled.value = value;
-        configRepository.setBool('Aurora_mascotVoiceEnabled', value);
-    }
-    function setMascotVoice(value) {
-        mascotVoice.value = value;
-        configRepository.setString('Aurora_mascotVoice', value);
-    }
-    function setMascotVoiceSpeed(value) {
-        mascotVoiceSpeed.value = value;
-        configRepository.setFloat('Aurora_mascotVoiceSpeed', value);
-    }
-    function setMascotVoiceVolume(value) {
-        mascotVoiceVolume.value = value;
-        configRepository.setFloat('Aurora_mascotVoiceVolume', value);
     }
 
     initAuroraSettings();
@@ -164,26 +121,6 @@ export const useAuroraSettingsStore = defineStore('AuroraSettings', () => {
         configRepository.setInt('Aurora_autoLockMinutes', value);
     }
 
-    function setMascotReverb(value) {
-        mascotReverb.value = Math.max(0, Math.min(1, Number(value) || 0));
-        configRepository.setString('Aurora_mascotReverb', String(mascotReverb.value));
-    }
-
-    function setMascotFxPreset(name) {
-        mascotFxPreset.value = name;
-        configRepository.setString('Aurora_mascotFxPreset', name);
-        if (FX_PRESETS[name]) {
-            mascotFx.value = { ...FX_PRESETS[name] };
-            configRepository.setString('Aurora_mascotFx', JSON.stringify(mascotFx.value));
-        }
-    }
-    function setMascotFxValue(key, value) {
-        mascotFx.value = { ...mascotFx.value, [key]: value };
-        mascotFxPreset.value = 'custom';
-        configRepository.setString('Aurora_mascotFxPreset', 'custom');
-        configRepository.setString('Aurora_mascotFx', JSON.stringify(mascotFx.value));
-    }
-
     return {
         cleanupSelected,
         cleanupKeepDays,
@@ -203,20 +140,6 @@ export const useAuroraSettingsStore = defineStore('AuroraSettings', () => {
         tryUnlock,
         lockNow,
         setAutoLockMinutes,
-        mascotFxPreset,
-        mascotFx,
-        mascotReverb,
-        setMascotReverb,
-        setMascotFxPreset,
-        setMascotFxValue,
-        mascotVoiceEnabled,
-        mascotVoice,
-        mascotVoiceSpeed,
-        mascotVoiceVolume,
-        initAuroraSettings,
-        setMascotVoiceEnabled,
-        setMascotVoice,
-        setMascotVoiceSpeed,
-        setMascotVoiceVolume
+        initAuroraSettings
     };
 });

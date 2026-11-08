@@ -74,15 +74,6 @@
                     </div>
                 </div>
             </div>
-            <div v-for="name in COMING_SOON" :key="name" class="nx-int nx-card soon">
-                <div class="nx-int-main">
-                    <i class="nx-int-icon ri-time-line"></i>
-                    <div class="nx-int-text">
-                        <b>{{ name }}</b>
-                        <span class="nx-meta">{{ t('view.chatbox.soon') }}</span>
-                    </div>
-                </div>
-            </div>
         </div>
 
         <div class="nx-cols">
@@ -182,7 +173,7 @@
         setChatboxPages,
         setTyping
     } from '@/services/auroraChatbox';
-    import { COMING_SOON, friendlyApp, initIntegrations, INTEGRATIONS, mediaSessions, setEnabled, setOption, setSlot, state } from '@/services/auroraIntegrations';
+    import { friendlyApp, initIntegrations, INTEGRATIONS, mediaSessions, setEnabled, setOption, setSlot, state } from '@/services/auroraIntegrations';
     import { useGameStore } from '@/stores';
 
     const { t } = useI18n();
@@ -251,27 +242,29 @@
 
 <style scoped>
     .nx-chat {
+        height: 100%;
+        overflow-y: auto;
+        padding: 28px 32px 48px;
         display: flex;
         flex-direction: column;
         gap: 18px;
-        padding: 22px 26px 34px;
-        overflow-y: auto;
+        max-width: 1144px;
+        margin: 0 auto;
+        width: 100%;
     }
     .nx-head {
         display: flex;
-        justify-content: space-between;
         align-items: flex-end;
+        justify-content: space-between;
+        gap: 16px;
     }
     .nx-title {
-        font-size: 2rem;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
-        text-shadow: 3px 0 var(--primary), -3px 0 color-mix(in oklch, var(--foreground) 70%, transparent);
+        font-size: 1.55rem;
+        font-weight: 600;
+        letter-spacing: -0.01em;
     }
     .nx-meta {
-        font-family: 'Share Tech Mono', ui-monospace, monospace;
-        font-size: 12px;
+        font-size: 0.78rem;
         color: var(--muted-foreground);
     }
     .nx-switch {
@@ -282,49 +275,51 @@
     .nx-cols {
         display: grid;
         grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
-        gap: 14px;
+        gap: 16px;
         align-items: start;
     }
     .nx-right {
         display: flex;
         flex-direction: column;
-        gap: 14px;
+        gap: 16px;
     }
     .nx-card {
-        background: var(--card);
-        border: 1px solid var(--border);
-        clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 18px 100%, 0 calc(100% - 18px));
+        border: 1px solid var(--a-line);
+        border-radius: 16px;
+        background: color-mix(in oklch, var(--card) 70%, transparent);
     }
     .nx-panel {
         display: flex;
         flex-direction: column;
         gap: 10px;
-        padding: 18px 20px;
+        padding: 20px 22px;
     }
     .nx-h2 {
-        font-size: 0.95rem;
-        font-weight: 700;
+        font-size: 0.78rem;
+        font-weight: 500;
+        letter-spacing: 0.06em;
         text-transform: uppercase;
-        letter-spacing: 0.14em;
-        color: var(--primary);
+        color: var(--muted-foreground);
     }
     .nx-mt {
-        margin-top: 8px;
+        margin-top: 10px;
     }
     .nx-page {
         display: flex;
         align-items: center;
         gap: 10px;
-        padding-left: 8px;
-        border-left: 3px solid transparent;
+        padding: 4px;
+        border-radius: 12px;
     }
     .nx-page.active {
-        border-left-color: var(--primary);
+        background: color-mix(in oklch, var(--a-accent) 10%, transparent);
     }
     .nx-num {
-        font-family: 'Share Tech Mono', ui-monospace, monospace;
-        color: var(--primary);
-        width: 18px;
+        width: 20px;
+        text-align: center;
+        font-size: 0.78rem;
+        color: var(--muted-foreground);
+        font-variant-numeric: tabular-nums;
     }
     .nx-input {
         flex: 1;
@@ -332,118 +327,117 @@
     .nx-x {
         width: 26px;
         height: 26px;
+        border-radius: 50%;
         color: var(--muted-foreground);
-        border: 1px solid var(--border);
     }
     .nx-x:hover {
-        color: var(--primary);
-        border-color: var(--primary);
+        background: var(--a-soft);
+        color: var(--foreground);
     }
     .nx-add {
         align-self: flex-start;
-        height: 30px;
+        height: 32px;
         padding: 0 14px;
-        font-size: 12px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        color: var(--primary);
-        border: 1px solid var(--primary);
+        font-size: 0.82rem;
+        border-radius: 999px;
+        border: 1px solid var(--a-line);
     }
     .nx-add:hover {
-        background: var(--primary);
-        color: var(--primary-foreground);
+        background: var(--a-soft);
     }
     .nx-chips {
         display: flex;
         flex-wrap: wrap;
-        gap: 8px;
+        gap: 6px;
     }
     .nx-chip {
-        padding: 3px 10px;
-        font-family: 'Share Tech Mono', ui-monospace, monospace;
-        font-size: 12px;
+        height: 28px;
+        padding: 0 10px;
+        font-size: 0.76rem;
+        font-family: var(--xr-mono, ui-monospace, monospace);
+        border-radius: 8px;
+        background: var(--a-soft);
+        border: 1px solid var(--a-line);
         color: var(--foreground);
-        border: 1px solid var(--border);
     }
     .nx-chip:hover {
-        border-color: var(--primary);
-        color: var(--primary);
+        border-color: var(--a-accent);
     }
     .nx-opts {
         display: grid;
         grid-template-columns: 1fr auto;
         align-items: center;
-        gap: 10px;
+        gap: 10px 16px;
         margin-top: 8px;
+        padding-top: 14px;
+        border-top: 1px solid var(--a-line);
     }
     .nx-ints {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 8px;
     }
     .nx-int {
         padding: 12px 16px;
-        opacity: 0.85;
+        transition: border-color 0.15s ease;
     }
     .nx-int.on {
-        opacity: 1;
-        border-color: var(--primary);
-    }
-    .nx-int.soon {
-        opacity: 0.45;
+        border-color: color-mix(in oklch, var(--a-accent) 45%, transparent);
     }
     .nx-int-main {
         display: flex;
         align-items: center;
-        gap: 14px;
+        gap: 12px;
+        flex-wrap: wrap;
     }
     .nx-int-icon {
-        font-size: 26px;
-        color: var(--primary);
-        width: 34px;
-        text-align: center;
+        width: 32px;
+        height: 32px;
+        display: grid;
+        place-items: center;
+        font-size: 16px;
+        border-radius: 10px;
+        background: var(--a-soft);
+        color: var(--foreground);
     }
     .nx-int-text {
         flex: 1;
-        min-width: 0;
+        min-width: 180px;
         display: flex;
         flex-direction: column;
     }
     .nx-int-text b {
-        font-size: 1.05rem;
+        font-size: 0.88rem;
+        font-weight: 500;
     }
     .nx-custom {
-        height: 26px;
-        padding: 0 12px;
-        font-size: 12px;
-        color: var(--foreground);
-        border: 1px solid var(--border);
+        font-size: 0.78rem;
+        color: var(--muted-foreground);
+        padding: 4px 8px;
+        border-radius: 8px;
     }
     .nx-custom:hover {
-        border-color: var(--primary);
-        color: var(--primary);
+        color: var(--foreground);
+        background: var(--a-soft);
     }
     .nx-badge {
-        padding: 2px 10px;
-        font-family: 'Share Tech Mono', ui-monospace, monospace;
-        font-size: 11px;
-        color: var(--primary-foreground);
-        background: var(--primary);
+        font-size: 0.68rem;
+        padding: 2px 8px;
+        border-radius: 999px;
+        border: 1px solid var(--a-line);
+        color: var(--muted-foreground);
     }
     .nx-badge.off {
-        color: var(--muted-foreground);
-        background: transparent;
-        border: 1px solid var(--border);
+        opacity: 0.35;
     }
     .nx-int-opts {
         display: grid;
-        grid-template-columns: 1fr auto;
+        grid-template-columns: minmax(0, 1fr) auto;
         align-items: center;
-        gap: 10px;
+        gap: 10px 16px;
         margin-top: 12px;
         padding-top: 12px;
-        border-top: 1px solid var(--border);
+        border-top: 1px solid var(--a-line);
     }
     .nx-full {
         grid-column: 1 / -1;
@@ -451,12 +445,13 @@
     .nx-sessions {
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        gap: 6px;
     }
     .nx-session {
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 8px;
+        font-size: 0.82rem;
     }
     .nx-trunc {
         flex: 1;
@@ -467,40 +462,46 @@
     }
     .nx-slots {
         display: inline-flex;
-        gap: 4px;
+        gap: 2px;
+        padding: 2px;
+        border-radius: 999px;
+        background: var(--a-soft);
     }
     .nx-pill {
-        padding: 2px 10px;
-        font-size: 11px;
-        font-weight: 700;
+        height: 24px;
+        padding: 0 9px;
+        font-size: 0.7rem;
+        border-radius: 999px;
         color: var(--muted-foreground);
-        border: 1px solid var(--border);
     }
     .nx-pill.on {
-        color: var(--primary-foreground);
-        background: var(--primary);
-        border-color: var(--primary);
+        background: var(--background);
+        color: var(--foreground);
+        box-shadow: 0 1px 2px oklch(0 0 0 / 18%);
     }
     .nx-small {
         width: 90px;
     }
     .nx-wide {
-        width: 180px;
+        width: 280px;
     }
     .nx-bubble {
-        padding: 14px 18px;
-        font-size: 15px;
-        text-align: center;
-        color: #fff;
-        background: #000;
-        border-radius: 18px;
-        border: 2px solid var(--primary);
-        box-shadow: 0 0 18px color-mix(in oklch, var(--primary) 45%, transparent);
-        word-break: break-word;
+        padding: 14px 16px;
+        border-radius: 14px;
+        background: var(--a-soft);
+        border: 1px solid var(--a-line);
+        font-size: 0.9rem;
+        line-height: 1.45;
+        min-height: 64px;
     }
     .nx-actions {
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: 10px;
+    }
+    @media (max-width: 960px) {
+        .nx-cols {
+            grid-template-columns: minmax(0, 1fr);
+        }
     }
 </style>

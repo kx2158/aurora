@@ -43,9 +43,13 @@
                     {{ vrcStatusStore.statusText }}
                 </AlertDescription>
             </Alert>
+            <div class="mb-6 flex flex-col items-center gap-3">
+                <AuroraLogo :size="56" />
+                <span class="text-xl font-medium tracking-tight">aurora</span>
+            </div>
             <div class="flex flex-col gap-2 sm:flex-row">
                 <div class="flex min-w-0 flex-col p-4 sm:flex-1">
-                    <h2 class="mb-4 text-center text-lg font-semibold">{{ t('view.login.login') }}</h2>
+                    <h2 class="mb-4 text-center text-sm font-medium text-muted-foreground">{{ t('view.login.login') }}</h2>
                     <QrLogin v-model:active="qrActive">
                         <form id="login-form" @submit.prevent="onSubmit">
                             <FieldGroup v-show="!qrActive" class="gap-3">
@@ -198,6 +202,7 @@
 </template>
 
 <script setup>
+    import AuroraLogo from '@/components/AuroraLogo.vue';
     import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
     import { Field, FieldContent, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field';
     import {

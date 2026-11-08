@@ -114,7 +114,7 @@
                             <template v-if="lastLocation.friendList.size > 0"
                                 >({{ lastLocation.friendList.size }})</template
                             >
-                            &nbsp;&horbar; <Timer v-if="lastLocation.date" :epoch="lastLocation.date" />
+                            &nbsp;· <Timer v-if="lastLocation.date" :epoch="lastLocation.date" />
                         </span>
                     </div>
                     <div class="mt-1.5">

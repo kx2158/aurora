@@ -75,7 +75,7 @@ function timeToText(sec, isNeedSeconds = false) {
 
 function timeAgo(datetime) {
     if (!datetime) {
-        return '—';
+        return '-';
     }
     let n;
     if (typeof datetime === 'number') {
@@ -91,7 +91,7 @@ function timeAgo(datetime) {
         n = -n;
     }
     if (n == 0) {
-        return '—';
+        return '-';
     }
     if (n >= 31536000) {
         const years = Math.floor(n / 31536000);

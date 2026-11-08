@@ -328,7 +328,7 @@ export function useVrcxVueTable(options) {
         };
     }
 
-    // Column order lock — persisted per-table
+    // Column order lock - persisted per-table
     const columnOrderLocked = ref(persisted?.columnOrderLocked === true);
 
     const state = {};

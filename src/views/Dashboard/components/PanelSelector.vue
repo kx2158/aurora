@@ -23,7 +23,7 @@
                                     : 'border-primary/20'
                             "
                             @click="handleSelectWidget(option)">
-                            <i :class="option.icon" class="text-base"></i>
+                            <i :class="navIconClass(option.icon)" class="text-base"><AuroraIcon v-if="isAuroraIcon(option.icon)" :name="auroraIconName(option.icon)" :size="18" /></i>
                             <span>{{ t(option.labelKey) }}</span>
                         </button>
                     </div>
@@ -46,7 +46,7 @@
                                     : ''
                             "
                             @click="emit('select', option.key)">
-                            <i :class="option.icon" class="text-base"></i>
+                            <i :class="navIconClass(option.icon)" class="text-base"><AuroraIcon v-if="isAuroraIcon(option.icon)" :name="auroraIconName(option.icon)" :size="18" /></i>
                             <span>{{ t(option.labelKey) }}</span>
                         </button>
                     </div>
@@ -62,6 +62,8 @@
 </template>
 
 <script setup>
+    import AuroraIcon from '@/components/AuroraIcon.vue';
+    import { auroraIconName, isAuroraIcon, navIconClass } from '@/shared/utils/navIcon';
     import { computed } from 'vue';
     import { useI18n } from 'vue-i18n';
 

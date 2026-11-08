@@ -40,6 +40,7 @@ const devices = {
     capture: [{ id: 'mic-1', name: 'Microphone (Shure MV7)' }]
 };
 let mixRunning = false;
+const fakeUser = { id: 'usr_preview', displayName: 'Xen', status: 'active', statusDescription: 'building things', friends: [], onlineFriends: [], activeFriends: [], offlineFriends: [] };
 
 function native(cls, method, args) {
     if (cls === 'SQLite') {
@@ -83,7 +84,15 @@ function native(cls, method, args) {
         return '';
     }
     if (cls === 'WebApi') {
-        return { status: 401, data: '{"error":{"message":"preview"}}' };
+        // every VRChat request answers "nothing here", the preview only shows local data
+        const url = String(args[0]?.url || '');
+        if (/\/auth\/user(\?|$)/.test(url)) {
+            return { Item1: 200, Item2: JSON.stringify(fakeUser) };
+        }
+        if (/\/config(\?|$)/.test(url)) {
+            return { Item1: 200, Item2: '{}' };
+        }
+        return { Item1: 200, Item2: '[]' };
     }
     return null;
 }
@@ -168,6 +177,8 @@ const { database } = await import('./services/database/index.js');
 const { watchState } = await import('./services/watchState.js');
 const { router } = await import('./plugins/router.js');
 const { reactive } = await import('vue');
+const { AppDebug } = await import('./services/appConfig.js');
+AppDebug.dontLogMeOut = true;
 
 await new Promise((r) => setTimeout(r, 1500));
 await database.initTables();
@@ -188,6 +199,7 @@ try {
 } catch (e) {
     console.warn('[preview] user', e);
 }
+function populateFriends() {
 friendsList.forEach((p, i) => {
     const ref = {
         id: p.id,
@@ -207,7 +219,12 @@ friendsList.forEach((p, i) => {
         reactive({ id: p.id, state: i < 7 ? 'online' : 'offline', isVIP: false, ref, name: p.name, pendingOffline: false, $nickName: '' })
     );
 });
+}
+populateFriends();
 watchState.isFriendsLoaded = true;
 watchState.isLoggedIn = true;
 await router.push({ name: 'home' });
+await new Promise((r) => setTimeout(r, 3000));
+// the login flow may have reset the list, fill it again
+populateFriends();
 window.__previewReady = true;

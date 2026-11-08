@@ -697,7 +697,7 @@ i.x-user-status.busy {
 }
 .vr-hud .hud-curve {
     font-size: 12px;
-    letter-spacing: 0.32em;
+    letter-spacing: 0.24em;
     text-transform: uppercase;
     fill: var(--vr-text-secondary);
 }

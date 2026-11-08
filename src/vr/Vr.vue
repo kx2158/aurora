@@ -52,8 +52,8 @@
                     :d="arcPath(200, 64 + g * 4.4 - 3.2, 64 + g * 4.4)"
                     class="hud-seg"
                     :class="{ on: g <= Math.min(16, lastLocation.playerList.length) }" />
-                <text class="hud-small" x="44" y="259">{{ neonState.mm ? (neonState.mmMuted ? 'mute' : 'mic') : 'off' }}</text>
-                <text class="hud-small" x="466" y="259">{{ lastLocation.playerList.length }}</text>
+                <text class="hud-small" x="84" y="259">{{ neonState.mm ? (neonState.mmMuted ? 'mute' : 'mic') : 'off' }}</text>
+                <text class="hud-small" x="426" y="259">{{ lastLocation.playerList.length }}</text>
                 <text class="hud-curve">
                     <textPath href="#vr-arc-top" startOffset="50%">{{ topLine }}</textPath>
                 </text>
@@ -1650,11 +1650,11 @@
     const DEVICE_SHORT = { headset: 'hmd', leftController: 'l', rightController: 'r', controller: 'ctl', tracker: 'trk' };
     // text that runs round the top and the bottom edge of the wrist
     const topLine = computed(() => {
-        const bits = ['aurora', neonState.chatbox ? 'chatbox on' : 'chatbox off', `${vrState.onlineFriendCount || 0} online`];
+        const bits = [neonState.chatbox ? 'chat on' : 'chat off', `${vrState.onlineFriendCount || 0} online`];
         if (neonState.nextAlarm) {
             bits.push(`timer ${neonState.nextAlarm}`);
         }
-        return bits.join('  //  ');
+        return bits.join(' / ');
     });
     const bottomLine = computed(() => {
         const bits = [];
@@ -1666,7 +1666,7 @@
                 bits.push(`${DEVICE_SHORT[d[0]]} ${d[3]}%`);
             }
         }
-        return bits.length ? bits.join('  //  ') : 'standing by';
+        return bits.length ? bits.join(' / ') : 'standing by';
     });
 
 

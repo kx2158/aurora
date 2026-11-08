@@ -124,6 +124,18 @@
 
         <footer class="desk-foot">
             <button type="button" class="desk-link" @click="send('open')">{{ t('view.desk.open_app') }}</button>
+            <button
+                type="button"
+                class="desk-quit"
+                :class="{ holding: quitHold }"
+                @pointerdown="startQuit"
+                @pointerup="cancelQuit"
+                @pointerleave="cancelQuit"
+                @keydown.enter.prevent="startQuit"
+                @keyup.enter="cancelQuit">
+                <span class="desk-quit-fill"></span>
+                <span class="desk-quit-text">{{ quitHold ? t('view.desk.quit_holding') : t('view.desk.quit_game') }}</span>
+            </button>
         </footer>
     </div>
 </template>
@@ -147,6 +159,27 @@
     const hotkey = ref('');
 
     // ---- talking to the app ----
+    // hold the quit button for a moment so it can't go off by accident
+    const quitHold = ref(false);
+    let quitTimer = null;
+    function startQuit() {
+        if (quitTimer) {
+            return;
+        }
+        quitHold.value = true;
+        quitTimer = setTimeout(() => {
+            quitTimer = null;
+            quitHold.value = false;
+            send('quitGame');
+            hide();
+        }, 1200);
+    }
+    function cancelQuit() {
+        clearTimeout(quitTimer);
+        quitTimer = null;
+        quitHold.value = false;
+    }
+
     function send(command, value = '') {
         try {
             window.DeskApi?.Command(command, String(value));
@@ -460,9 +493,37 @@
         resize: none;
         line-height: 1.4;
     }
+    .desk-quit {
+        position: relative;
+        overflow: hidden;
+        font-size: 0.76rem;
+        color: var(--a-muted);
+        padding: 4px 12px;
+        border-radius: 999px;
+        border: 1px solid var(--a-line);
+        user-select: none;
+    }
+    .desk-quit:hover {
+        color: #ff8a8a;
+        border-color: rgba(255, 90, 90, 0.4);
+    }
+    .desk-quit-fill {
+        position: absolute;
+        inset: 0;
+        width: 0;
+        background: rgba(255, 70, 70, 0.28);
+    }
+    .desk-quit.holding .desk-quit-fill {
+        width: 100%;
+        transition: width 1.2s linear;
+    }
+    .desk-quit-text {
+        position: relative;
+    }
     .desk-foot {
         display: flex;
-        justify-content: center;
+        justify-content: space-between;
+        align-items: center;
         padding-top: 4px;
         border-top: 1px solid var(--a-line);
     }

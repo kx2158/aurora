@@ -1659,7 +1659,9 @@
             "brb": "BRB",
             "clear": "Clear",
             "send": "Send",
-            "open_app": "Open Aurora"
+            "open_app": "Open Aurora",
+            "quit_game": "Hold to quit VRChat",
+            "quit_holding": "Closing VRChat..."
         }
     },
     "dialog": {

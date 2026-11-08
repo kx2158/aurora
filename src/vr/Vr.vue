@@ -1514,7 +1514,21 @@
         Object.assign(neonState, JSON.parse(json));
         document.documentElement.style.setProperty('--vr-accent', neonState.accent || '#b4b4b4');
     }
+    // quitting needs a second tap within 3 seconds
+    const quitArmed = ref(false);
+    let quitArmTimer = null;
     function dashPress(cmd) {
+        if (cmd === 'quitGame' && !quitArmed.value) {
+            quitArmed.value = true;
+            clearTimeout(quitArmTimer);
+            quitArmTimer = setTimeout(() => (quitArmed.value = false), 3000);
+            blip([[600, 0.06]]);
+            return;
+        }
+        if (cmd === 'quitGame') {
+            quitArmed.value = false;
+            clearTimeout(quitArmTimer);
+        }
         try {
             AppApiVr.NeonCommand(cmd);
         } catch (e) {
@@ -1556,7 +1570,10 @@
         },
         {
             title: 'Overlay',
-            buttons: [{ cmd: 'sounds', icon: 'speaker', label: 'Beeps', state: onOffWord(neonState.sounds), on: neonState.sounds }]
+            buttons: [
+                { cmd: 'sounds', icon: 'speaker', label: 'Beeps', state: onOffWord(neonState.sounds), on: neonState.sounds },
+                { cmd: 'quitGame', icon: 'power', label: quitArmed.value ? 'Tap again' : 'Quit VRChat', state: quitArmed.value ? 'to close' : undefined, warn: true }
+            ]
         }
     ]);
     const musicLine = computed(() =>

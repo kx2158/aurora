@@ -73,6 +73,15 @@ function pushDesk() {
     }, 60);
 }
 
+/** Closes VRChat straight away (ends the game process). Used by the overlays' quit buttons. */
+function quitVrchat() {
+    try {
+        AppApi.QuitGame();
+    } catch {
+        // only the Windows app can close the game
+    }
+}
+
 /** A button or slider in the desktop overlay. */
 export function deskCommand(command, value) {
     const cmd = String(command);
@@ -134,6 +143,9 @@ export function deskCommand(command, value) {
             break;
         case 'mmRefresh':
             refreshAudioLists();
+            break;
+        case 'quitGame':
+            quitVrchat();
             break;
         case 'open':
             try {
@@ -235,6 +247,9 @@ export function neonCommand(command) {
             break;
         case 'clear':
             sendChatboxNow(' ');
+            break;
+        case 'quitGame':
+            quitVrchat();
             break;
         default:
             break;

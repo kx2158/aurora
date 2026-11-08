@@ -9,6 +9,7 @@ namespace VRCX
         public void NeonMusicMicStop() { }
         public void NeonMusicMicVolume(double music, double mic) { }
         public void NeonMusicMicBass(double music, double mic) { }
+        public void NeonMusicMicNoise(double amount) { }
         public string NeonMusicMicStatus() => "{}";
     }
 }

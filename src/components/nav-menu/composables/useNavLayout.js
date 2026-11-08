@@ -169,13 +169,13 @@ export function useNavLayout({ t, locale, router, dashboardStore, dashboards, di
         let layoutData = null;
         let hiddenKeysData = [];
         try {
-            // one time: move everyone to the new Neon-first sidebar
-            if (!(await configRepository.getBool('Neon_navV2', false))) {
+            // one time: move everyone to the Aurora sidebar (sections, Mic, Insights, no avatars)
+            if (!(await configRepository.getBool('Aurora_navV3', false))) {
                 await configRepository.setString(
                     NAV_CONFIG_KEY,
                     JSON.stringify({ layout: createDefaultNavLayout(), hiddenKeys: [] })
                 );
-                await configRepository.setBool('Neon_navV2', true);
+                await configRepository.setBool('Aurora_navV3', true);
             }
             const loaded = await loadStoredNavConfig(configRepository, createDefaultNavLayout(), {
                 configKey: NAV_CONFIG_KEY,

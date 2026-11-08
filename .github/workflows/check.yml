@@ -1,0 +1,37 @@
+name: Check (no release)
+
+# Builds work-in-progress branches to catch mistakes early. Never publishes anything.
+on:
+  push:
+    branches:
+      - 'wip/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Build the app UI
+        run: npx vite build src
+      - name: Lint (report only)
+        run: npx oxlint src --quiet || true
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+      - name: Build the Windows app (CEF)
+        shell: bash
+        run: dotnet build Dotnet/VRCX-Cef.csproj -p:Configuration=Release -p:WarningLevel=0 -p:Platform=x64 -p:PlatformTarget=x64 -maxcpucount --runtime win-x64 --self-contained

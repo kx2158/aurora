@@ -1,4 +1,3 @@
-import { personRuleEvent } from '../services/auroraPranks';
 import dayjs from 'dayjs';
 
 import {
@@ -248,7 +247,6 @@ export async function addGameLogEntry(gameLog, location) {
             }
             vrStore.updateVRLastLocation();
             instanceStore.getCurrentInstanceUserList();
-            personRuleEvent(gameLog.displayName, true);
             entry = createJoinLeaveEntry('OnPlayerJoined', gameLog.dt, gameLog.displayName, location, userId);
             persistedEntryPromise = database.addGamelogJoinLeaveToDatabase(entry);
             break;
@@ -265,7 +263,6 @@ export async function addGameLogEntry(gameLog, location) {
             photonStore.photonLobbyAvatars.delete(userId);
             vrStore.updateVRLastLocation();
             instanceStore.getCurrentInstanceUserList();
-            personRuleEvent(gameLog.displayName, false);
             entry = createJoinLeaveEntry('OnPlayerLeft', gameLog.dt, gameLog.displayName, location, userId, time);
             persistedEntryPromise = database.addGamelogJoinLeaveToDatabase(entry);
             break;

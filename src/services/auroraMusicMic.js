@@ -15,6 +15,8 @@ export const mm = ref({
     micVol: 1,
     musicBass: 0,
     micBass: 0,
+    // noise suppression on your microphone, 0 = off, 1 = strongest
+    micNoise: 0,
     micMuted: false,
     autoStart: true,
     latency: 30,
@@ -43,8 +45,11 @@ export async function initMusicMic() {
 }
 
 function save() {
-    const { app, mic, out, musicVol, micVol, musicBass, micBass, latency, autoStart } = mm.value;
-    configRepository.setString('Neon_musicMic', JSON.stringify({ app, mic, out, musicVol, micVol, musicBass, micBass, latency, autoStart }));
+    const { app, mic, out, musicVol, micVol, musicBass, micBass, micNoise, latency, autoStart } = mm.value;
+    configRepository.setString(
+        'Neon_musicMic',
+        JSON.stringify({ app, mic, out, musicVol, micVol, musicBass, micBass, micNoise, latency, autoStart })
+    );
 }
 
 export async function refreshAudioLists() {
@@ -64,6 +69,10 @@ function sendBass() {
     AppApi.NeonMusicMicBass(mm.value.musicBass, mm.value.micBass);
 }
 
+function sendNoise() {
+    AppApi.NeonMusicMicNoise(mm.value.micNoise);
+}
+
 /** Mutes your microphone in the mix, the music keeps playing. */
 export function toggleMicMute() {
     mm.value.micMuted = !mm.value.micMuted;
@@ -75,7 +84,9 @@ export function toggleMicMute() {
 export function setMm(key, value) {
     mm.value[key] = value;
     save();
-    if (mm.value.running && (key === 'musicBass' || key === 'micBass')) {
+    if (mm.value.running && key === 'micNoise') {
+        sendNoise();
+    } else if (mm.value.running && (key === 'musicBass' || key === 'micBass')) {
         sendBass();
     } else if (mm.value.running && (key === 'musicVol' || key === 'micVol')) {
         sendVolumes();
@@ -87,8 +98,19 @@ export function setMm(key, value) {
 
 export async function startMusicMic() {
     mm.value.error = '';
+    const m = mm.value;
     const ok = await AppApi.NeonMusicMicStart(
-        JSON.stringify({ app: mm.value.app, mic: mm.value.mic, out: mm.value.out, musicVol: mm.value.musicVol, micVol: mm.value.micVol, musicBass: mm.value.musicBass, micBass: mm.value.micBass })
+        JSON.stringify({
+            app: m.app,
+            mic: m.mic,
+            out: m.out,
+            musicVol: m.musicVol,
+            micVol: m.micMuted ? 0 : m.micVol,
+            musicBass: m.musicBass,
+            micBass: m.micBass,
+            micNoise: m.micNoise,
+            latency: m.latency
+        })
     );
     mm.value.running = !!ok;
     if (!ok) {

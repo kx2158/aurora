@@ -84,6 +84,7 @@ namespace VRCX
                 double Num(string k, double d) => r.TryGetProperty(k, out var v) && v.TryGetDouble(out var n) ? n : d;
                 var mix = new NeonMusicMic(Str("app"), Str("loopDevice"), Str("mic"), Str("out"), (float)Num("musicVol", 0.8), (float)Num("micVol", 1.0), (int)Num("latency", 30));
                 mix.InitialBass((float)Num("musicBass", 0), (float)Num("micBass", 0));
+                mix.InitialNoise((float)Num("micNoise", 0));
                 // audio objects must live in a multi-threaded apartment, the browser thread may not be one
                 Exception failure = null;
                 var starter = new Thread(() =>
@@ -129,6 +130,12 @@ namespace VRCX
             _neonMusicMic?.SetBass((float)music, (float)mic);
         }
 
+        /// <summary>Noise suppression on the microphone, 0 = off, 1 = strongest.</summary>
+        public void NeonMusicMicNoise(double amount)
+        {
+            _neonMusicMic?.SetNoise((float)amount);
+        }
+
         public string NeonMusicMicStatus()
         {
             return JsonSerializer.Serialize(new Dictionary<string, object>
@@ -153,6 +160,8 @@ namespace VRCX
         private WasapiOut _output;
         private VolumeSampleProvider _musicVol, _micVol;
         private BassBoost _musicBass, _micBass;
+        private NoiseSuppressor _micNoise;
+        private float _micNoiseStart;
         private float _musicBassStart, _micBassStart;
         private float _musicStart, _micStart;
         private int _rate = 48000, _outChannels = 2;
@@ -216,7 +225,9 @@ namespace VRCX
                 _micCapture.DataAvailable += (s, e) => { try { micBuf.AddSamples(e.Buffer, 0, e.BytesRecorded); } catch { } };
                 _micCapture.RecordingStopped += (s, e) => { if (e.Exception != null) Log.Error(e.Exception, "Microphone stopped"); };
                 _micCapture.StartRecording();
-                _micBass = new BassBoost(Meter(To48kStereo(micBuf.ToSampleProvider()), v => MicPeak = v)) { Amount = _micBassStart };
+                // noise suppression runs first, so the meter and the bass boost only see your voice
+                _micNoise = new NoiseSuppressor(To48kStereo(micBuf.ToSampleProvider())) { Amount = _micNoiseStart };
+                _micBass = new BassBoost(Meter(_micNoise, v => MicPeak = v)) { Amount = _micBassStart };
                 _micVol = new VolumeSampleProvider(_micBass) { Volume = _micStart };
                 mixer.AddMixerInput(_micVol);
             }
@@ -247,6 +258,16 @@ namespace VRCX
         public void InitialBass(float music, float mic)
         {
             _musicBassStart = music; _micBassStart = mic;
+        }
+
+        public void InitialNoise(float amount)
+        {
+            _micNoiseStart = amount;
+        }
+
+        public void SetNoise(float amount)
+        {
+            if (_micNoise != null) _micNoise.Amount = amount;
         }
 
         public void SetBass(float music, float mic)
@@ -295,6 +316,179 @@ namespace VRCX
                     buffer[offset + i] = MathF.Tanh(x * drive) * norm;
                 }
                 return n;
+            }
+        }
+
+        /// <summary>
+        /// Noise suppression for the microphone (fans, keyboard, hum, room noise).
+        /// Short-time spectral noise reduction: the sound is cut into 512-sample frames (about 11 ms of delay),
+        /// the steady background noise is learned per frequency band, and bands that are mostly noise are
+        /// turned down (Wiener gain with decision-directed SNR, which avoids the "underwater" artefacts of plain
+        /// subtraction). When nobody is talking, a soft gate lowers what is left.
+        /// Amount 0 = off (sound passes untouched), 1 = strongest.
+        /// </summary>
+        private sealed class NoiseSuppressor : ISampleProvider
+        {
+            private const int M = 9;            // 2^9 = 512 point FFT
+            private const int N = 1 << M;
+            private const int Hop = N / 2;
+            private const int Bins = N / 2 + 1;
+
+            private readonly ISampleProvider _src;
+            private readonly int _channels;
+            private readonly float[] _window = new float[N];
+            private readonly float[] _frame = new float[N];       // last N mono input samples
+            private readonly float[] _accum = new float[N];       // overlap-add output
+            private readonly NAudio.Dsp.Complex[] _fft = new NAudio.Dsp.Complex[N];
+            private readonly float[] _noise = new float[Bins];
+            private readonly float[] _prevGain = new float[Bins];
+            private readonly float[] _prevPost = new float[Bins];
+            private readonly float[] _gain = new float[Bins];
+            private readonly float[] _pending = new float[Hop];
+            private int _pendingCount;
+            private readonly float[] _out = new float[1 << 16];  // ring of processed mono samples
+            private int _outHead, _outCount;
+            private float[] _read = Array.Empty<float>();
+            private int _frames;
+            private float _gate = 1f;
+            private volatile float _amount;
+
+            public NoiseSuppressor(ISampleProvider src)
+            {
+                _src = src;
+                _channels = Math.Max(1, src.WaveFormat.Channels);
+                // square root Hann on analysis and synthesis sums to exactly 1 at 50% overlap
+                for (var i = 0; i < N; i++)
+                    _window[i] = MathF.Sqrt(0.5f * (1f - MathF.Cos(2f * MathF.PI * i / N)));
+                for (var k = 0; k < Bins; k++)
+                {
+                    _prevGain[k] = 1f;
+                    _prevPost[k] = 1f;
+                }
+                // one hop of silence up front keeps the output steady (total delay is one frame, 512 samples)
+                _outCount = Hop;
+            }
+
+            public float Amount { get => _amount; set => _amount = Math.Clamp(value, 0f, 1f); }
+            public WaveFormat WaveFormat => _src.WaveFormat;
+
+            public int Read(float[] buffer, int offset, int count)
+            {
+                if (_read.Length < count) _read = new float[count];
+                var n = _src.Read(_read, 0, count);
+                var frames = n / _channels;
+                for (var f = 0; f < frames; f++)
+                {
+                    var sum = 0f;
+                    for (var c = 0; c < _channels; c++) sum += _read[f * _channels + c];
+                    _pending[_pendingCount++] = sum / _channels;
+                    if (_pendingCount == Hop)
+                    {
+                        ProcessHop();
+                        _pendingCount = 0;
+                    }
+                }
+                for (var f = 0; f < frames; f++)
+                {
+                    var v = 0f;
+                    if (_outCount > 0)
+                    {
+                        v = _out[_outHead];
+                        _outHead = (_outHead + 1) & (_out.Length - 1);
+                        _outCount--;
+                    }
+                    for (var c = 0; c < _channels; c++) buffer[offset + f * _channels + c] = v;
+                }
+                return frames * _channels;
+            }
+
+            private void ProcessHop()
+            {
+                Array.Copy(_frame, Hop, _frame, 0, N - Hop);
+                Array.Copy(_pending, 0, _frame, N - Hop, Hop);
+
+                for (var i = 0; i < N; i++)
+                {
+                    _fft[i].X = _frame[i] * _window[i];
+                    _fft[i].Y = 0f;
+                }
+                NAudio.Dsp.FastFourierTransform.FFT(true, M, _fft);
+
+                var amount = _amount;
+                _frames++;
+                var learning = _frames < 40; // first ~0.2 s: learn the room
+                float speech = 0f, noiseSum = 0f;
+
+                for (var k = 0; k < Bins; k++)
+                {
+                    var p = _fft[k].X * _fft[k].X + _fft[k].Y * _fft[k].Y + 1e-12f;
+                    // noise floor: follows quiet moments fast, creeps up slowly (about 3 dB per second)
+                    if (learning)
+                        _noise[k] = _frames == 1 ? p : _noise[k] * 0.9f + p * 0.1f;
+                    else if (p < _noise[k])
+                        _noise[k] = _noise[k] * 0.85f + p * 0.15f;
+                    else
+                        _noise[k] = Math.Min(p, _noise[k] * 1.0037f);
+
+                    if (k > 2 && k < 90) // roughly 300 Hz to 8 kHz, where a voice lives
+                    {
+                        speech += p;
+                        noiseSum += _noise[k];
+                    }
+
+                    var over = 1f + amount * 3f;                       // stronger setting = assume more noise
+                    var post = p / (_noise[k] * over);
+                    var prior = 0.98f * _prevGain[k] * _prevGain[k] * _prevPost[k] + 0.02f * Math.Max(post - 1f, 0f);
+                    var g = prior / (1f + prior);
+                    _prevPost[k] = post;
+                    _gain[k] = g;
+                }
+
+                // frequency smoothing takes the edge off single bins flickering ("musical noise")
+                var floor = MathF.Pow(10f, -(8f + amount * 28f) / 20f);    // -8 dB .. -36 dB at most
+                for (var k = 0; k < Bins; k++)
+                {
+                    var a = _gain[Math.Max(0, k - 1)];
+                    var b = _gain[k];
+                    var c = _gain[Math.Min(Bins - 1, k + 1)];
+                    var g = (a + 2f * b + c) * 0.25f;
+                    g = Math.Max(floor, g);
+                    // blend with "off" by the amount, so 0 really is untouched
+                    g = 1f + (g - 1f) * Math.Min(1f, amount * 2f);
+                    _prevGain[k] = g;
+                    _gain[k] = g;
+                }
+
+                // soft gate: when the voice band is close to the noise floor nobody is talking
+                var ratio = speech / (noiseSum + 1e-9f);
+                var open = ratio > 3.0f || amount < 0.01f;
+                var target = open ? 1f : 1f - 0.85f * amount;
+                _gate += (target - _gate) * (open ? 0.5f : 0.08f);       // opens fast, closes gently
+
+                for (var k = 0; k < Bins; k++)
+                {
+                    var g = _gain[k] * _gate;
+                    _fft[k].X *= g;
+                    _fft[k].Y *= g;
+                    if (k > 0 && k < N / 2)
+                    {
+                        _fft[N - k].X *= g;
+                        _fft[N - k].Y *= g;
+                    }
+                }
+                NAudio.Dsp.FastFourierTransform.FFT(false, M, _fft);
+
+                for (var i = 0; i < N; i++) _accum[i] += _fft[i].X * _window[i];
+
+                // the first half is finished now
+                for (var i = 0; i < Hop; i++)
+                {
+                    if (_outCount >= _out.Length) break; // nobody is reading, drop
+                    _out[(_outHead + _outCount) & (_out.Length - 1)] = _accum[i];
+                    _outCount++;
+                }
+                Array.Copy(_accum, Hop, _accum, 0, N - Hop);
+                Array.Clear(_accum, N - Hop, Hop);
             }
         }
 

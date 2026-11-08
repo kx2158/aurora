@@ -346,24 +346,28 @@
 
     const MAX_LABEL_NAME_LENGTH = 20;
 
+    // Aurora palette: soft borealis tones that stay apart from each other on dark and light
     const COLORS_PALETTE = [
-        '#5470c6',
-        '#91cc75',
-        '#fac858',
-        '#ee6666',
-        '#73c0de',
-        '#3ba272',
-        '#fc8452',
-        '#9a60b4',
-        '#ea7ccc'
+        '#4fe3a0',
+        '#5fd0e8',
+        '#8ea2ff',
+        '#b58cff',
+        '#ff8fc7',
+        '#ffc06b',
+        '#7fe0c8',
+        '#6cb6ff',
+        '#e0a3ff'
     ];
 
-    const NODE_BORDER_LAYER = layerBorder({
-        borders: [
-            { size: 0.1, color: '#f2f2f2', mode: 'relative' },
-            { size: 0, color: { attribute: 'color' }, fill: true }
-        ]
-    });
+    // a thin ring in the background colour keeps overlapping nodes readable
+    function nodeBorderLayer(dark) {
+        return layerBorder({
+            borders: [
+                { size: 0.14, color: dark ? '#15171b' : '#ffffff', mode: 'relative' },
+                { size: 0, color: { attribute: 'color' }, fill: true }
+            ]
+        });
+    }
 
     function renderLastFetchedAttachment({ attributes, pixelRatio }) {
         if (!attributes.lastFetchedAt) return null;
@@ -968,11 +972,13 @@
 
         const DEFAULT_LABEL_THRESHOLD = 10;
 
-        const labelColor = isDarkMode.value ? '#ffffff' : '#000000';
-        const EDGE_BASE = isDarkMode.value ? '#334155' : '#cbd5e1';
-        const EDGE_ACTIVE = isDarkMode.value ? '#bac1c9' : '#475569';
-        const NODE_FADED = isDarkMode.value ? 'rgba(148,163,184,0.04)' : 'rgba(100,116,139,0.06)';
-        const LABEL_BACKGROUND = isDarkMode.value ? 'rgba(10,10,10,0.65)' : 'rgba(255,255,255,0.7)';
+        const dark = isDarkMode.value;
+        const labelColor = dark ? 'rgba(236,238,242,0.92)' : 'rgba(24,26,30,0.9)';
+        const EDGE_BASE = dark ? 'rgba(236,238,242,0.07)' : 'rgba(24,26,30,0.08)';
+        const EDGE_ACTIVE = dark ? 'rgba(236,238,242,0.5)' : 'rgba(24,26,30,0.45)';
+        const NODE_FADED = dark ? 'rgba(236,238,242,0.06)' : 'rgba(24,26,30,0.06)';
+        const LABEL_BACKGROUND = dark ? 'rgba(21,23,27,0.8)' : 'rgba(255,255,255,0.85)';
+        const NODE_HOVER = dark ? '#ffffff' : '#15171b';
 
         let cameraState = null;
 
@@ -999,7 +1005,7 @@
         sigmaInstance = new Sigma(graph, container, {
             primitives: {
                 nodes: {
-                    layers: [NODE_BORDER_LAYER],
+                    layers: [nodeBorderLayer(dark)],
                     label: {},
                     backdrop: {},
                     labelAttachments: { lastFetched: renderLastFetchedAttachment }
@@ -1013,7 +1019,10 @@
                 allowInvalidContainer: true,
                 renderLabels: true,
                 itemSizesReference: 'screen',
-                labelRenderedSizeThreshold: DEFAULT_LABEL_THRESHOLD
+                labelRenderedSizeThreshold: DEFAULT_LABEL_THRESHOLD,
+                labelFont: "'Inter Variable', 'Segoe UI', sans-serif",
+                labelWeight: '500',
+                labelSize: 12
             },
             nodeReducer: (node, data, attrs) => {
                 const res = {
@@ -1023,21 +1032,20 @@
                 };
 
                 if (attrs.optedOut) {
-                    res.borderColor = '#9ca3af';
+                    res.borderColor = dark ? '#6b7280' : '#9ca3af';
                 }
 
                 if (!hoveredNode) {
-                    res.color = attrs.optedOut ? '#d1d5db' : data.color;
+                    res.color = attrs.optedOut ? (dark ? '#4b5058' : '#d1d5db') : data.color;
                     res.zIndex = 1;
                     return res;
                 }
 
                 if (node === hoveredNode) {
-                    res.color = '#facc15';
-                    res.size = (attrs.size || 4) * 1.2;
+                    res.color = NODE_HOVER;
+                    res.size = (attrs.size || 4) * 1.25;
                     res.label = `${data.label} (${hoveredNeighbors.size})`;
-                    res.labelColor = '#111827';
-                    res.labelBackgroundColor = null;
+                    res.labelColor = labelColor;
                     res.labelVisibility = 'visible';
                     res.labelAttachment = attrs.lastFetchedAt ? 'lastFetched' : null;
                     res.zIndex = 3;

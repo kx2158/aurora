@@ -1,31 +1,24 @@
 /**
- * Neon's news feed: group announcements, events, update notices.
- * Anything pushed here shows in the dock and Neon says it out loud.
+ * Small things worth telling you about: alarms, group announcements, events.
+ * Alarms pop up as a notice in the app; everything is kept in a short list for the Home page.
  */
 import { ref } from 'vue';
+import { toast } from 'vue-sonner';
 
 export const newsItems = ref([]);
-/** Items Neon has not spoken yet. */
-export const unspoken = ref([]);
 
 let nextId = 1;
 
 export function pushNews({ kind, title = '', text = '' }) {
     const item = { id: nextId++, kind, title, text, at: Date.now() };
     newsItems.value = [item, ...newsItems.value].slice(0, 30);
-    unspoken.value = [...unspoken.value, item].slice(-5);
-    return item;
-}
-
-export function takeUnspoken() {
-    const item = unspoken.value[0];
-    if (item) {
-        unspoken.value = unspoken.value.slice(1);
+    if (kind === 'alarm') {
+        toast(text || 'Alarm', { description: title, duration: 20000 });
     }
     return item;
 }
 
-/** Called for every incoming notification, keeps only the ones worth announcing. */
+/** Called for every incoming notification, keeps only the ones worth remembering. */
 export function newsFromNoty(noty) {
     if (!noty) {
         return;

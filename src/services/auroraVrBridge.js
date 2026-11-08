@@ -11,20 +11,17 @@ import { addTimer, alarms, stopRinging } from './auroraAlarms';
 import configRepository from './config';
 import { chatboxEnabled, chatboxPreview, sendChatboxNow, setChatboxEnabled } from './auroraChatbox';
 import { setEnabled, state } from './auroraIntegrations';
-import { useAuroraSettingsStore } from '../stores';
 
 let vrSounds = true;
 let started = false;
 
 function pushState() {
-    const settings = useAuroraSettingsStore();
     const next = alarms.value.filter((a) => a.enabled).map((a) => a.time).sort()[0] || '';
     try {
         AppApi.ExecuteVrOverlayFunction(
             'neonState',
             JSON.stringify({
                 chatbox: chatboxEnabled.value,
-                voice: settings.mascotVoiceEnabled,
                 sounds: vrSounds,
                 afk: !!state.afk?.enabled,
                 music: !!state.medialink?.enabled,
@@ -46,7 +43,6 @@ function pushState() {
 }
 
 export function neonCommand(command) {
-    const settings = useAuroraSettingsStore();
     switch (String(command)) {
         case 'chatbox':
             setChatboxEnabled(!chatboxEnabled.value);
@@ -65,9 +61,6 @@ export function neonCommand(command) {
             break;
         case 'stopAlarm':
             stopRinging();
-            break;
-        case 'voice':
-            settings.setMascotVoiceEnabled(!settings.mascotVoiceEnabled);
             break;
         case 'sounds':
             vrSounds = !vrSounds;
@@ -121,8 +114,7 @@ export async function initVrBridge() {
     }
     started = true;
     vrSounds = await configRepository.getBool('Neon_vrSounds', true);
-    const settings = useAuroraSettingsStore();
-    watch([accent, mm, chatboxEnabled, chatboxPreview, () => settings.mascotVoiceEnabled, alarms], pushState, { deep: true });
+    watch([accent, mm, chatboxEnabled, chatboxPreview, alarms], pushState, { deep: true });
     setInterval(pushState, 5000);
     pushState();
 }

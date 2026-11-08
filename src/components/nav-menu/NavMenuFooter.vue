@@ -6,7 +6,7 @@
                     <DropdownMenuTrigger as-child>
                         <SidebarMenuButton :tooltip="t('nav_tooltip.manage')" :is-active="isSettingsRoute">
                             <span class="relative inline-flex size-6 items-center justify-center">
-                                <i class="ri-settings-3-line text-lg" />
+                                <AuroraIcon name="settings" :size="18" />
                                 <span
                                     v-if="hasPendingUpdate || hasPendingInstall"
                                     class="absolute top-0.5 -right-1 h-1.5 w-1.5 rounded-full bg-red-500"></span>
@@ -127,7 +127,7 @@
                 <SidebarMenuButton
                     :tooltip="isCollapsed ? t('nav_tooltip.expand_menu') : t('nav_tooltip.collapse_menu')"
                     @click="emit('toggle-nav-collapse')">
-                    <i class="ri-side-bar-line inline-flex size-6 items-center justify-center text-[19px]" />
+                    <span class="inline-flex size-6 items-center justify-center"><AuroraIcon name="sidebar" :size="18" /></span>
                     <span v-show="!isCollapsed">{{ t('nav_tooltip.collapse_menu') }}</span>
                 </SidebarMenuButton>
             </SidebarMenuItem>
@@ -136,6 +136,7 @@
 </template>
 
 <script setup>
+    import AuroraIcon from '@/components/AuroraIcon.vue';
     import { useI18n } from 'vue-i18n';
     import { useRouter } from 'vue-router';
     import { computed, ref, watch } from 'vue';

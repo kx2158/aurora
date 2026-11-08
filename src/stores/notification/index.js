@@ -1,4 +1,3 @@
-import { boopCodeReceived } from '../../services/auroraBoopCode';
 import { newsFromNoty } from '../../services/auroraNews';
 import { computed, ref, watch } from 'vue';
 import { defineStore } from 'pinia';
@@ -597,7 +596,6 @@ export const useNotificationStore = defineStore('Notification', () => {
      */
     function handleNotificationV2(args) {
         const ref = applyNotificationV2(args.json);
-        boopCodeReceived(ref);
         if (ref.seen) {
             removeFromArray(unseenNotifications.value, ref.id);
         } else if (!unseenNotifications.value.includes(ref.id)) {

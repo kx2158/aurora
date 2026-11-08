@@ -55,7 +55,7 @@
                             @click="handleShowItem(item.key)">
                             <span class="size-4 shrink-0" />
                             <span class="size-4 shrink-0" />
-                            <i v-if="item.icon" :class="item.icon" class="text-base" />
+                            <i v-if="item.icon" :class="navIconClass(item.icon)" class="text-base" ><AuroraIcon v-if="isAuroraIcon(item.icon)" :name="auroraIconName(item.icon)" :size="18" /></i>
                             <span class="flex-1 truncate">{{ item.label }}</span>
                             <Button
                                 size="icon-sm"
@@ -154,6 +154,8 @@
 </template>
 
 <script setup>
+    import AuroraIcon from '@/components/AuroraIcon.vue';
+    import { auroraIconName, isAuroraIcon, navIconClass } from '@/shared/utils/navIcon';
     import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
     import { computed, reactive, ref, watch } from 'vue';
     import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';

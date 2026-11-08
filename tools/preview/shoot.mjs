@@ -167,6 +167,21 @@ await vr
 await vr.waitForTimeout(800);
 await vr.screenshot({ path: `${out}/vr-dash.jpg`, type: 'jpeg', quality: 80, clip: { x: 1024, y: 0, width: 1024, height: 1024 } });
 await vr.screenshot({ path: `${out}/vr-wrist.jpg`, type: 'jpeg', quality: 85, clip: { x: 0, y: 0, width: 512, height: 512 } });
+// the opening animation, frozen at a few moments
+try {
+    await vr.evaluate(() => window.$vr.wristShown());
+    await vr.waitForTimeout(100);
+    for (const t of [120, 380, 700, 1100]) {
+        await vr.evaluate((ms) => document.getAnimations().forEach((a) => { a.pause(); a.currentTime = ms; }), t);
+        await vr.waitForTimeout(150);
+        await vr.screenshot({ path: `${out}/vr-open-${t}.jpg`, type: 'jpeg', quality: 82, clip: { x: 0, y: 0, width: 512, height: 512 } });
+    }
+    await vr.evaluate(() => document.getAnimations().forEach((a) => a.play()));
+    await vr.waitForTimeout(2300);
+} catch (e) {
+    logs.push('[vr open] ' + e.message);
+}
+await vr.screenshot({ path: `${out}/vr-wrist-3d.jpg`, type: 'jpeg', quality: 88, clip: { x: 0, y: 0, width: 512, height: 512 } });
 // someone flagged joined
 await vr
     .evaluate(() =>

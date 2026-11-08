@@ -739,6 +739,8 @@ namespace VRCX
                 {
                     err = overlay.ShowOverlay(overlayHandle);
                     overlayVisible = true;
+                    // Aurora: play the wrist opening animation
+                    ExecuteVrOverlayFunction("wristShown", "{}");
                 }
             }
             else if (overlayVisible)
@@ -750,6 +752,8 @@ namespace VRCX
                 }
 
                 overlayVisible = false;
+                // Aurora: reset to the first frame so the next opening starts clean
+                ExecuteVrOverlayFunction("wristHidden", "{}");
             }
 
             return err;

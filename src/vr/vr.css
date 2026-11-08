@@ -1122,3 +1122,296 @@ i.x-user-status.busy {
     text-overflow: ellipsis;
     white-space: nowrap;
 }
+
+/* ================================================================
+   Wrist depth: the face is a stack of layers at different heights,
+   tilted a little and drifting slowly, so the rings and the time
+   float above the glass. Bright parts get a real two-pass bloom.
+   ================================================================ */
+.wrist {
+    perspective: 1100px;
+    perspective-origin: 50% 46%;
+}
+.vr-stage {
+    position: absolute;
+    inset: 0;
+    transform-style: preserve-3d;
+    transform: scale(0.93) rotateX(7deg) rotateY(-3deg);
+    animation: vr-sway 11s ease-in-out infinite alternate;
+}
+@keyframes vr-sway {
+    0% {
+        transform: scale(0.93) rotateX(7deg) rotateY(-3deg);
+    }
+    50% {
+        transform: scale(0.93) rotateX(4deg) rotateY(2deg);
+    }
+    100% {
+        transform: scale(0.93) rotateX(8deg) rotateY(4deg);
+    }
+}
+.vr-stage > * {
+    transform-origin: 50% 50%;
+}
+.vr-l0 {
+    transform: translateZ(0);
+}
+.vr-l1 {
+    transform: translateZ(26px);
+    filter: drop-shadow(0 10px 6px rgba(0, 0, 0, 0.55));
+}
+.vr-l2 {
+    transform: translateZ(44px);
+    filter: drop-shadow(0 12px 8px rgba(0, 0, 0, 0.6));
+}
+.vr-stage .vr-core {
+    transform: translateZ(78px);
+    filter: drop-shadow(0 18px 12px rgba(0, 0, 0, 0.7));
+}
+.vr-stage .vr-ring-feed {
+    transform: translateZ(52px);
+}
+
+/* the bezel catches light on one side */
+.vr-hud .hud-bezel {
+    fill: none;
+    stroke: url(#vr-bezel);
+    stroke-width: 3;
+}
+
+/* bloom */
+.vr-hud .hud-bright,
+.vr-hud .hud-tick.big {
+    filter: url(#vr-bloom);
+}
+.vr-hud .hud-seg.on {
+    filter: url(#vr-bloom);
+}
+.vr-hud .hud-sec {
+    filter: url(#vr-bloom);
+}
+.vr-digits {
+    text-shadow:
+        0 0 1px #fff,
+        0 0 8px rgba(255, 255, 255, 0.55),
+        0 0 22px rgba(255, 255, 255, 0.32),
+        0 0 48px var(--vr-accent);
+}
+.vr-layer,
+.vr-date {
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.25);
+}
+
+/* the glass: a soft highlight that drifts round the face */
+.vr-glass {
+    position: absolute;
+    inset: 4px;
+    border-radius: 50%;
+    pointer-events: none;
+    transform: translateZ(92px);
+    background:
+        radial-gradient(120% 70% at 30% 8%, rgba(255, 255, 255, 0.1), transparent 45%),
+        radial-gradient(60% 40% at 78% 92%, rgba(255, 255, 255, 0.04), transparent 60%);
+    mix-blend-mode: screen;
+}
+.vr-glass::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg, transparent 0deg, rgba(255, 255, 255, 0.06) 18deg, transparent 40deg, transparent 360deg);
+    animation: vr-sheen 14s linear infinite;
+}
+@keyframes vr-sheen {
+    to {
+        transform: rotate(360deg);
+    }
+}
+.vr-scanline {
+    position: absolute;
+    left: 70px;
+    right: 70px;
+    top: 40px;
+    height: 2px;
+    border-radius: 2px;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateZ(96px);
+    background: linear-gradient(90deg, transparent, #fff 30%, #fff 70%, transparent);
+    box-shadow:
+        0 0 10px 2px rgba(255, 255, 255, 0.45),
+        0 0 30px 8px rgba(255, 255, 255, 0.15);
+}
+.vr-hud .hud-shock {
+    fill: none;
+    stroke: #fff;
+    stroke-width: 1.4;
+    opacity: 0;
+    transform-box: fill-box;
+    transform-origin: center;
+    filter: url(#vr-bloom);
+}
+
+/* ---- hidden: wait on the first frame so opening never flashes the old face ---- */
+.vr-stage.closed {
+    opacity: 0;
+    animation: none;
+}
+
+/* ---- opening: about 1.6 seconds ---- */
+.vr-stage.opening {
+    animation: vr-open-stage 1.15s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes vr-open-stage {
+    0% {
+        opacity: 0;
+        transform: scale(0.55) rotateX(68deg) rotateZ(-30deg);
+    }
+    35% {
+        opacity: 1;
+    }
+    100% {
+        transform: scale(0.93) rotateX(7deg) rotateY(-3deg);
+    }
+}
+.opening .vr-l1 {
+    animation: vr-open-l1 1.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes vr-open-l1 {
+    0% {
+        opacity: 0;
+        transform: translateZ(180px) rotate(-140deg) scale(0.8);
+    }
+    100% {
+        opacity: 1;
+        transform: translateZ(26px) rotate(0) scale(1);
+    }
+}
+.opening .vr-l2 {
+    animation: vr-open-l2 1.2s 0.12s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes vr-open-l2 {
+    0% {
+        opacity: 0;
+        transform: translateZ(280px) scale(1.35);
+    }
+    100% {
+        opacity: 1;
+        transform: translateZ(44px) scale(1);
+    }
+}
+.opening .hud-tick {
+    animation: vr-tick-in 0.35s calc(var(--i) * 6ms + 180ms) ease-out both;
+}
+@keyframes vr-tick-in {
+    0% {
+        opacity: 0;
+        stroke: #fff;
+    }
+    40% {
+        opacity: 1;
+        stroke: #fff;
+    }
+}
+.opening .hud-seg {
+    animation: vr-seg-in 0.3s calc(var(--i) * 28ms + 520ms) ease-out both;
+}
+@keyframes vr-seg-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+.opening .hud-shock {
+    animation: vr-shock 1s 0.08s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@keyframes vr-shock {
+    0% {
+        opacity: 0.95;
+        transform: scale(0.2);
+        stroke-width: 3;
+    }
+    100% {
+        opacity: 0;
+        transform: scale(25);
+        stroke-width: 0.2;
+    }
+}
+.opening .vr-scanline {
+    animation: vr-scan 1.05s 0.3s ease-in-out both;
+}
+@keyframes vr-scan {
+    0% {
+        opacity: 0;
+        top: 40px;
+    }
+    15% {
+        opacity: 1;
+    }
+    85% {
+        opacity: 0.9;
+    }
+    100% {
+        opacity: 0;
+        top: 466px;
+    }
+}
+.opening .vr-core {
+    animation: vr-open-core 0.9s 0.42s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes vr-open-core {
+    0% {
+        opacity: 0;
+        transform: translateZ(170px);
+        filter: blur(6px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateZ(78px);
+        filter: drop-shadow(0 18px 12px rgba(0, 0, 0, 0.7));
+    }
+}
+/* the time boots up: flicker with a slight colour split, then settles */
+.opening .vr-digits {
+    animation: vr-boot 0.85s 0.5s steps(1) both;
+}
+@keyframes vr-boot {
+    0% {
+        opacity: 0;
+    }
+    12% {
+        opacity: 1;
+        text-shadow:
+            -3px 0 rgba(255, 60, 90, 0.8),
+            3px 0 rgba(60, 220, 255, 0.8);
+    }
+    22% {
+        opacity: 0.15;
+    }
+    34% {
+        opacity: 1;
+        text-shadow:
+            2px 0 rgba(255, 60, 90, 0.6),
+            -2px 0 rgba(60, 220, 255, 0.6);
+    }
+    46% {
+        opacity: 0.6;
+    }
+    58% {
+        opacity: 1;
+    }
+}
+.opening .vr-ring-feed,
+.opening .vr-glass {
+    animation: vr-fade-in 0.6s 1s ease-out both;
+}
+@keyframes vr-fade-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}

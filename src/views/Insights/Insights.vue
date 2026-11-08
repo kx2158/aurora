@@ -34,7 +34,7 @@
                 <AChart :option="playtimeOption" :height="220" />
             </section>
 
-            <div class="a-grid a-grid-2">
+            <div class="a-grid a-grid-2 items-start">
                 <section class="a-card">
                     <h2 class="a-h2">{{ t('view.insights.rhythm') }}</h2>
                     <AChart :option="heatOption" :height="236" />
@@ -75,7 +75,7 @@
                 <section class="a-card">
                     <h2 class="a-h2">{{ t('view.insights.worlds') }}</h2>
                     <div class="ins-donut">
-                        <AChart :option="worldsOption" :height="210" @select="openWorld" />
+                        <AChart :option="worldsOption" :height="170" @select="openWorld" />
                         <div class="ins-legend">
                             <button
                                 v-for="(w, i) in data.topWorlds.slice(0, 6)"
@@ -515,7 +515,7 @@
     }
     .ins-donut {
         display: grid;
-        grid-template-columns: 210px minmax(0, 1fr);
+        grid-template-columns: 170px minmax(0, 1fr);
         align-items: center;
         gap: 18px;
     }

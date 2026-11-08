@@ -51,7 +51,7 @@ function native(cls, method, args) {
             return 0;
         }
     }
-    if (cls === 'AppApi') {
+    if (String(cls).startsWith('AppApi')) {
         switch (method) {
             case 'GetNeonAudioDevices':
                 return JSON.stringify(devices);

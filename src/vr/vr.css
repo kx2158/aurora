@@ -606,11 +606,175 @@ i.x-user-status.busy {
 
 /* ---- Aurora in-game look: quiet graphite panels, one accent colour, no glow ---- */
 .wrist {
-    background: rgba(21, 23, 27, 0.92);
-    border: 1px solid var(--vr-border-strong);
-    border-radius: var(--vr-radius);
-    padding: 14px 6px 6px;
+    width: 510px;
+    height: 510px;
+    background: transparent;
+    border: none;
+    border-radius: 50%;
+    padding: 0;
     box-sizing: border-box;
+    font-family: 'JetBrains Mono', 'Cascadia Mono', Consolas, 'Courier New', monospace;
+}
+.wrist .x-friend-item,
+.wrist .x-friend-item .name,
+.wrist .x-friend-item .time {
+    font-family: inherit;
+}
+/* the round interface */
+.vr-hud {
+    position: absolute;
+    inset: 0;
+    width: 510px;
+    height: 510px;
+    pointer-events: none;
+}
+.vr-hud .hud-face {
+    fill: url(#vr-glow);
+    stroke: rgba(255, 255, 255, 0.16);
+    stroke-width: 1.2;
+}
+.vr-hud .hud-ring {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.2);
+    stroke-width: 0.8;
+}
+.vr-hud .hud-ring.faint {
+    stroke: rgba(255, 255, 255, 0.08);
+}
+.vr-hud .hud-ring.dashed {
+    stroke-dasharray: 2 5;
+}
+.vr-hud .hud-tick {
+    stroke: rgba(255, 255, 255, 0.22);
+    stroke-width: 1;
+}
+.vr-hud .hud-tick.big {
+    stroke: rgba(255, 255, 255, 0.75);
+    stroke-width: 1.8;
+}
+.vr-hud .hud-arc {
+    fill: none;
+    stroke: var(--vr-accent);
+    stroke-width: 2;
+    opacity: 0.8;
+    filter: drop-shadow(0 0 4px var(--vr-accent));
+}
+.vr-hud .hud-arc.dim {
+    stroke-width: 1;
+    opacity: 0.45;
+    filter: none;
+}
+.vr-hud .hud-mark {
+    fill: var(--vr-text);
+}
+.vr-hud .hud-hour {
+    stroke: var(--vr-text);
+    stroke-width: 3;
+    stroke-linecap: round;
+}
+.vr-hud .hud-sec {
+    fill: var(--vr-accent);
+    filter: drop-shadow(0 0 5px var(--vr-accent));
+}
+.vr-hud .hud-seg {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.1);
+    stroke-width: 9;
+}
+.vr-hud .hud-seg.on {
+    stroke: var(--vr-accent);
+    opacity: 0.85;
+}
+.vr-hud text {
+    font-family: 'JetBrains Mono', 'Cascadia Mono', Consolas, 'Courier New', monospace;
+    fill: var(--vr-text-muted);
+    text-anchor: middle;
+}
+.vr-hud .hud-small {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+.vr-hud .hud-curve {
+    font-size: 12px;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    fill: var(--vr-text-secondary);
+}
+.vr-hud .hud-curve.low {
+    fill: var(--vr-text-muted);
+}
+.vr-core {
+    position: absolute;
+    top: 118px;
+    left: 105px;
+    width: 300px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    z-index: 2;
+}
+.vr-layer {
+    font-size: 11px;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: var(--vr-text-muted);
+}
+.vr-digits {
+    margin-top: 4px;
+    font-size: 64px;
+    font-weight: 300;
+    line-height: 1;
+    letter-spacing: 0.04em;
+    font-variant-numeric: tabular-nums;
+    color: var(--vr-text);
+    text-shadow: 0 0 14px rgba(230, 232, 238, 0.22);
+}
+.vr-digits small {
+    margin-left: 2px;
+    font-size: 18px;
+    color: var(--vr-text-muted);
+}
+.vr-date {
+    margin-top: 6px;
+    font-size: 13px;
+    letter-spacing: 0.16em;
+    text-transform: lowercase;
+    color: var(--vr-text-secondary);
+}
+.vr-blink {
+    animation: vr-blink 1.1s steps(1) infinite;
+}
+@keyframes vr-blink {
+    50% {
+        opacity: 0;
+    }
+}
+.wrist .vr-ring-feed {
+    position: absolute;
+    top: 296px;
+    left: 120px;
+    width: 270px;
+    height: 104px;
+    padding: 0;
+    overflow: hidden;
+    z-index: 2;
+    -webkit-mask-image: linear-gradient(to bottom, #000 70%, transparent);
+}
+.wrist .vr-ring-feed .x-friend-item {
+    padding: 2px 0;
+    background: none;
+    border-radius: 0;
+    text-align: center;
+}
+.wrist .vr-ring-feed .detail,
+.wrist .vr-ring-feed .extra {
+    font-size: 12px !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    justify-content: center;
 }
 .wrist .x-container {
     padding-top: 4px;
@@ -665,11 +829,11 @@ i.x-user-status.busy {
 .vr-alarm {
     display: flex;
     align-items: center;
-    gap: 8px;
-    margin: 0 8px 10px;
-    padding: 8px 12px;
-    border-radius: 12px;
-    font-size: var(--vr-font-base);
+    gap: 6px;
+    margin: 0 0 2px;
+    padding: 3px 14px;
+    border-radius: 999px;
+    font-size: 12px;
     font-weight: 600;
     color: #15171b;
     background: var(--vr-accent);
@@ -683,142 +847,15 @@ i.x-user-status.busy {
         opacity: 0.65;
     }
 }
-.vr-top {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 0 10px 10px;
-}
-/* the round clock: monochrome, thin lines, faint scanlines, like an old wired terminal */
-.vr-orb {
-    flex: none;
-    width: 196px;
-    height: 196px;
-    color: var(--vr-text);
-    filter: drop-shadow(0 0 6px rgba(220, 224, 232, 0.12));
-}
-.vr-orb .orb-face {
-    fill: #0d0e10;
-    stroke: rgba(255, 255, 255, 0.14);
-    stroke-width: 1;
-}
-.vr-orb .orb-ring {
-    fill: none;
-    stroke: rgba(255, 255, 255, 0.22);
-    stroke-width: 0.8;
-}
-.vr-orb .orb-ring.faint {
-    stroke: rgba(255, 255, 255, 0.09);
-}
-.vr-orb .orb-ring.dashed {
-    stroke-dasharray: 2 4;
-}
-.vr-orb .orb-cross {
-    stroke: rgba(255, 255, 255, 0.05);
-    stroke-width: 0.6;
-}
-.vr-orb .orb-tick {
-    stroke: rgba(255, 255, 255, 0.28);
-    stroke-width: 0.8;
-}
-.vr-orb .orb-tick.big {
-    stroke: rgba(255, 255, 255, 0.7);
-    stroke-width: 1.4;
-}
-.vr-orb .orb-arc {
-    fill: none;
-    stroke: var(--vr-accent);
-    stroke-width: 1.2;
-    opacity: 0.55;
-}
-.vr-orb .orb-hand {
-    stroke: var(--vr-text);
-    stroke-width: 1.4;
-    stroke-linecap: round;
-}
-.vr-orb .orb-hand.hour {
-    stroke-width: 2.6;
-}
-.vr-orb .orb-sec {
-    fill: var(--vr-accent);
-    filter: drop-shadow(0 0 3px var(--vr-accent));
-}
-.vr-orb .orb-core {
-    fill: #0d0e10;
-    stroke: var(--vr-text);
-    stroke-width: 1.2;
-}
-.vr-orb text {
-    font-family: 'JetBrains Mono', 'Cascadia Mono', Consolas, 'Courier New', monospace;
-    text-anchor: middle;
-    fill: var(--vr-text);
-}
-.vr-orb .orb-digits {
-    font-size: 19px;
-    letter-spacing: 0.08em;
-}
-.vr-orb .orb-secs {
-    font-size: 11px;
-    fill: var(--vr-text-muted);
-}
-.vr-orb .orb-label {
-    font-size: 7.5px;
-    letter-spacing: 0.32em;
-    text-transform: uppercase;
-    fill: var(--vr-text-muted);
-}
-.vr-side {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    font-family: 'JetBrains Mono', 'Cascadia Mono', Consolas, 'Courier New', monospace;
-}
-.vr-digits {
-    font-size: 46px;
-    font-weight: 400;
-    line-height: 1;
-    letter-spacing: 0.04em;
-    font-variant-numeric: tabular-nums;
-    color: var(--vr-text);
-    text-shadow: 0 0 10px rgba(230, 232, 238, 0.18);
-}
-.vr-digits small {
-    margin-left: 2px;
-    font-size: 16px;
-    color: var(--vr-text-muted);
-}
-.vr-date {
-    margin-top: 6px;
-    font-size: var(--vr-font-sm);
-    letter-spacing: 0.12em;
-    text-transform: lowercase;
-    color: var(--vr-text-secondary);
-}
-.vr-wire {
-    margin-top: 10px;
-    font-size: 11px;
-    letter-spacing: 0.3em;
-    text-transform: uppercase;
-    color: var(--vr-text-muted);
-}
-.vr-blink {
-    animation: vr-blink 1.1s steps(1) infinite;
-}
-@keyframes vr-blink {
-    50% {
-        opacity: 0;
-    }
-}
 .vr-now {
     display: flex;
     align-items: center;
-    gap: 10px;
-    margin-top: 12px;
-    padding: 8px 10px;
+    gap: 8px;
+    max-width: 250px;
+    margin-top: 10px;
+    padding: 5px 14px;
     border: 1px solid var(--vr-border);
-    border-radius: 10px;
+    border-radius: 999px;
     background: rgba(255, 255, 255, 0.03);
     font-size: var(--vr-font-xs);
     color: var(--vr-text);

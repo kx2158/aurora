@@ -1,54 +1,79 @@
 <template>
     <div id="x-app" class="flex w-screen h-screen overflow-hidden cursor-default x-app-type">
         <div class="wrist" :class="{ background: config && config.backgroundEnabled }">
-            <div v-if="alarmBanner" class="vr-alarm">
-                <AuroraIcon name="alarm" :size="18" /> {{ alarmBanner.time }} {{ alarmBanner.label }}
-            </div>
-            <div class="vr-top">
-                <!-- a round, wired clock: rings, ticks, thin hands and an orbiting second -->
-                <svg class="vr-orb" viewBox="0 0 200 200" aria-hidden="true">
-                    <defs>
-                        <pattern id="vr-scan" width="4" height="4" patternUnits="userSpaceOnUse">
-                            <rect width="4" height="1" fill="currentColor" opacity="0.06" />
-                        </pattern>
-                    </defs>
-                    <circle cx="100" cy="100" r="96" class="orb-face" />
-                    <circle cx="100" cy="100" r="96" fill="url(#vr-scan)" />
-                    <circle cx="100" cy="100" r="88" class="orb-ring" />
-                    <circle cx="100" cy="100" r="62" class="orb-ring faint" />
-                    <circle cx="100" cy="100" r="34" class="orb-ring faint dashed" />
-                    <line x1="100" y1="6" x2="100" y2="194" class="orb-cross" />
-                    <line x1="6" y1="100" x2="194" y2="100" class="orb-cross" />
-                    <g v-for="i in 60" :key="i" :transform="`rotate(${i * 6} 100 100)`">
-                        <line x1="100" :y1="i % 5 === 0 ? 8 : 11" x2="100" y2="16" :class="i % 5 === 0 ? 'orb-tick big' : 'orb-tick'" />
-                    </g>
-                    <path :d="secondArc" class="orb-arc" />
-                    <line x1="100" y1="100" x2="100" y2="50" class="orb-hand hour" :transform="`rotate(${clock.ha} 100 100)`" />
-                    <line x1="100" y1="100" x2="100" y2="30" class="orb-hand" :transform="`rotate(${clock.ma} 100 100)`" />
-                    <circle cx="100" cy="12" r="3.2" class="orb-sec" :transform="`rotate(${clock.sa} 100 100)`" />
-                    <circle cx="100" cy="100" r="3" class="orb-core" />
-                    <text x="100" y="74" class="orb-label">layer {{ clock.layer }}</text>
-                </svg>
-                <div class="vr-side">
-                    <span class="vr-digits">{{ clock.hm }}<small>{{ clock.sec }}</small></span>
-                    <span class="vr-date">{{ clock.day }} / {{ clock.date }}</span>
-                    <span class="vr-wire">connected<span class="vr-blink">_</span></span>
-                    <div v-if="neonState.song" class="vr-now">
-                        <span class="vr-eq" :class="{ live: neonState.playing }"><i></i><i></i><i></i><i></i></span>
-                        <span class="vr-now-text">{{ musicLine }}</span>
-                    </div>
+            <!-- the round wrist: one circular interface, no boxes -->
+            <svg class="vr-hud" viewBox="0 0 510 510" aria-hidden="true">
+                <defs>
+                    <pattern id="vr-scan" width="4" height="3" patternUnits="userSpaceOnUse">
+                        <rect width="4" height="1" fill="#fff" opacity="0.035" />
+                    </pattern>
+                    <radialGradient id="vr-glow" cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" stop-color="#1b1d21" />
+                        <stop offset="70%" stop-color="#0f1013" />
+                        <stop offset="100%" stop-color="#08090a" />
+                    </radialGradient>
+                    <path id="vr-arc-top" d="M 63 255 A 192 192 0 0 1 447 255" />
+                    <path id="vr-arc-bottom" d="M 45 255 A 210 210 0 0 0 465 255" />
+                </defs>
+                <circle cx="255" cy="255" r="253" class="hud-face" />
+                <circle cx="255" cy="255" r="253" fill="url(#vr-scan)" />
+                <circle cx="255" cy="255" r="246" class="hud-ring" />
+                <circle cx="255" cy="255" r="226" class="hud-ring faint" />
+                <circle cx="255" cy="255" r="172" class="hud-ring faint dashed" />
+                <circle cx="255" cy="255" r="160" class="hud-ring faint" />
+                <g v-for="i in 120" :key="`t${i}`" :transform="`rotate(${i * 3} 255 255)`">
+                    <line
+                        x1="255"
+                        :y1="i % 10 === 0 ? 10 : i % 2 === 0 ? 15 : 18"
+                        x2="255"
+                        y2="22"
+                        :class="i % 10 === 0 ? 'hud-tick big' : 'hud-tick'" />
+                </g>
+                <!-- the minute fills the inner ring, the second runs round the outside -->
+                <path :d="arcPath(226, 0, clock.ma)" class="hud-arc" />
+                <path :d="arcPath(172, 0, clock.ha)" class="hud-arc dim" />
+                <g :transform="`rotate(${clock.ma} 255 255)`">
+                    <path d="M 255 32 l -5 -8 h 10 Z" class="hud-mark" />
+                </g>
+                <g :transform="`rotate(${clock.ha} 255 255)`">
+                    <line x1="255" y1="88" x2="255" y2="100" class="hud-hour" />
+                </g>
+                <circle cx="255" cy="16" r="4" class="hud-sec" :transform="`rotate(${clock.sa} 255 255)`" />
+                <!-- side gauges: mic volume on the left, people here on the right -->
+                <path
+                    v-for="g in 16"
+                    :key="`l${g}`"
+                    :d="arcPath(200, 296 - g * 4.4, 296 - g * 4.4 + 3.2)"
+                    class="hud-seg"
+                    :class="{ on: neonState.mm && !neonState.mmMuted && g <= Math.round((neonState.mmVol / 100) * 16) }" />
+                <path
+                    v-for="g in 16"
+                    :key="`r${g}`"
+                    :d="arcPath(200, 64 + g * 4.4 - 3.2, 64 + g * 4.4)"
+                    class="hud-seg"
+                    :class="{ on: g <= Math.min(16, lastLocation.playerList.length) }" />
+                <text class="hud-small" x="44" y="259">{{ neonState.mm ? (neonState.mmMuted ? 'mute' : 'mic') : 'off' }}</text>
+                <text class="hud-small" x="466" y="259">{{ lastLocation.playerList.length }}</text>
+                <text class="hud-curve">
+                    <textPath href="#vr-arc-top" startOffset="50%">{{ topLine }}</textPath>
+                </text>
+                <text class="hud-curve low">
+                    <textPath href="#vr-arc-bottom" startOffset="50%">{{ bottomLine }}</textPath>
+                </text>
+            </svg>
+            <div class="vr-core">
+                <div v-if="alarmBanner" class="vr-alarm">
+                    <AuroraIcon name="alarm" :size="14" /> {{ alarmBanner.time }} {{ alarmBanner.label }}
+                </div>
+                <span v-else class="vr-layer">layer {{ clock.layer }}<span class="vr-blink">_</span></span>
+                <span class="vr-digits">{{ clock.hm }}<small>{{ clock.sec }}</small></span>
+                <span class="vr-date">{{ clock.day }} / {{ clock.date }}</span>
+                <div v-if="neonState.song" class="vr-now">
+                    <span class="vr-eq" :class="{ live: neonState.playing }"><i></i><i></i><i></i><i></i></span>
+                    <span class="vr-now-text">{{ musicLine }}</span>
                 </div>
             </div>
-            <div class="vr-chips">
-                <span class="vr-chip" :class="{ on: neonState.chatbox }"><i></i>Chatbox</span>
-                <span v-if="neonState.mm" class="vr-chip" :class="{ on: !neonState.mmMuted, warn: neonState.mmMuted }"
-                    ><i></i>{{ neonState.mmMuted ? 'Mic muted' : 'Mic' }}</span
-                >
-                <span class="vr-chip">{{ onlineFriendCount }} online</span>
-                <span class="vr-chip">{{ lastLocation.playerList.length }} here</span>
-                <span v-if="neonState.nextAlarm" class="vr-chip on"><i></i>{{ neonState.nextAlarm }}</span>
-            </div>
-            <div class="x-container" style="flex: 1">
+            <div class="x-container vr-ring-feed">
                 <div class="x-friend-list" ref="list" style="color: var(--vr-text-secondary)">
                     <template v-if="config && config.minimalFeed">
                         <template
@@ -1244,136 +1269,6 @@
                     </template>
                 </div>
             </div>
-            <div v-if="devices.length" class="x-containerbottom">
-                <div style="display: flex; flex-direction: row; flex-wrap: wrap">
-                    <div
-                        class="tracker-container"
-                        v-for="(device, index) in devices"
-                        :key="`device-${index}-${device[0]}`">
-                        <div
-                            v-if="device[0] === 'headset'"
-                            class="tracker-device"
-                            :class="trackingResultToClass(device[4])">
-                            <img
-                                v-if="device[1] !== 'connected'"
-                                class="tracker-device"
-                                src="/images/vr/headset_quest_status_off.png"
-                                :class="trackingResultToClass(device[4])" />
-                            <img
-                                v-else-if="device[2] === 'charging'"
-                                src="/images/vr/headset_quest_status_ready_charging.png" />
-                            <img v-else-if="device[3] < 20" src="/images/vr/headset_quest_status_ready_low.png" />
-                            <img v-else src="/images/vr/headset_quest_status_ready.png" />
-                            <span>{{ device[3] }}%</span>
-                        </div>
-                        <div
-                            v-if="device[0] === 'leftController'"
-                            class="tracker-device"
-                            :class="trackingResultToClass(device[4])">
-                            <img
-                                v-if="device[1] !== 'connected'"
-                                class="tracker-device"
-                                src="/images/vr/left_controller_status_off.png"
-                                :class="trackingResultToClass(device[4])" />
-                            <img
-                                v-else-if="device[2] === 'charging'"
-                                src="/images/vr/left_controller_status_ready_charging.png" />
-                            <img v-else-if="device[3] < 20" src="/images/vr/left_controller_status_ready_low.png" />
-                            <img v-else src="/images/vr/left_controller_status_ready.png" />
-                            <span>{{ device[3] }}%</span>
-                        </div>
-                        <div
-                            v-else-if="device[0] === 'rightController'"
-                            class="tracker-device"
-                            :class="trackingResultToClass(device[4])">
-                            <img v-if="device[1] !== 'connected'" src="/images/vr/right_controller_status_off.png" />
-                            <img
-                                v-else-if="device[2] === 'charging'"
-                                src="/images/vr/right_controller_status_ready_charging.png" />
-                            <img v-else-if="device[3] < 20" src="/images/vr/right_controller_status_ready_low.png" />
-                            <img v-else src="/images/vr/right_controller_status_ready.png" />
-                            <span>{{ device[3] }}%</span>
-                        </div>
-                        <div
-                            v-else-if="device[0] === 'controller'"
-                            class="tracker-device"
-                            :class="trackingResultToClass(device[4])">
-                            <img v-if="device[1] !== 'connected'" src="/images/vr/controller_status_off.png" />
-                            <img
-                                v-else-if="device[2] === 'charging'"
-                                src="/images/vr/controller_status_ready_charging.png" />
-                            <img v-else-if="device[3] < 20" src="/images/vr/controller_status_ready_low.png" />
-                            <img v-else src="/images/vr/controller_status_ready.png" />
-                            <span>{{ device[3] }}%</span>
-                        </div>
-                        <div
-                            v-else-if="device[0] === 'tracker'"
-                            class="tracker-device"
-                            :class="trackingResultToClass(device[4])">
-                            <img v-if="device[1] !== 'connected'" src="/images/vr/tracker_status_off.png" />
-                            <img
-                                v-else-if="device[2] === 'charging'"
-                                src="/images/vr/tracker_status_ready_charging.png" />
-                            <img v-else-if="device[3] < 20" src="/images/vr/tracker_status_ready_low.png" />
-                            <img v-else src="/images/vr/tracker_status_ready.png" />
-                            <span>{{ device[3] }}%</span>
-                        </div>
-                        <div
-                            v-else-if="device[0] === 'base'"
-                            class="tracker-device"
-                            :class="trackingResultToClass(device[4])">
-                            <img v-if="device[1] !== 'connected'" src="/images/vr/base_status_off.png" />
-                            <img v-else src="/images/vr/base_status_ready.png" />
-                            <span v-if="device[3] !== 100">{{ device[3] }}x</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="x-containerbottom">
-                <template v-if="nowPlaying.playing">
-                    <span style="float: right; padding-left: 10px">{{ nowPlaying.remainingText }}</span>
-                    <MarqueeText>{{ nowPlaying.name }}</MarqueeText>
-                    <div
-                        class="np-progress-bar"
-                        style="margin-left: 5px"
-                        :style="{ width: nowPlaying.percentage + '%' }"></div>
-                </template>
-                <div style="float: right">
-                    <span v-if="!config?.minimalFeed" style="display: inline-block; margin-right: 5px">{{
-                        t('vr.status.timer')
-                    }}</span>
-                    <span v-if="lastLocationTimer" style="display: inline-block; margin-right: 5px">{{
-                        lastLocationTimer
-                    }}</span>
-                    <span v-if="lastLocationTimer && (onlineForTimer || pcUptime)" style="display: inline-block">
-                        |
-                    </span>
-                    <span v-if="onlineForTimer" style="display: inline-block; margin-left: 5px">{{
-                        onlineForTimer
-                    }}</span>
-                    <span v-if="pcUptime && onlineForTimer" style="display: inline-block; margin-left: 5px"> | </span>
-                    <span v-if="pcUptime" style="display: inline-block; margin-left: 5px">{{ pcUptime }}</span>
-                </div>
-                <template v-if="lastLocation.playerList.length">
-                    <span v-if="!config?.minimalFeed" style="display: inline-block; margin-right: 5px">{{
-                        t('vr.status.players')
-                    }}</span>
-                    <span style="display: inline-block">{{ lastLocation.playerList.length }}</span>
-                </template>
-                <span
-                    v-if="lastLocation.friendList.length"
-                    style="display: inline-block; font-weight: bold; margin-left: 5px"
-                    >({{ lastLocation.friendList.length }})</span
-                >
-                <!-- Bottom row -->
-                <br />
-                <span style="position: absolute; right: 10px">{{ currentTime }}</span>
-                <span v-if="config && cpuUsageEnabled" style="display: inline-block; margin-right: 5px"
-                    >{{ t('vr.status.cpu') }} {{ cpuUsage }}%</span
-                >
-                <span style="display: inline-block">{{ t('vr.status.online') }} {{ onlineFriendCount }}</span>
-                <span style="display: inline-block; margin-left: 5px">{{ customInfo }}</span>
-            </div>
         </div>
         <!-- Aurora SteamVR dashboard: big buttons for the laser pointer -->
         <div class="vr-dash">
@@ -1743,13 +1638,35 @@
         clock.ha = ((now.getHours() % 12) + min / 60) * 30;
         clock.layer = String((now.getHours() % 12) + 1).padStart(2, '0');
     }
-    // the thin arc that fills up as the minute goes by
-    const secondArc = computed(() => {
-        const a = ((clock.sa || 0.0001) * Math.PI) / 180;
-        const r = 75;
-        const x = 100 + r * Math.sin(a);
-        const y = 100 - r * Math.cos(a);
-        return `M 100 ${100 - r} A ${r} ${r} 0 ${clock.sa > 180 ? 1 : 0} 1 ${x.toFixed(2)} ${y.toFixed(2)}`;
+    /** An arc on the round wrist (centre 255,255), angles in degrees clockwise from the top. */
+    function arcPath(r, from, to) {
+        const end = Math.max(from + 0.01, Math.min(to, from + 359.99));
+        const pt = (deg) => {
+            const a = (deg * Math.PI) / 180;
+            return `${(255 + r * Math.sin(a)).toFixed(2)} ${(255 - r * Math.cos(a)).toFixed(2)}`;
+        };
+        return `M ${pt(from)} A ${r} ${r} 0 ${end - from > 180 ? 1 : 0} 1 ${pt(end)}`;
+    }
+    const DEVICE_SHORT = { headset: 'hmd', leftController: 'l', rightController: 'r', controller: 'ctl', tracker: 'trk' };
+    // text that runs round the top and the bottom edge of the wrist
+    const topLine = computed(() => {
+        const bits = ['aurora', neonState.chatbox ? 'chatbox on' : 'chatbox off', `${vrState.onlineFriendCount || 0} online`];
+        if (neonState.nextAlarm) {
+            bits.push(`timer ${neonState.nextAlarm}`);
+        }
+        return bits.join('  //  ');
+    });
+    const bottomLine = computed(() => {
+        const bits = [];
+        if (vrState.lastLocationTimer) {
+            bits.push(`here ${vrState.lastLocationTimer}`);
+        }
+        for (const d of vrState.devices || []) {
+            if (DEVICE_SHORT[d[0]] && d[1] === 'connected') {
+                bits.push(`${DEVICE_SHORT[d[0]]} ${d[3]}%`);
+            }
+        }
+        return bits.length ? bits.join('  //  ') : 'standing by';
     });
 
 
@@ -1985,8 +1902,8 @@
         if (vrState.wristFeed.length === 0) {
             return;
         }
-        // Neon wrist: the clock takes the top, only the 5 most recent events fit under it
-        const length = 5;
+        // round wrist: only the 3 most recent events fit under it
+        const length = 3;
         if (length < vrState.wristFeed.length) {
             vrState.wristFeed.length = length;
         }

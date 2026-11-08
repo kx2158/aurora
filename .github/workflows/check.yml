@@ -51,7 +51,8 @@ jobs:
       - name: Start the preview
         run: |
           cp tools/preview/preview.html tools/preview/preview.js src/
-          npx vite src --port 9000 --strictPort > vite.log 2>&1 &
+          npx vite build --config tools/preview/vite.preview.config.mjs > vite.log 2>&1
+          npx vite preview --config tools/preview/vite.preview.config.mjs --port 9000 --strictPort >> vite.log 2>&1 &
           for i in $(seq 1 60); do curl -sf http://localhost:9000/preview.html > /dev/null && break; sleep 2; done
       - name: Screenshots
         run: node tools/preview/shoot.mjs http://localhost:9000 shots

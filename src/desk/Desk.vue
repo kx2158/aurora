@@ -9,6 +9,18 @@
             </button>
         </header>
 
+        <div v-if="state.here.alert" class="desk-alert">
+            <AuroraIcon name="shield" :size="16" />
+            <div class="desk-alert-text">
+                <b>{{ t('view.desk.alert_joined', { name: state.here.alert.name }) }}</b>
+                <span>{{ state.here.alert.text }}</span>
+            </div>
+            <button type="button" class="a-btn" @click="send('profile', state.here.alert.id)">{{ t('view.desk.here_profile') }}</button>
+            <button type="button" class="a-btn icon" :aria-label="t('view.desk.close')" @click="send('dismissAlert')">
+                <AuroraIcon name="close" :size="12" />
+            </button>
+        </div>
+
         <div class="a-seg desk-tabs">
             <button v-for="tb in tabs" :key="tb.key" type="button" :class="{ on: tab === tb.key }" @click="setTab(tb.key)">
                 <AuroraIcon :name="tb.icon" :size="14" /> {{ tb.label }}
@@ -122,6 +134,39 @@
             </div>
         </section>
 
+        <!-- Here: who is in your instance -->
+        <section v-else-if="tab === 'here'" class="desk-body">
+            <div class="desk-row">
+                <span class="desk-strong desk-place">{{ state.here.place || t('view.desk.here_none') }}</span>
+                <span class="flex-1"></span>
+                <span class="desk-count">{{ t('view.desk.here_count', { n: state.here.people.length }) }}</span>
+            </div>
+            <p v-if="!state.here.people.length" class="desk-muted">{{ t('view.desk.here_empty') }}</p>
+            <ul class="desk-people">
+                <li v-for="p in state.here.people" :key="p.id" :class="{ flagged: p.flags.length }">
+                    <div class="desk-person">
+                        <span class="desk-pname">
+                            {{ p.name }}
+                            <span v-if="p.friend" class="desk-tag friend">{{ t('view.desk.here_friend') }}</span>
+                        </span>
+                        <span class="desk-pmeta">{{ ago(p.since) }}<template v-if="p.trust"> / {{ p.trust }}</template></span>
+                        <span v-for="f in p.flags" :key="f.key" class="desk-flag" :class="f.key">{{ f.label }}</span>
+                    </div>
+                    <button
+                        type="button"
+                        class="a-btn icon"
+                        :class="{ on: p.watched }"
+                        :title="p.watched ? t('view.desk.here_unwatch') : t('view.desk.here_watch')"
+                        @click="send('watchToggle', p.id)">
+                        <AuroraIcon name="shield" :size="14" />
+                    </button>
+                    <button type="button" class="a-btn icon" :title="t('view.desk.here_profile')" @click="send('profile', p.id)">
+                        <AuroraIcon name="arrow" :size="14" />
+                    </button>
+                </li>
+            </ul>
+        </section>
+
         <footer class="desk-foot">
             <button type="button" class="desk-link" @click="send('open')">{{ t('view.desk.open_app') }}</button>
             <button
@@ -153,6 +198,7 @@
     const state = reactive({
         chatbox: { enabled: false, preview: '' },
         alarms: [],
+        here: { place: '', people: [], alert: null },
         mm: { running: false, micMuted: false, app: '', apps: [], micVol: 1, musicVol: 0.8, micNoise: 0, micBass: 0, musicBass: 0, micPeak: 0, outPeak: 0, error: '' }
     });
     const mm = computed(() => state.mm);
@@ -215,6 +261,7 @@
             if (next.chatbox) state.chatbox = next.chatbox;
             if (Array.isArray(next.alarms)) state.alarms = next.alarms;
             if (next.mm) state.mm = { ...state.mm, ...next.mm };
+            if (next.here) state.here = { place: '', people: [], alert: null, ...next.here };
         } catch (e) {
             console.error('desk state', e);
         }
@@ -243,8 +290,20 @@
     const tabs = computed(() => [
         { key: 'mic', icon: 'mic', label: t('view.desk.tab_mic') },
         { key: 'timers', icon: 'alarm', label: t('view.desk.tab_timers') },
-        { key: 'chatbox', icon: 'chat', label: t('view.desk.tab_chatbox') }
+        { key: 'chatbox', icon: 'chat', label: t('view.desk.tab_chatbox') },
+        { key: 'here', icon: 'people', label: t('view.desk.tab_here') }
     ]);
+
+    // ---- here ----
+    const now = ref(Date.now());
+    setInterval(() => (now.value = Date.now()), 30000);
+    function ago(since) {
+        if (!since) return '';
+        const min = Math.max(0, Math.round((now.value - since) / 60000));
+        if (min < 1) return t('view.desk.here_just_now');
+        if (min < 60) return t('view.desk.here_min', { n: min });
+        return t('view.desk.here_hours', { h: Math.floor(min / 60), m: min % 60 });
+    }
     const tab = ref(readTab());
     function readTab() {
         try {
@@ -424,6 +483,109 @@
     }
     .desk-meters .a-meter {
         flex: none;
+    }
+    .desk-alert {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 0 14px 10px;
+        padding: 10px 12px;
+        border-radius: 14px;
+        border: 1px solid rgba(255, 176, 64, 0.35);
+        background: rgba(255, 176, 64, 0.08);
+        color: #ffcf8a;
+    }
+    .desk-alert-text {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        font-size: 0.8rem;
+    }
+    .desk-alert-text b {
+        color: var(--a-text);
+        font-weight: 600;
+    }
+    .desk-alert-text span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .desk-place {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .desk-count,
+    .desk-muted {
+        font-size: 0.78rem;
+        color: var(--a-muted);
+    }
+    .desk-people {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+    .desk-people li {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 8px 7px 10px;
+        border-radius: 12px;
+        border: 1px solid transparent;
+    }
+    .desk-people li:hover {
+        background: var(--a-hover, rgba(255, 255, 255, 0.04));
+    }
+    .desk-people li.flagged {
+        border-color: rgba(255, 176, 64, 0.28);
+        background: rgba(255, 176, 64, 0.05);
+    }
+    .desk-person {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        column-gap: 8px;
+        row-gap: 2px;
+    }
+    .desk-pname {
+        width: 100%;
+        font-size: 0.86rem;
+        color: var(--a-text);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .desk-pmeta {
+        font-size: 0.72rem;
+        color: var(--a-muted);
+    }
+    .desk-tag,
+    .desk-flag {
+        font-size: 0.66rem;
+        padding: 1px 7px;
+        border-radius: 999px;
+        border: 1px solid var(--a-line);
+        color: var(--a-muted);
+    }
+    .desk-tag.friend {
+        margin-left: 6px;
+    }
+    .desk-flag.blocked,
+    .desk-flag.watch {
+        color: #ffb0a0;
+        border-color: rgba(255, 120, 100, 0.4);
+    }
+    .desk-flag.new,
+    .desk-flag.visitor {
+        color: #ffcf8a;
+        border-color: rgba(255, 176, 64, 0.35);
     }
     .desk-h {
         margin-top: 6px;

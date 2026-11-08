@@ -65,6 +65,10 @@
                 <div v-if="alarmBanner" class="vr-alarm">
                     <AuroraIcon name="alarm" :size="14" /> {{ alarmBanner.time }} {{ alarmBanner.label }}
                 </div>
+                <div v-else-if="neonState.watchAlert" class="vr-alarm vr-watch">
+                    <AuroraIcon name="shield" :size="14" />
+                    <span class="vr-watch-text">{{ neonState.watchAlert.name }} / {{ neonState.watchAlert.text }}</span>
+                </div>
                 <span v-else class="vr-layer">layer {{ clock.layer }}<span class="vr-blink">_</span></span>
                 <span class="vr-digits">{{ clock.hm }}<small>{{ clock.sec }}</small></span>
                 <span class="vr-date">{{ clock.day }} / {{ clock.date }}</span>
@@ -1509,9 +1513,20 @@
 
 
     // Aurora in the headset: a tiny synth blip for events, alarms and the quick controls.
-    const neonState = reactive({ accent: '#b4b4b4', mm: false, mmMuted: false, mmApp: '', mmVol: 80, song: '', artist: '', playing: false, chatbox: false, sounds: true, afk: false, music: false, preview: '', nextAlarm: '' });
+    const neonState = reactive({ accent: '#b4b4b4', mm: false, mmMuted: false, mmApp: '', mmVol: 80, song: '', artist: '', playing: false, chatbox: false, sounds: true, afk: false, music: false, preview: '', nextAlarm: '', watchAlert: null });
+    let lastWatchAt = 0;
     function neonStateUpdate(json) {
-        Object.assign(neonState, JSON.parse(json));
+        Object.assign(neonState, { watchAlert: null }, JSON.parse(json));
+        // a soft double tick when someone flagged joins
+        if (neonState.watchAlert && neonState.watchAlert.at !== lastWatchAt) {
+            lastWatchAt = neonState.watchAlert.at;
+            if (neonState.sounds) {
+                blip([
+                    [660, 0.08],
+                    [520, 0.12]
+                ]);
+            }
+        }
         document.documentElement.style.setProperty('--vr-accent', neonState.accent || '#b4b4b4');
     }
     // quitting needs a second tap within 3 seconds
@@ -1572,7 +1587,7 @@
             title: 'Overlay',
             buttons: [
                 { cmd: 'sounds', icon: 'speaker', label: 'Beeps', state: onOffWord(neonState.sounds), on: neonState.sounds },
-                { cmd: 'quitGame', icon: 'power', label: quitArmed.value ? 'Tap again' : 'Quit VRChat', state: quitArmed.value ? 'to close' : undefined, warn: true }
+                { cmd: 'quitGame', icon: 'power', label: quitArmed.value ? 'Tap again' : 'Crash VRChat', state: quitArmed.value ? 'to crash' : undefined, warn: true }
             ]
         }
     ]);

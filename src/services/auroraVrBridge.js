@@ -21,6 +21,22 @@ import { addTimer, alarms, removeAlarm, stopRinging } from './auroraAlarms';
 import configRepository from './config';
 import { chatboxEnabled, chatboxPreview, sendChatboxNow, setChatboxEnabled } from './auroraChatbox';
 import { setEnabled, state } from './auroraIntegrations';
+import { herePeople, instanceWatch, openProfile, toggleWatched, watchAlert } from './auroraWatch';
+import { useLocationStore } from '../stores/location';
+
+/** The instance you are in, for the overlays: name, people and the latest flagged join. */
+function hereState() {
+    let place = '';
+    try {
+        const loc = useLocationStore().lastLocation;
+        place = loc.name || '';
+    } catch {
+        // not in VRChat
+    }
+    const people = herePeople();
+    const alert = watchAlert.value && Date.now() - watchAlert.value.at < 120000 ? watchAlert.value : null;
+    return { place, people, alert };
+}
 
 let vrSounds = true;
 let deskTimer = null;
@@ -43,6 +59,7 @@ function pushDesk() {
                     axk: root.style.getPropertyValue('--axk'),
                     accent: accent.value,
                     hotkey: deskHotkey,
+                    here: hereState(),
                     chatbox: { enabled: chatboxEnabled.value, preview: String(chatboxPreview.value || '').slice(0, 144) },
                     alarms: alarms.value.map((a) => ({
                         id: a.id,
@@ -147,6 +164,17 @@ export function deskCommand(command, value) {
         case 'quitGame':
             quitVrchat();
             break;
+        case 'profile':
+            openProfile(v);
+            break;
+        case 'watchToggle': {
+            const p = herePeople().find((x) => x.id === v);
+            toggleWatched(v, p?.name);
+            break;
+        }
+        case 'dismissAlert':
+            watchAlert.value = null;
+            break;
         case 'open':
             try {
                 AppApi.FocusWindow();
@@ -180,7 +208,8 @@ function pushState() {
                 mm: mm.value.running,
                 mmApp: mm.value.app,
                 mmMuted: mm.value.micMuted,
-                mmVol: Math.round(mm.value.musicVol * 100)
+                mmVol: Math.round(mm.value.musicVol * 100),
+                watchAlert: hereState().alert
             })
         );
     } catch {
@@ -263,7 +292,9 @@ export async function initVrBridge() {
     }
     started = true;
     vrSounds = await configRepository.getBool('Neon_vrSounds', true);
-    watch([accent, mm, chatboxEnabled, chatboxPreview, alarms, audioApps], pushState, { deep: true });
+    watch([accent, mm, chatboxEnabled, chatboxPreview, alarms, audioApps, instanceWatch, watchAlert], pushState, { deep: true });
+    // people coming and going
+    watch(() => useLocationStore().lastLocation.playerList.size, pushDesk);
     // the overlay follows the theme too
     new MutationObserver(pushDesk).observe(document.documentElement, {
         attributes: true,

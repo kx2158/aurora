@@ -266,4 +266,15 @@ try {
 } catch (e) {
     console.warn('[preview] rules', e);
 }
+// a short watch list so the instance watch card has something to show
+try {
+    const w = await import('./services/auroraWatch.js');
+    await w.initInstanceWatch();
+    w.instanceWatch.value.people = [
+        { id: 'usr_watch_1', name: 'NightOwl_42', note: 'spammed the mirror last week' },
+        { id: 'usr_watch_2', name: 'glitchkid', note: '' }
+    ];
+} catch (e) {
+    console.warn('[preview] watch', e);
+}
 window.__previewReady = true;

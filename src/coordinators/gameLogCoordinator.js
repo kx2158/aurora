@@ -38,6 +38,7 @@ import { useVrcxStore } from '../stores/vrcx';
 
 import gameLogService from '../services/gameLog.js';
 import { statusRulePlayerJoined } from '../services/auroraStatusRules';
+import { watchPlayerJoined } from '../services/auroraWatch';
 
 import * as workerTimers from 'worker-timers';
 
@@ -249,6 +250,7 @@ export async function addGameLogEntry(gameLog, location) {
             vrStore.updateVRLastLocation();
             instanceStore.getCurrentInstanceUserList();
             statusRulePlayerJoined(userId);
+            watchPlayerJoined(userId, gameLog.displayName, gameLog.dt);
             entry = createJoinLeaveEntry('OnPlayerJoined', gameLog.dt, gameLog.displayName, location, userId);
             persistedEntryPromise = database.addGamelogJoinLeaveToDatabase(entry);
             break;

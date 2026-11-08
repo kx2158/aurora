@@ -182,6 +182,30 @@ try {
     logs.push('[vr open] ' + e.message);
 }
 await vr.screenshot({ path: `${out}/vr-wrist-3d.jpg`, type: 'jpeg', quality: 88, clip: { x: 0, y: 0, width: 512, height: 512 } });
+// a made-up night world behind the watch, to show the see-through glass and the glitches
+await vr.addStyleTag({
+    content: `html, body, #x-app { background:
+        radial-gradient(circle at 18% 30%, rgba(255, 120, 200, 0.85), transparent 14%),
+        radial-gradient(circle at 70% 18%, rgba(90, 170, 255, 0.9), transparent 16%),
+        radial-gradient(circle at 45% 75%, rgba(255, 190, 90, 0.75), transparent 18%),
+        radial-gradient(circle at 85% 65%, rgba(140, 255, 210, 0.6), transparent 12%),
+        repeating-linear-gradient(90deg, rgba(255,255,255,0.06) 0 2px, transparent 2px 64px),
+        linear-gradient(180deg, #1a1630 0%, #2b2046 45%, #0e0c18 100%) !important; }`
+});
+await vr.waitForTimeout(400);
+await vr.screenshot({ path: `${out}/vr-glass.jpg`, type: 'jpeg', quality: 88, clip: { x: 0, y: 0, width: 512, height: 512 } });
+try {
+    await vr.evaluate(() => window.$vr.wristGlitch(1.4));
+    await vr.waitForTimeout(80);
+    for (const t of [40, 140, 240]) {
+        await vr.evaluate((ms) => document.getAnimations().forEach((a) => { a.pause(); a.currentTime = ms; }), t);
+        await vr.waitForTimeout(120);
+        await vr.screenshot({ path: `${out}/vr-glitch-${t}.jpg`, type: 'jpeg', quality: 85, clip: { x: 0, y: 0, width: 512, height: 512 } });
+    }
+    await vr.evaluate(() => document.getAnimations().forEach((a) => a.play()));
+} catch (e) {
+    logs.push('[vr glitch] ' + e.message);
+}
 // someone flagged joined
 await vr
     .evaluate(() =>

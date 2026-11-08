@@ -1415,3 +1415,145 @@ i.x-user-status.busy {
         opacity: 1;
     }
 }
+
+/* ================================================================
+   Glass and glitches: the face is see-through so the world shows
+   behind it; static sits on the glass, and now and then (or when
+   something happens) bars tear across and the layers jump.
+   ================================================================ */
+.vr-hud .hud-face {
+    fill-opacity: 0.58;
+}
+.vr-glitch {
+    position: absolute;
+    inset: 6px;
+    border-radius: 50%;
+    overflow: hidden;
+    pointer-events: none;
+    transform: translateZ(64px);
+}
+.vr-glitch::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: var(--vr-noise);
+    background-size: 96px 96px;
+    opacity: 0.05;
+    mix-blend-mode: screen;
+    animation: vr-noise 0.6s steps(6) infinite;
+}
+@keyframes vr-noise {
+    0% {
+        background-position: 0 0;
+    }
+    100% {
+        background-position: 96px 57px;
+    }
+}
+/* mic muted: the static rises */
+.hiss .vr-glitch::before {
+    opacity: 0.13;
+}
+.vr-glitch i {
+    position: absolute;
+    left: -30px;
+    right: -30px;
+    opacity: 0;
+    background:
+        linear-gradient(90deg, transparent, rgba(255, 50, 90, 0.42) 18%, rgba(255, 255, 255, 0.5) 40%, rgba(60, 220, 255, 0.42) 64%, transparent),
+        repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.25) 0 2px, transparent 2px 7px);
+    mix-blend-mode: screen;
+    transform: translateX(var(--dx));
+}
+.glitch .vr-glitch i {
+    animation: vr-bar 0.4s steps(4) both;
+}
+.glitch .vr-glitch::before {
+    opacity: 0.22;
+}
+@keyframes vr-bar {
+    0% {
+        opacity: 0.95;
+    }
+    25% {
+        opacity: 0.25;
+        transform: translateX(calc(var(--dx) * -1.4));
+    }
+    50% {
+        opacity: 0.8;
+        transform: translateX(calc(var(--dx) * 0.5));
+    }
+    100% {
+        opacity: 0;
+    }
+}
+.glitch .vr-l1 {
+    animation: vr-jolt-1 0.4s steps(4) both;
+}
+@keyframes vr-jolt-1 {
+    0%,
+    100% {
+        transform: translateZ(26px);
+    }
+    25% {
+        transform: translateZ(26px) translateX(-7px);
+    }
+    50% {
+        transform: translateZ(26px) translateX(5px) skewX(-3deg);
+    }
+}
+.glitch .vr-l2 {
+    animation: vr-jolt-2 0.4s steps(4) both;
+}
+@keyframes vr-jolt-2 {
+    0%,
+    100% {
+        transform: translateZ(44px);
+    }
+    25% {
+        transform: translateZ(44px) translateX(9px);
+    }
+    75% {
+        transform: translateZ(44px) translateX(-4px);
+    }
+}
+/* the time gets sliced: parts of it jump sideways */
+.glitch .vr-core {
+    animation: vr-slice 0.4s steps(4) both;
+}
+@keyframes vr-slice {
+    0%,
+    100% {
+        transform: translateZ(78px);
+        clip-path: inset(0 0 0 0);
+    }
+    25% {
+        transform: translateZ(78px) translateX(-10px);
+        clip-path: inset(18% 0 52% 0);
+    }
+    50% {
+        transform: translateZ(78px) translateX(8px);
+        clip-path: inset(40% 0 8% 0);
+    }
+    75% {
+        transform: translateZ(78px) translateX(-3px);
+        clip-path: inset(0 0 66% 0);
+    }
+}
+.glitch .vr-digits {
+    animation: vr-split 0.4s steps(2) both;
+}
+@keyframes vr-split {
+    0%,
+    100% {
+        text-shadow:
+            -4px 0 rgba(255, 50, 90, 0.85),
+            4px 0 rgba(60, 220, 255, 0.85),
+            0 0 22px rgba(255, 255, 255, 0.3);
+    }
+    50% {
+        text-shadow:
+            3px 0 rgba(255, 50, 90, 0.7),
+            -3px 0 rgba(60, 220, 255, 0.7);
+    }
+}

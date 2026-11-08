@@ -2,7 +2,11 @@
     <div id="x-app" class="flex w-screen h-screen overflow-hidden cursor-default x-app-type">
         <div class="wrist" :class="{ background: config && config.backgroundEnabled }">
             <!-- the round wrist: stacked layers at different depths, tilted, with bloom on the bright parts -->
-            <div ref="wristStage" class="vr-stage" :class="wristPhase">
+            <div
+                ref="wristStage"
+                class="vr-stage"
+                :class="[wristPhase, { glitch: glitchOn, hiss: neonState.mm && neonState.mmMuted }]"
+                :style="noiseStyle">
                 <!-- layer 0: the glass face -->
                 <svg class="vr-hud vr-l0" viewBox="0 0 510 510" aria-hidden="true">
                     <defs>
@@ -99,6 +103,10 @@
                         <textPath href="#vr-arc-bottom" startOffset="50%">{{ bottomLine }}</textPath>
                     </text>
                 </svg>
+                <!-- the glitch layer: static on the glass, and bars that tear across it now and then -->
+                <div class="vr-glitch" aria-hidden="true">
+                    <i v-for="b in glitchBars" :key="b.id" :style="{ top: `${b.top}px`, height: `${b.h}px`, '--dx': `${b.dx}px` }"></i>
+                </div>
                 <!-- layer 3: the time, floating highest -->
                 <div class="vr-core">
                     <div v-if="alarmBanner" class="vr-alarm">
@@ -1576,12 +1584,67 @@
         });
     }
 
+    // ---- glitches: rare on their own, and whenever something happens ----
+    const glitchOn = ref(false);
+    const glitchBars = ref([]);
+    const noiseStyle = ref({});
+    let glitchTimer = null;
+    let glitchLoop = null;
+    let glitchId = 0;
+    function wristGlitch(strength = 1) {
+        const n = 3 + Math.round(Math.random() * 4 * strength);
+        glitchBars.value = Array.from({ length: n }, () => ({
+            id: glitchId++,
+            top: 40 + Math.random() * 420,
+            h: 2 + Math.random() * 16 * strength,
+            dx: (Math.random() - 0.5) * 50 * strength
+        }));
+        glitchOn.value = false;
+        void wristStage.value?.offsetWidth;
+        requestAnimationFrame(() => {
+            glitchOn.value = true;
+            clearTimeout(glitchTimer);
+            glitchTimer = setTimeout(() => (glitchOn.value = false), 420);
+        });
+    }
+    function scheduleGlitch() {
+        clearTimeout(glitchLoop);
+        glitchLoop = setTimeout(
+            () => {
+                if (wristPhase.value === '') {
+                    wristGlitch(0.6 + Math.random() * 0.6);
+                }
+                scheduleGlitch();
+            },
+            22000 + Math.random() * 26000
+        );
+    }
+    /** a small tile of grey static, made once */
+    function makeNoise() {
+        try {
+            const c = document.createElement('canvas');
+            c.width = c.height = 96;
+            const g = c.getContext('2d');
+            const img = g.createImageData(96, 96);
+            for (let i = 0; i < img.data.length; i += 4) {
+                const v = Math.random() * 255;
+                img.data[i] = img.data[i + 1] = img.data[i + 2] = v;
+                img.data[i + 3] = Math.random() < 0.5 ? 255 : 0;
+            }
+            g.putImageData(img, 0, 0);
+            noiseStyle.value = { '--vr-noise': `url(${c.toDataURL()})` };
+        } catch {
+            // no canvas, no static
+        }
+    }
+
     let lastWatchAt = 0;
     function neonStateUpdate(json) {
         Object.assign(neonState, { watchAlert: null }, JSON.parse(json));
         // a soft double tick when someone flagged joins
         if (neonState.watchAlert && neonState.watchAlert.at !== lastWatchAt) {
             lastWatchAt = neonState.watchAlert.at;
+            wristGlitch(1.4);
             if (neonState.sounds) {
                 blip([
                     [660, 0.08],
@@ -1665,6 +1728,7 @@
     function neonAlarm(json) {
         const data = JSON.parse(json);
         alarmBanner.value = data;
+        wristGlitch(1.2);
         const notes = [];
         for (let i = 0; i < 6; i++) {
             notes.push([880, 0.14], [1175, 0.14]);
@@ -1827,6 +1891,9 @@
         window.$vr.neonState = neonStateUpdate;
         window.$vr.wristShown = wristShown;
         window.$vr.wristHidden = wristHidden;
+        window.$vr.wristGlitch = wristGlitch;
+        makeNoise();
+        scheduleGlitch();
         window.$vr.neonAlarmStop = neonAlarmStop;
         window.$vr.refreshCustomScript = refreshCustomScript;
         window.$vr.playNoty = playNoty;
@@ -1861,6 +1928,8 @@
     onBeforeUnmount(() => {
         isUnmounted = true;
         clearInterval(clockTimer);
+        clearTimeout(glitchLoop);
+        clearTimeout(glitchTimer);
 
         if (updateStatsLoopTimeoutId !== null) {
             workerTimers.clearTimeout(updateStatsLoopTimeoutId);

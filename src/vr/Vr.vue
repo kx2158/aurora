@@ -1576,9 +1576,8 @@
     });
 
 
-    // Neon in the headset: one small picture, a tiny synth blip, a short pop. No voice model here, so it stays light.
-    const neon = reactive({ face: 'neutral', pop: false });
-    const neonState = reactive({ accent: '#ff3d9a', mm: false, mmMuted: false, mmApp: '', mmVol: 80, song: '', artist: '', playing: false, chatbox: false, voice: true, sounds: true, afk: false, music: false, preview: '', nextAlarm: '' });
+    // Aurora in the headset: a tiny synth blip for events, alarms and the quick controls.
+    const neonState = reactive({ accent: '#ff3d9a', mm: false, mmMuted: false, mmApp: '', mmVol: 80, song: '', artist: '', playing: false, chatbox: false, sounds: true, afk: false, music: false, preview: '', nextAlarm: '' });
     function neonStateUpdate(json) {
         Object.assign(neonState, JSON.parse(json));
         document.documentElement.style.setProperty('--vr-accent', neonState.accent || '#ff3d9a');
@@ -1616,16 +1615,12 @@
     function neonAlarmStop() {
         alarmBanner.value = null;
         clearTimeout(alarmTimer);
-        neon.face = 'neutral';
-        neon.pop = false;
     }
     const alarmBanner = ref(null);
     let alarmTimer = null;
     function neonAlarm(json) {
         const data = JSON.parse(json);
         alarmBanner.value = data;
-        neon.face = 'surprised';
-        neon.pop = true;
         const notes = [];
         for (let i = 0; i < 6; i++) {
             notes.push([880, 0.14], [1175, 0.14]);
@@ -1634,11 +1629,8 @@
         clearTimeout(alarmTimer);
         alarmTimer = setTimeout(() => {
             alarmBanner.value = null;
-            neon.face = 'neutral';
-            neon.pop = false;
         }, 20000);
     }
-    let neonTimer = null;
     let neonLastKey = '';
     let audioCtx = null;
     function blip(notes) {
@@ -1666,11 +1658,11 @@
         }
     }
     const NEON_REACTIONS = {
-        OnPlayerJoined: { face: 'joy', notes: [[660, 0.07], [880, 0.1]] },
-        OnPlayerLeft: { face: 'sad', notes: [[520, 0.08], [380, 0.12]] },
-        Online: { face: 'joy', notes: [[740, 0.06], [988, 0.06], [1240, 0.1]] },
-        Offline: { face: 'sleepy', notes: [[420, 0.1], [300, 0.14]] },
-        GPS: { face: 'surprised', notes: [[600, 0.05], [600, 0.05]] }
+        OnPlayerJoined: { notes: [[660, 0.07], [880, 0.1]] },
+        OnPlayerLeft: { notes: [[520, 0.08], [380, 0.12]] },
+        Online: { notes: [[740, 0.06], [988, 0.06], [1240, 0.1]] },
+        Offline: { notes: [[420, 0.1], [300, 0.14]] },
+        GPS: { notes: [[600, 0.05], [600, 0.05]] }
     };
     function neonReact(type) {
         const r = NEON_REACTIONS[type];
@@ -1678,14 +1670,6 @@
             return;
         }
         blip(r.notes);
-        neon.face = r.face;
-        neon.pop = true;
-        clearTimeout(neonTimer);
-        clearTimeout(alarmTimer);
-        neonTimer = setTimeout(() => {
-            neon.face = 'neutral';
-            neon.pop = false;
-        }, 2200);
     }
 
     const clock = reactive({ day: '', date: '', hm: '', sec: '' });
@@ -1794,7 +1778,6 @@
     onBeforeUnmount(() => {
         isUnmounted = true;
         clearInterval(clockTimer);
-        clearTimeout(neonTimer);
 
         if (updateStatsLoopTimeoutId !== null) {
             workerTimers.clearTimeout(updateStatsLoopTimeoutId);

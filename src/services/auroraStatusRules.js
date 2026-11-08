@@ -102,6 +102,7 @@ export async function initStatusRules() {
     } catch {
         // stores not ready yet, presence events will fill it in
     }
+    save();
     watch(statusRules, save, { deep: true });
 }
 

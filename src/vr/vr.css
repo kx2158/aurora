@@ -768,34 +768,6 @@ i.x-user-status.busy {
     padding-top: 4px;
 }
 
-/* Neon face in the wrist clock */
-.neon-face {
-    position: absolute;
-    left: 12px;
-    top: 12px;
-    width: 64px;
-    height: 64px;
-    object-fit: cover;
-    border: 2px solid var(--vr-accent);
-    box-shadow: 0 0 12px color-mix(in srgb, var(--vr-accent) 70%, transparent);
-    clip-path: polygon(8px 0, calc(100% - 8px) 0, 100% 8px, 100% calc(100% - 8px), calc(100% - 8px) 100%, 8px 100%, 0 calc(100% - 8px), 0 8px);
-}
-.neon-face.pop {
-    animation: neon-pop 0.5s ease-out;
-}
-@keyframes neon-pop {
-    0% {
-        transform: scale(0.8) rotate(-6deg);
-        box-shadow: 0 0 2px #fff;
-    }
-    50% {
-        transform: scale(1.18) rotate(4deg);
-        box-shadow: 0 0 26px var(--vr-accent);
-    }
-    100% {
-        transform: scale(1) rotate(0);
-    }
-}
 
 .neon-alarm {
     position: relative;
@@ -1107,12 +1079,6 @@ i.x-user-status.busy {
 }
 .wrist .x-friend-item .name {
     text-shadow: 0 0 8px color-mix(in srgb, var(--vr-accent) 70%, transparent);
-}
-.neon-face {
-    box-shadow:
-        0 0 6px #fff,
-        0 0 18px var(--vr-accent),
-        0 0 38px var(--vr-accent);
 }
 
 /* equalizer bars, wrist music line, dashboard music bar */

@@ -39,6 +39,7 @@
     import { backupDatabase } from './services/auroraBackup';
     import { initMusicMic, watchGameForMic } from './services/auroraMusicMic';
     import { initAccent } from './services/auroraAccent';
+    import { forgetOldAssistant } from './services/auroraLegacy';
     import { initAlarms } from './services/auroraAlarms';
     import { initVrBridge, neonCommand } from './services/auroraVrBridge';
     import { initIntegrations } from './services/auroraIntegrations';
@@ -68,6 +69,7 @@
     initAccent();
     initMusicMic();
     setTimeout(backupDatabase, 30000);
+    setTimeout(forgetOldAssistant, 20000);
     initAlarms();
     initVrBridge();
 

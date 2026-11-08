@@ -526,20 +526,6 @@
                     "auto_delete_prints_from_vrc": "Удалять старые фотографии из VRC по достижении лимита фотографий"
                 }
             }
-        },
-        "neon": {
-            "title": "Aurora",
-            "sub": "Everything you added, in one place",
-            "jump_chatbox": "Chatbox",
-            "jump_music": "Music to mic",
-            "jump_character": "Character",
-            "jump_accent": "Colour",
-            "jump_alarms": "Alarms",
-            "jump_rules": "Status rules",
-            "jump_companion": "Companion",
-            "jump_voice": "Voice",
-            "jump_security": "Security",
-            "jump_cleanup": "Cleanup"
         }
     },
     "dialog": {

@@ -1,5 +1,5 @@
 /**
- * Aurora accent colour. One colour drives the whole look: app theme, VR panels and the mascots.
+ * Aurora accent colour. One colour drives the whole look: app theme, charts and the VR panels.
  */
 import { ref, watch } from 'vue';
 
@@ -66,29 +66,8 @@ export function oklchHue(hex) {
     return (Math.atan2(bb, a) * 180) / Math.PI + (Math.atan2(bb, a) < 0 ? 360 : 0);
 }
 
-/** Hue in HSL degrees, used to rotate the mascot pictures. */
-export function hslHue(hex) {
-    const [r, g, b] = hexToRgb(hex).map((x) => x / 255);
-    const max = Math.max(r, g, b);
-    const min = Math.min(r, g, b);
-    const d = max - min;
-    if (!d) {
-        return 0;
-    }
-    let h;
-    if (max === r) h = ((g - b) / d) % 6;
-    else if (max === g) h = (b - r) / d + 2;
-    else h = (r - g) / d + 4;
-    return (h * 60 + 360) % 360;
-}
 
-/** CSS filter that turns the pink mascot into the accent colour. */
-export function mascotFilter(hex = accent.value) {
-    const turn = Math.round(hslHue(hex) - hslHue(DEFAULT_ACCENT));
-    return turn ? `hue-rotate(${turn}deg)` : 'none';
-}
 
-export const mascotTint = ref('none');
 
 function apply() {
     const hex = accent.value;
@@ -103,7 +82,6 @@ function apply() {
     // how colourful the accent is: grayscale is 0, pale colours give a soft tint, vivid ones full colour
     const chroma = oklch(hex).c;
     root.style.setProperty('--axk', chroma < 0.008 ? '0' : String(Math.min(1.2, chroma / 0.13).toFixed(3)));
-    mascotTint.value = mascotFilter(hex);
 }
 
 let started = false;

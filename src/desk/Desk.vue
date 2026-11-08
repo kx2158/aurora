@@ -102,7 +102,7 @@
         </section>
 
         <!-- Chatbox -->
-        <section v-else class="desk-body">
+        <section v-else-if="tab === 'chatbox'" class="desk-body">
             <div class="desk-row">
                 <span class="desk-strong">{{ t('view.desk.chatbox_live') }}</span>
                 <span class="flex-1"></span>

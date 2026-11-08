@@ -31,7 +31,8 @@ export function useNavLayout({ t, locale, router, dashboardStore, dashboards, di
     // Tool nav items are add/remove only; they no longer participate in hidden state.
     const getDefaultHiddenKeys = (layout = []) => {
         void layout;
-        return [];
+        // Quick open lives on Ctrl+D, it can be put back in the sidebar from Customize
+        return ['direct-access'];
     };
 
     const createDefaultNavLayout = () => createBaseDefaultNavLayout(t);
@@ -173,7 +174,7 @@ export function useNavLayout({ t, locale, router, dashboardStore, dashboards, di
             if (!(await configRepository.getBool('Aurora_navV3', false))) {
                 await configRepository.setString(
                     NAV_CONFIG_KEY,
-                    JSON.stringify({ layout: createDefaultNavLayout(), hiddenKeys: [] })
+                    JSON.stringify({ layout: createDefaultNavLayout(), hiddenKeys: ['direct-access'] })
                 );
                 await configRepository.setBool('Aurora_navV3', true);
             }

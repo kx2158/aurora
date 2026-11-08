@@ -179,10 +179,10 @@ const navDefinitions = [
 /** The order of sidebar sections and their labels. */
 const navSections = {
     '': '',
+    aurora: 'nav_aurora.section_aurora',
     people: 'nav_aurora.section_people',
     worlds: 'nav_aurora.section_worlds',
-    insights: 'nav_aurora.section_insights',
-    aurora: 'nav_aurora.section_aurora'
+    insights: 'nav_aurora.section_insights'
 };
 
 export { navDefinitions, navSections };

@@ -9,6 +9,10 @@ export function createBaseDefaultNavLayout(t) {
         { type: 'item', key: 'friends-locations' },
         { type: 'item', key: 'notification' },
         { type: 'item', key: 'search' },
+        { type: 'item', key: 'mic' },
+        { type: 'item', key: 'chatbox' },
+        { type: 'item', key: 'automations' },
+        { type: 'item', key: 'tools' },
         { type: 'item', key: 'friend-list' },
         { type: 'item', key: 'friend-log' },
         { type: 'item', key: 'favorite-friends' },
@@ -19,12 +23,7 @@ export function createBaseDefaultNavLayout(t) {
         { type: 'item', key: 'insights' },
         { type: 'item', key: 'charts-mutual' },
         { type: 'item', key: 'charts-instance' },
-        { type: 'item', key: 'charts-hot-worlds' },
-        { type: 'item', key: 'mic' },
-        { type: 'item', key: 'chatbox' },
-        { type: 'item', key: 'automations' },
-        { type: 'item', key: 'tools' },
-        { type: 'item', key: 'direct-access' }
+        { type: 'item', key: 'charts-hot-worlds' }
     ];
 }
 

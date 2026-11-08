@@ -914,7 +914,7 @@
                 },
                 "legal_notice": {
                     "header": "Legal Notice",
-                    "info": "Aurora is a personal companion app for VRChat. It shows your friends, worlds, avatars and history, and adds a voiced assistant, chatbox tools and a SteamVR dashboard.",
+                    "info": "Aurora is a personal companion app for VRChat. It shows your friends, worlds and history, with insights, a mic mixer, chatbox tools and a SteamVR dashboard.",
                     "disclaimer1": "Aurora is not endorsed by VRChat and does not reflect the views or opinions of VRChat or anyone officially involved in producing or managing VRChat properties. VRChat and all associated properties are trademarks or registered trademarks of VRChat Inc.",
                     "disclaimer2": "Use Aurora at your own risk.",
                     "open_source_software_notice": "Open Source Software Notice"

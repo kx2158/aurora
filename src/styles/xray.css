@@ -261,3 +261,31 @@
     width: 6px;
     height: 6px;
 }
+
+/* ---------- pop-up notices (noty): quiet cards, a thin coloured edge says what kind ---------- */
+:root:is([data-theme='xray'], [data-theme='xraydark']) .noty_theme__mint.noty_bar {
+    margin: 6px 0;
+    border-radius: 12px;
+    border: 1px solid var(--hair) !important;
+    border-left: 3px solid var(--muted-foreground) !important;
+    background: var(--popover) !important;
+    color: var(--popover-foreground) !important;
+    box-shadow: 0 16px 40px -20px oklch(0 0 0 / 45%);
+    font-family: var(--xr-font);
+}
+:root:is([data-theme='xray'], [data-theme='xraydark']) .noty_theme__mint.noty_bar .noty_body {
+    padding: 10px 14px;
+    font-size: 13px;
+}
+:root:is([data-theme='xray'], [data-theme='xraydark']) .noty_theme__mint.noty_type__success {
+    border-left-color: var(--ax) !important;
+}
+:root:is([data-theme='xray'], [data-theme='xraydark']) .noty_theme__mint.noty_type__error {
+    border-left-color: var(--destructive) !important;
+}
+:root:is([data-theme='xray'], [data-theme='xraydark']) .noty_theme__mint.noty_type__warning {
+    border-left-color: oklch(0.8 0.15 75) !important;
+}
+:root:is([data-theme='xray'], [data-theme='xraydark']) :is(.noty_theme__mint.noty_type__info, .noty_theme__mint.noty_type__information) {
+    border-left-color: oklch(0.72 0.12 250) !important;
+}

@@ -14,11 +14,11 @@ const routes = {
     friends: 'friends-locations',
     'friend-list': 'social/friend-list',
     'game-log': 'game-log',
-    network: 'charts/mutual',
     tools: 'tools',
-    settings: 'settings'
+    settings: 'settings',
+    network: 'charts/mutual'
 };
-const browser = await chromium.launch();
+const browser = await chromium.launch({ args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 });
 const logs = [];
 page.on('console', (m) => {

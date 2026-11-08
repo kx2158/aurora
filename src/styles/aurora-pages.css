@@ -394,7 +394,7 @@ button.a-row:hover {
     flex: 1;
     border-radius: 999px;
     overflow: hidden;
-    background: color-mix(in oklch, var(--foreground) 10%, transparent);
+    background: color-mix(in oklch, var(--foreground) 14%, transparent);
 }
 .a-meter > i {
     position: absolute;
@@ -422,4 +422,29 @@ button.a-row:hover {
 .a-dot.on {
     background: var(--a-accent);
     box-shadow: 0 0 0 3px color-mix(in oklch, var(--a-accent) 22%, transparent);
+}
+
+/* a slider row: label and value on top, the slider across the full width below */
+.a-field-range {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+}
+.a-range-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+.a-range-full {
+    width: 100%;
+}
+/* a select row that stacks in narrow cards */
+.a-field-stack {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+}
+.a-field-stack .a-field-control,
+.a-field-stack .a-select {
+    width: 100%;
 }

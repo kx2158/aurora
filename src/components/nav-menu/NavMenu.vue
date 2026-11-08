@@ -6,21 +6,7 @@
                 <span v-show="!isCollapsed" class="aurora-brand-name">aurora</span>
             </div>
         </SidebarHeader>
-        <SidebarHeader v-if="showNewDashboardButton" class="px-2 py-2">
-            <SidebarMenu>
-                <SidebarMenuItem>
-                    <SidebarMenuButton
-                        :tooltip="t('dashboard.new_dashboard')"
-                        class="border border-dashed border-primary/40 text-primary hover:bg-primary/10"
-                        @click="handleQuickCreateDashboard">
-                        <div class="flex items-center gap-3 pl-1 group-data-[collapsible=icon]:pl-0">
-                            <Plus class="size-4" />
-                            <span v-show="!isCollapsed">{{ t('dashboard.new_dashboard') }}</span>
-                        </div>
-                    </SidebarMenuButton>
-                </SidebarMenuItem>
-            </SidebarMenu>
-        </SidebarHeader>
+        <!-- new dashboards are made from the sidebar's right-click menu -->
 
         <ContextMenu>
             <ContextMenuTrigger as-child>
@@ -251,7 +237,7 @@
         tableDensity,
         isDarkMode,
         isNavCollapsed: isCollapsed,
-        showNewDashboardButton
+
     } = storeToRefs(appearanceSettingsStore);
 
     const {

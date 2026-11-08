@@ -43,7 +43,7 @@
             <div class="a-grid a-grid-2">
                 <section class="a-card">
                     <h2 class="a-h2"><AuroraIcon name="mic" :size="15" /> {{ t('view.mic.voice') }}</h2>
-                    <div class="a-field">
+                    <div class="a-field a-field-stack">
                         <div class="a-field-label">{{ t('view.mic.microphone') }}</div>
                         <div class="a-field-control">
                             <select class="a-select" :value="mm.mic" @change="(e) => setMm('mic', e.target.value)">
@@ -81,7 +81,7 @@
 
                 <section class="a-card">
                     <h2 class="a-h2"><AuroraIcon name="music" :size="15" /> {{ t('view.mic.music') }}</h2>
-                    <div class="a-field">
+                    <div class="a-field a-field-stack">
                         <div class="a-field-label">
                             {{ t('view.mic.source') }}
                             <small>{{ t('view.mic.source_hint') }}</small>
@@ -239,22 +239,22 @@
         setup(props, { emit }) {
             return () => {
                 const fill = ((props.value - props.min) / (props.max - props.min || 1)) * 100;
-                return h('div', { class: 'a-field' }, [
-                    h('div', { class: 'a-field-label' }, [props.label, props.hint ? h('small', props.hint) : null]),
-                    h('div', { class: 'a-field-control' }, [
-                        h('input', {
-                            type: 'range',
-                            class: 'a-range',
-                            min: props.min,
-                            max: props.max,
-                            step: props.step,
-                            value: props.value,
-                            style: { '--fill': `${fill}%` },
-                            'aria-label': props.label,
-                            onInput: (e) => emit('input', Number(e.target.value))
-                        }),
+                return h('div', { class: 'a-field a-field-range' }, [
+                    h('div', { class: 'a-range-head' }, [
+                        h('div', { class: 'a-field-label' }, [props.label, props.hint ? h('small', props.hint) : null]),
                         h('span', { class: 'a-field-value' }, props.format ? props.format(props.value) : props.value)
-                    ])
+                    ]),
+                    h('input', {
+                        type: 'range',
+                        class: 'a-range a-range-full',
+                        min: props.min,
+                        max: props.max,
+                        step: props.step,
+                        value: props.value,
+                        style: { '--fill': `${fill}%` },
+                        'aria-label': props.label,
+                        onInput: (e) => emit('input', Number(e.target.value))
+                    })
                 ]);
             };
         }

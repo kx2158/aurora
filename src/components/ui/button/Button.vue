@@ -25,6 +25,7 @@
 <template>
     <Primitive
         data-slot="button"
+        :data-variant="variant || 'default'"
         :as="as"
         :as-child="asChild"
         :disabled="isNativeButton ? props.disabled : undefined"

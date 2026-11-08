@@ -4,7 +4,20 @@ import fs from 'node:fs';
 
 const [base, out] = process.argv.slice(2);
 fs.mkdirSync(out, { recursive: true });
-const routes = ['home', 'mic', 'insights', 'automations', 'feed', 'friend-list', 'charts-mutual', 'settings'];
+const routes = {
+    home: 'home',
+    mic: 'mic',
+    insights: 'insights',
+    automations: 'automations',
+    chatbox: 'chatbox',
+    feed: 'feed',
+    friends: 'friends-locations',
+    'friend-list': 'social/friend-list',
+    'game-log': 'game-log',
+    network: 'charts/mutual',
+    tools: 'tools',
+    settings: 'settings'
+};
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 });
 const logs = [];
@@ -18,11 +31,18 @@ try {
 } catch {
     logs.push('preview never became ready');
 }
-for (const r of routes) {
-    await page.evaluate((name) => window.location.hash = `#/${name === 'settings' ? 'settings' : name.replace('friend-list', 'social/friend-list').replace('charts-mutual', 'charts/mutual')}`, r);
+await page.evaluate(() => window.$pinia?.appearanceSettings?.setNavCollapsed?.(false));
+for (const [name, path] of Object.entries(routes)) {
+    await page.evaluate((p) => (window.location.hash = `#/${p}`), path);
     await page.waitForTimeout(2500);
-    await page.screenshot({ path: `${out}/${r}.jpg`, type: 'jpeg', quality: 82 });
+    await page.screenshot({ path: `${out}/${name}.jpg`, type: 'jpeg', quality: 80 });
 }
+// the sidebar folded down to icons
+await page.evaluate(() => (window.location.hash = '#/insights'));
+await page.evaluate(() => window.$pinia.appearanceSettings.setNavCollapsed?.(true));
+await page.waitForTimeout(1200);
+await page.screenshot({ path: `${out}/collapsed.jpg`, type: 'jpeg', quality: 80 });
+await page.evaluate(() => window.$pinia.appearanceSettings.setNavCollapsed?.(false));
 // collapsed sidebar and light theme on Home
 await page.evaluate(() => (window.location.hash = '#/home'));
 await page.evaluate(() => window.$pinia.appearanceSettings.setThemeMode('xray'));

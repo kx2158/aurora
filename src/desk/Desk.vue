@@ -299,6 +299,23 @@
     #root {
         height: 100%;
     }
+    /* made by a render function, so these live outside the scoped block */
+    .desk-slider {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        font-size: 0.84rem;
+    }
+    .desk-slider-top {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+    }
+    .desk-slider-top span:last-child {
+        font-size: 0.76rem;
+        color: var(--a-muted);
+        font-variant-numeric: tabular-nums;
+    }
 </style>
 
 <style scoped>
@@ -385,16 +402,6 @@
     }
     .desk-select {
         width: 100%;
-    }
-    .desk-slider {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-        font-size: 0.84rem;
-    }
-    .desk-slider-top {
-        display: flex;
-        justify-content: space-between;
     }
     .desk-grid {
         display: grid;

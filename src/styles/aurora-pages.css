@@ -448,3 +448,6 @@ button.a-row:hover {
 .a-field-stack .a-select {
     width: 100%;
 }
+.a-top {
+    align-items: start;
+}

@@ -34,7 +34,7 @@
                 <AChart :option="playtimeOption" :height="220" />
             </section>
 
-            <div class="a-grid a-grid-2 items-start">
+            <div class="a-grid a-grid-2 a-top">
                 <section class="a-card">
                     <h2 class="a-h2">{{ t('view.insights.rhythm') }}</h2>
                     <AChart :option="heatOption" :height="236" />

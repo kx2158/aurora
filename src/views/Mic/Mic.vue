@@ -277,6 +277,9 @@
         flex-direction: column;
         gap: 8px;
     }
+    .mic-meter .a-meter {
+        flex: none;
+    }
     .mic-meter-label {
         font-size: 0.75rem;
         color: var(--a-muted);

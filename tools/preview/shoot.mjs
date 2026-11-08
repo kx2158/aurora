@@ -47,6 +47,18 @@ for (const [name, path] of Object.entries(routes)) {
     logs.push(`--- after ${name}: ${page.url()}`);
     fs.writeFileSync(`${out}/console.txt`, logs.join('\n') + '\n');
 }
+// Settings > Aurora (accent and colour wheel)
+await page.evaluate(() => (window.location.hash = '#/settings'));
+await page.waitForTimeout(1500);
+await page.getByRole('tab', { name: 'Aurora' }).first().click().catch(() => {});
+await page.waitForTimeout(1200);
+await page.screenshot({ path: `${out}/settings-aurora.jpg`, type: 'jpeg', quality: 80 });
+// the lower half of Automations
+await page.evaluate(() => (window.location.hash = '#/automations'));
+await page.waitForTimeout(1500);
+await page.evaluate(() => document.querySelector('.a-page')?.scrollTo(0, 700));
+await page.waitForTimeout(800);
+await page.screenshot({ path: `${out}/automations-2.jpg`, type: 'jpeg', quality: 80 });
 // the lower half of Insights, and Mic while it is running
 await page.evaluate(() => (window.location.hash = '#/insights'));
 await page.waitForTimeout(2000);

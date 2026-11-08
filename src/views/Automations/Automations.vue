@@ -57,85 +57,135 @@
                 </div>
             </section>
 
-            <section class="a-card">
-                <h2 class="a-h2">
-                    <AuroraIcon name="status" :size="15" /> {{ t('view.automations.status') }}
-                    <span class="a-h2-aside">
-                        <button
-                            type="button"
-                            class="a-toggle"
-                            :class="{ on: rules.enabled }"
-                            :aria-pressed="rules.enabled"
-                            :aria-label="t('view.automations.status')"
-                            @click="setRule('enabled', !rules.enabled)"></button>
-                    </span>
-                </h2>
-                <p class="a-note mb-3">{{ t('view.automations.status_desc') }}</p>
-                <div class="a-field">
-                    <div class="a-field-label">{{ t('view.automations.switch_to') }}</div>
-                    <div class="a-field-control">
-                        <div class="a-seg">
+            <header class="a-head mt-4">
+                <div>
+                    <h2 class="text-lg font-semibold">{{ t('view.automations.status') }}</h2>
+                    <p class="a-sub">{{ t('view.automations.status_desc') }}</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="a-note">{{ statusRules.enabled ? t('view.automations.on') : t('view.automations.off') }}</span>
+                    <button
+                        type="button"
+                        class="a-toggle"
+                        :class="{ on: statusRules.enabled }"
+                        :aria-pressed="statusRules.enabled"
+                        :aria-label="t('view.automations.status')"
+                        @click="statusRules.enabled = !statusRules.enabled"></button>
+                </div>
+            </header>
+
+            <section
+                v-for="(rule, i) in statusRules.rules"
+                :key="rule.id"
+                class="a-card rule"
+                :class="{ off: !rule.enabled || !statusRules.enabled }">
+                <div class="rule-head">
+                    <span class="rule-num">{{ i + 1 }}</span>
+                    <div class="flex min-w-0 flex-1 flex-col">
+                        <span class="truncate text-sm font-medium">{{ ruleTitle(rule) }}</span>
+                        <span class="rule-live" :class="phaseOf(rule)">{{ liveText(rule) }}</span>
+                    </div>
+                    <button type="button" class="a-btn icon" :disabled="i === 0" :aria-label="t('view.automations.up')" @click="moveRule(rule.id, -1)">
+                        <AuroraIcon name="arrow" :size="14" style="transform: rotate(-90deg)" />
+                    </button>
+                    <button
+                        type="button"
+                        class="a-btn icon"
+                        :disabled="i === statusRules.rules.length - 1"
+                        :aria-label="t('view.automations.down')"
+                        @click="moveRule(rule.id, 1)">
+                        <AuroraIcon name="arrow" :size="14" style="transform: rotate(90deg)" />
+                    </button>
+                    <button
+                        type="button"
+                        class="a-toggle"
+                        :class="{ on: rule.enabled }"
+                        :aria-pressed="rule.enabled"
+                        :aria-label="t('view.automations.enabled')"
+                        @click="rule.enabled = !rule.enabled"></button>
+                    <button type="button" class="a-btn icon" :aria-label="t('view.automations.remove')" @click="removeRule(rule.id)">
+                        <AuroraIcon name="close" :size="14" />
+                    </button>
+                </div>
+
+                <div class="rule-steps">
+                    <div class="rule-step">
+                        <span class="rule-step-n">1</span>
+                        <div class="rule-step-body">
+                            <span class="rule-step-label">{{ t('view.automations.step_who') }}</span>
+                            <PeoplePicker :people="rule.people" :placeholder="t('view.automations.friend_name')" />
+                        </div>
+                    </div>
+                    <div class="rule-step">
+                        <span class="rule-step-n">2</span>
+                        <div class="rule-step-body">
+                            <span class="rule-step-label">{{ t('view.automations.step_online') }}</span>
+                            <StatusPick v-model="rule.onlineStatus" v-model:desc="rule.onlineDesc" />
+                        </div>
+                    </div>
+                    <div class="rule-step">
+                        <span class="rule-step-n">3</span>
+                        <div class="rule-step-body">
+                            <span class="rule-step-label">
+                                {{ t('view.automations.step_joined_a') }}
+                                <input
+                                    v-model.number="rule.waitMin"
+                                    type="number"
+                                    min="1"
+                                    max="240"
+                                    class="a-input rule-min"
+                                    :aria-label="t('view.automations.minutes_label')" />
+                                {{ t('view.automations.step_joined_b') }}
+                            </span>
+                            <StatusPick v-model="rule.joinedStatus" v-model:desc="rule.joinedDesc" allow-keep />
+                            <span class="a-note">{{ t('view.automations.joined_note') }}</span>
+                        </div>
+                    </div>
+                    <div class="rule-step">
+                        <span class="rule-step-n">4</span>
+                        <div class="rule-step-body">
+                            <span class="rule-step-label">{{ t('view.automations.step_fallback', { n: rule.waitMin || 10 }) }}</span>
+                            <StatusPick v-model="rule.fallbackStatus" v-model:desc="rule.fallbackDesc" />
+                        </div>
+                    </div>
+                    <div class="rule-step">
+                        <span class="rule-step-n">5</span>
+                        <div class="rule-step-body rule-step-row">
+                            <span class="rule-step-label">{{ t('view.automations.step_offline') }}</span>
                             <button
-                                v-for="s in statuses"
-                                :key="s.value"
                                 type="button"
-                                :class="{ on: rules.status === s.value }"
-                                @click="setRule('status', s.value)">
-                                {{ s.label }}
-                            </button>
+                                class="a-toggle"
+                                :class="{ on: rule.restore }"
+                                :aria-pressed="rule.restore"
+                                :aria-label="t('view.automations.step_offline')"
+                                @click="rule.restore = !rule.restore"></button>
                         </div>
                     </div>
                 </div>
-                <div class="a-field">
-                    <div class="a-field-label">{{ t('view.automations.status_text') }}</div>
-                    <div class="a-field-control">
-                        <input
-                            :value="rules.desc"
-                            class="a-input"
-                            maxlength="32"
-                            :placeholder="t('view.automations.optional')"
-                            @change="(e) => setRule('desc', e.target.value)" />
+            </section>
+
+            <button type="button" class="a-btn self-start" @click="addRule">
+                <AuroraIcon name="plus" :size="15" /> {{ t('view.automations.add_rule') }}
+            </button>
+
+            <section class="a-card">
+                <h2 class="a-h2"><AuroraIcon name="shield" :size="15" /> {{ t('view.automations.avoid') }}</h2>
+                <p class="a-note mb-4">{{ t('view.automations.avoid_desc') }}</p>
+                <div class="rule-steps">
+                    <div class="rule-step">
+                        <span class="rule-step-n">-</span>
+                        <div class="rule-step-body">
+                            <span class="rule-step-label">{{ t('view.automations.avoid_who') }}</span>
+                            <PeoplePicker :people="statusRules.avoid.people" :placeholder="t('view.automations.friend_name')" />
+                        </div>
                     </div>
-                </div>
-                <div class="a-field">
-                    <div class="a-field-label">{{ t('view.automations.restore') }}</div>
-                    <div class="a-field-control">
-                        <button
-                            type="button"
-                            class="a-toggle"
-                            :class="{ on: rules.restore }"
-                            :aria-pressed="rules.restore"
-                            :aria-label="t('view.automations.restore')"
-                            @click="setRule('restore', !rules.restore)"></button>
+                    <div class="rule-step">
+                        <span class="rule-step-n">-</span>
+                        <div class="rule-step-body">
+                            <span class="rule-step-label">{{ t('view.automations.avoid_status') }}</span>
+                            <StatusPick v-model="statusRules.avoid.status" v-model:desc="statusRules.avoid.desc" />
+                        </div>
                     </div>
-                </div>
-                <div class="a-field">
-                    <div class="a-field-label">
-                        {{ t('view.automations.people') }}
-                        <small>{{ t('view.automations.people_hint') }}</small>
-                    </div>
-                    <div class="a-field-control">
-                        <input
-                            v-model="watchName"
-                            class="a-input"
-                            list="aurora-friend-names"
-                            :placeholder="t('view.automations.friend_name')"
-                            @keydown.enter="addWatchedByName" />
-                        <datalist id="aurora-friend-names">
-                            <option v-for="n in friendNames" :key="n" :value="n"></option>
-                        </datalist>
-                        <button type="button" class="a-btn icon" :aria-label="t('view.automations.add')" @click="addWatchedByName">
-                            <AuroraIcon name="plus" :size="15" />
-                        </button>
-                    </div>
-                </div>
-                <div v-if="rules.ids.length" class="flex flex-wrap gap-2 pt-1">
-                    <span v-for="w in rules.ids" :key="w.id" class="auto-chip">
-                        {{ w.name }}
-                        <button type="button" :aria-label="t('view.automations.remove')" @click="removeWatched(w.id)">
-                            <AuroraIcon name="close" :size="12" />
-                        </button>
-                    </span>
                 </div>
             </section>
         </div>
@@ -143,61 +193,147 @@
 </template>
 
 <script setup>
-    import { computed, onMounted, ref } from 'vue';
-    import { toast } from 'vue-sonner';
+    import { onBeforeUnmount, onMounted, ref } from 'vue';
     import { useI18n } from 'vue-i18n';
 
     import AuroraIcon from '../../components/AuroraIcon.vue';
+    import PeoplePicker from './components/PeoplePicker.vue';
+    import StatusPick from './components/StatusPick.vue';
     import { addAlarm, addTimer, alarms, initAlarms, removeAlarm, ringAlarm } from '../../services/auroraAlarms';
-    import { addWatched, initStatusRules, removeWatched, rules, saveRules } from '../../services/auroraStatusRules';
-    import { useFriendStore } from '../../stores';
+    import {
+        addRule,
+        initStatusRules,
+        moveRule,
+        removeRule,
+        ruleState,
+        statusRules
+    } from '../../services/auroraStatusRules';
 
     const { t } = useI18n();
-    const friendStore = useFriendStore();
-    const watchName = ref('');
 
+    // ticks once a second so the countdowns move
+    const now = ref(Date.now());
+    let tick = null;
     onMounted(() => {
         initAlarms();
         initStatusRules();
+        tick = setInterval(() => (now.value = Date.now()), 1000);
     });
+    onBeforeUnmount(() => clearInterval(tick));
 
-    const statuses = computed(() => [
-        { value: 'busy', label: t('view.automations.busy') },
-        { value: 'ask me', label: t('view.automations.ask_me') },
-        { value: 'active', label: t('view.automations.online') },
-        { value: 'join me', label: t('view.automations.join_me') }
-    ]);
-
-    const friendNames = computed(() =>
-        Array.from(friendStore.friends.values())
-            .map((f) => f.name || f.ref?.displayName)
-            .filter(Boolean)
-            .sort((a, b) => a.localeCompare(b))
-    );
-
-    function setRule(key, value) {
-        rules.value[key] = value;
-        saveRules();
+    function ruleTitle(rule) {
+        if (!rule.people.length) {
+            return t('view.automations.rule_empty');
+        }
+        const names = rule.people.map((p) => p.name);
+        return names.length > 3 ? `${names.slice(0, 3).join(', ')} +${names.length - 3}` : names.join(', ');
     }
 
-    function addWatchedByName() {
-        const q = watchName.value.trim().toLowerCase();
-        if (!q) {
-            return;
+    const phaseOf = (rule) => ruleState.value[rule.id]?.phase || 'idle';
+
+    function liveText(rule) {
+        const st = ruleState.value[rule.id];
+        if (!statusRules.value.enabled || !rule.enabled) {
+            return t('view.automations.live_off');
         }
-        const hit = Array.from(friendStore.friends.values()).find(
-            (f) => String(f.name || f.ref?.displayName || '').toLowerCase() === q
-        );
-        if (!hit) {
-            toast.error(t('view.automations.not_found'));
-            return;
+        if (!st) {
+            return t('view.automations.live_idle');
         }
-        addWatched(hit.id, hit.name || hit.ref?.displayName);
-        watchName.value = '';
+        if (st.phase === 'waiting') {
+            const left = Math.max(0, Math.round((st.until - now.value) / 1000));
+            const mm = Math.floor(left / 60);
+            const ss = String(left % 60).padStart(2, '0');
+            return t('view.automations.live_waiting', { time: `${mm}:${ss}` });
+        }
+        if (st.phase === 'fallback') {
+            return t('view.automations.live_fallback');
+        }
+        return t('view.automations.live_joined');
     }
 </script>
 
 <style scoped>
+    .rule {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        transition: opacity 0.2s ease;
+    }
+    .rule.off {
+        opacity: 0.55;
+    }
+    .rule-head {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .rule-num {
+        flex: none;
+        width: 26px;
+        height: 26px;
+        display: grid;
+        place-items: center;
+        font-size: 0.78rem;
+        font-weight: 600;
+        border-radius: 50%;
+        background: var(--a-soft);
+        border: 1px solid var(--a-line);
+    }
+    .rule-live {
+        font-size: 0.75rem;
+        color: var(--a-muted);
+        font-variant-numeric: tabular-nums;
+    }
+    .rule-live.waiting,
+    .rule-live.joined {
+        color: var(--a-accent);
+    }
+    .rule-live.fallback {
+        color: #e88134;
+    }
+    .rule-steps {
+        display: flex;
+        flex-direction: column;
+    }
+    .rule-step {
+        display: flex;
+        gap: 14px;
+        padding: 12px 0;
+        border-top: 1px solid var(--a-line);
+    }
+    .rule-step-n {
+        flex: none;
+        width: 26px;
+        text-align: center;
+        font-size: 0.75rem;
+        color: var(--a-muted);
+        padding-top: 2px;
+    }
+    .rule-step-body {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    .rule-step-row {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .rule-step-label {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.86rem;
+    }
+    .rule-min {
+        width: 64px;
+        height: 28px;
+        text-align: center;
+    }
+
     .auto-alarm {
         display: flex;
         align-items: center;
@@ -211,28 +347,5 @@
     .auto-time {
         width: 120px;
         font-variant-numeric: tabular-nums;
-    }
-    .auto-chip {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        height: 28px;
-        padding: 0 6px 0 12px;
-        font-size: 0.8rem;
-        border-radius: 999px;
-        border: 1px solid var(--a-line);
-        background: var(--a-soft);
-    }
-    .auto-chip button {
-        display: grid;
-        place-items: center;
-        width: 18px;
-        height: 18px;
-        border-radius: 50%;
-        color: var(--a-muted);
-    }
-    .auto-chip button:hover {
-        color: var(--foreground);
-        background: var(--a-line);
     }
 </style>

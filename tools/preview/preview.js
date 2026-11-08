@@ -250,4 +250,17 @@ await router.push({ name: 'home' });
 await new Promise((r) => setTimeout(r, 3000));
 // the login flow may have reset the list, fill it again
 populateFriends();
+// two example status rules so the Automations page has something to show
+try {
+    const sr = await import('./services/auroraStatusRules.js');
+    await sr.initStatusRules();
+    sr.statusRules.value.rules = [
+        sr.newRule({ people: friendsList.slice(0, 2).map((p) => ({ id: p.id, name: p.name })), onlineDesc: 'come hang' }),
+        sr.newRule({ people: [{ id: friendsList[4].id, name: friendsList[4].name }], onlineStatus: 'ask me', joinedStatus: 'busy', waitMin: 20 })
+    ];
+    sr.statusRules.value.avoid.people = [{ id: friendsList[9].id, name: friendsList[9].name }];
+    await sr.statusRuleFriendChange(friendsList[0].id, true);
+} catch (e) {
+    console.warn('[preview] rules', e);
+}
 window.__previewReady = true;

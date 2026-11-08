@@ -18,8 +18,10 @@
                         class="size-7 rounded-full border-2"
                         :style="{ background: p.hex, borderColor: accent === p.hex ? 'var(--foreground)' : 'transparent', boxShadow: 'none' }"
                         @click="setAccent(p.hex)"></button>
-                    <input type="color" :value="accent" class="h-8 w-10 cursor-pointer bg-transparent" @input="(e) => setAccent(e.target.value)" />
                 </div>
+            </SettingsItem>
+            <SettingsItem :label="t('view.settings.aurora.accent_custom')" :description="t('view.settings.aurora.accent_custom_hint')">
+                <AuroraColorWheel :model-value="accent" :label="t('view.settings.aurora.accent_custom')" @update:model-value="setAccent" />
             </SettingsItem>
         </SettingsGroup>
         <SettingsGroup id="nx-security" :title="t('view.settings.aurora.security.header')">
@@ -152,6 +154,7 @@
     import { isValidPin } from '@/services/auroraSecurity';
     import { useAuroraSettingsStore } from '@/stores';
 
+    import AuroraColorWheel from '@/components/AuroraColorWheel.vue';
     import AuroraLogo from '@/components/AuroraLogo.vue';
     import SettingsGroup from '../SettingsGroup.vue';
     import SettingsItem from '../SettingsItem.vue';

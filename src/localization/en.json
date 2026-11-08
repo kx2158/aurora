@@ -1443,7 +1443,16 @@
                 "accent": "Accent colour",
                 "accent_desc": "One colour for everything: the app, charts and the VR panels.",
                 "accent_custom": "Custom colour",
-                "accent_custom_hint": "Pick any colour. Aurora keeps its brightness readable and uses the colour's hue and intensity."
+                "accent_custom_hint": "Pick any colour. Aurora keeps its brightness readable and uses the colour's hue and intensity.",
+                "desk": "Desktop overlay",
+                "desk_desc": "A small panel with your mic, timers and chatbox that pops up over VRChat when you press a hotkey, and hides when you click back into the game. Works when VRChat runs in a window or borderless, not in exclusive fullscreen.",
+                "desk_hotkey": "Hotkey",
+                "desk_hotkey_hint": "Click the box and press the keys, for example Ctrl+Shift+A. Backspace turns it off.",
+                "desk_press": "Press keys...",
+                "desk_off": "Off",
+                "desk_taken": "That hotkey is taken by another app, try another one.",
+                "desk_saved": "Hotkey saved",
+                "desk_open": "Open overlay"
             }
         },
         "home": {
@@ -1632,6 +1641,25 @@
             "tile_longest": "longest stay {d}",
             "tile_people": "People seen",
             "tile_people_sub": "{n} friends in your top list"
+        },
+        "desk": {
+            "hint": "{key} to hide",
+            "close": "Close",
+            "tab_mic": "Mic",
+            "tab_timers": "Timers",
+            "tab_chatbox": "Chatbox",
+            "hours": "{n} h",
+            "minutes": "minutes",
+            "start": "Start",
+            "stop_alarm": "Stop ringing alarm",
+            "chatbox_live": "Live chatbox",
+            "chatbox_empty": "Nothing in the chatbox right now.",
+            "say": "Say something",
+            "say_ph": "Type and press Enter to show it in your chatbox",
+            "brb": "BRB",
+            "clear": "Clear",
+            "send": "Send",
+            "open_app": "Open Aurora"
         }
     },
     "dialog": {

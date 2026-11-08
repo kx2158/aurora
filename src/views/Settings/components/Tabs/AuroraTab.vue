@@ -24,6 +24,26 @@
                 <AuroraColorWheel :model-value="accent" :label="t('view.settings.aurora.accent_custom')" @update:model-value="setAccent" />
             </SettingsItem>
         </SettingsGroup>
+        <SettingsGroup id="nx-desk" :title="t('view.settings.aurora.desk')">
+            <SettingsItem :label="t('view.settings.aurora.desk_hotkey')" :description="t('view.settings.aurora.desk_desc')">
+                <div class="flex flex-col items-end gap-2">
+                    <div class="flex items-center gap-2">
+                        <input
+                            :value="capturing ? t('view.settings.aurora.desk_press') : deskKey || t('view.settings.aurora.desk_off')"
+                            readonly
+                            class="a-input w-44 cursor-pointer text-center"
+                            :aria-label="t('view.settings.aurora.desk_hotkey')"
+                            :title="t('view.settings.aurora.desk_hotkey_hint')"
+                            @focus="capturing = true"
+                            @blur="capturing = false"
+                            @keydown.prevent="captureKey" />
+                        <Button size="sm" variant="outline" @click="toggleDeskOverlay">{{ t('view.settings.aurora.desk_open') }}</Button>
+                    </div>
+                    <span class="text-xs text-muted-foreground">{{ t('view.settings.aurora.desk_hotkey_hint') }}</span>
+                </div>
+            </SettingsItem>
+        </SettingsGroup>
+
         <SettingsGroup id="nx-security" :title="t('view.settings.aurora.security.header')">
             <SettingsItem
                 :label="t('view.settings.aurora.security.status')"
@@ -152,6 +172,7 @@
     import { ACCENT_PRESETS, accent, setAccent } from '@/services/auroraAccent';
     import { CLEANUP_KEYS, cleanCategories, countCategory } from '@/services/auroraCleanup';
     import { isValidPin } from '@/services/auroraSecurity';
+    import { getDeskHotkey, setDeskHotkey, toggleDeskOverlay } from '@/services/auroraVrBridge';
     import { useAuroraSettingsStore } from '@/stores';
 
     import AuroraColorWheel from '@/components/AuroraColorWheel.vue';
@@ -163,6 +184,45 @@
     const store = useAuroraSettingsStore();
     const { appLockEnabled, autoLockMinutes, cleanupSelected, cleanupKeepDays, cleanupAuto } = storeToRefs(store);
     const { setAutoLockMinutes, lockNow, toggleCleanup, setCleanupKeepDays, setCleanupAuto } = store;
+
+    // ---- desktop overlay hotkey ----
+    const deskKey = ref('');
+    const capturing = ref(false);
+    getDeskHotkey().then((k) => (deskKey.value = k));
+    async function captureKey(e) {
+        if (e.key === 'Escape') {
+            e.target.blur();
+            return;
+        }
+        if (e.key === 'Backspace' || e.key === 'Delete') {
+            if (await setDeskHotkey('')) deskKey.value = '';
+            e.target.blur();
+            return;
+        }
+        if (['Control', 'Shift', 'Alt', 'Meta'].includes(e.key)) {
+            return;
+        }
+        const parts = [];
+        if (e.ctrlKey) parts.push('Ctrl');
+        if (e.altKey) parts.push('Alt');
+        if (e.shiftKey) parts.push('Shift');
+        if (e.metaKey) parts.push('Win');
+        let key = e.code.startsWith('Key') ? e.code.slice(3) : e.code.startsWith('Digit') ? e.code.slice(5) : e.code;
+        if (!/^([A-Z0-9]|F([1-9]|1[0-9]|2[0-4]))$/.test(key)) {
+            return;
+        }
+        if (!parts.length && !key.startsWith('F')) {
+            return; // a plain letter would fire while typing everywhere
+        }
+        const combo = [...parts, key].join('+');
+        if (await setDeskHotkey(combo)) {
+            deskKey.value = combo;
+            toast.success(t('view.settings.aurora.desk_saved'));
+        } else {
+            toast.error(t('view.settings.aurora.desk_taken'));
+        }
+        e.target.blur();
+    }
 
     const counts = ref({});
     const cleaning = ref(false);

@@ -117,6 +117,11 @@ export const AURORA_ICONS = {
     },
     status: { circles: [[12, 12, 8]], dots: [[12, 12, 3.2]] },
     plus: { paths: ['M12 5v14', 'M5 12h14'] },
+    minus: { paths: ['M5 12h14'] },
+    moon: { paths: ['M19.5 14.5A8 8 0 0 1 9.5 4.5a8 8 0 1 0 10 10Z'] },
+    prev: { paths: ['M18 6v12l-9-6Z', 'M6 6v12'] },
+    next: { paths: ['M6 6v12l9-6Z', 'M18 6v12'] },
+    playpause: { paths: ['M5 6v12l8-6Z', 'M16 6.5v11', 'M19.5 6.5v11'] },
     close: { paths: ['m6 6 12 12', 'M18 6 6 18'] },
     arrow: { paths: ['M5 12h14', 'm13 6 6 6-6 6'] }
 };

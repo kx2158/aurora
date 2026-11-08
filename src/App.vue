@@ -41,7 +41,7 @@
     import { initAccent } from './services/auroraAccent';
     import { forgetOldAssistant } from './services/auroraLegacy';
     import { initAlarms } from './services/auroraAlarms';
-    import { initVrBridge, neonCommand } from './services/auroraVrBridge';
+    import { deskCommand, initVrBridge, neonCommand } from './services/auroraVrBridge';
     import { initIntegrations } from './services/auroraIntegrations';
 
     import AuroraLockScreen from './components/AuroraLockScreen.vue';
@@ -82,6 +82,7 @@
             updateIsGameRunning: runUpdateIsGameRunningFlow,
             updateIsHmdAfk: runUpdateIsHmdAfkFlow,
             neonCommand,
+            deskCommand,
             addGameLogEvent
         };
     }

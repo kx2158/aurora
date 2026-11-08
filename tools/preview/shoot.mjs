@@ -97,5 +97,66 @@ try {
     logs.push('[network diag failed] ' + e.message);
 }
 await page.screenshot({ path: `${out}/network.jpg`, type: 'jpeg', quality: 80 });
+// ---- the desktop overlay page, fed with a fake state ----
+const desk = await browser.newPage({ viewport: { width: 400, height: 620 } });
+desk.on('pageerror', (e) => logs.push(`[desk pageerror] ${e.message}`.slice(0, 300)));
+await desk.goto(`${base}/desk.html`, { waitUntil: 'load' });
+await desk.waitForTimeout(1500);
+const deskState = {
+    theme: 'xraydark',
+    dark: true,
+    axh: '293',
+    axk: '1.2',
+    hotkey: 'Ctrl+Shift+A',
+    chatbox: { enabled: true, preview: '21:14 | The Great Pug | 7 friends online' },
+    alarms: [
+        { id: 1, time: '21:40', label: 'Timer 25 min', daily: false, enabled: true },
+        { id: 2, time: '23:30', label: 'Bed', daily: true, enabled: true }
+    ],
+    mm: { running: true, micMuted: false, app: 'Spotify', apps: ['Spotify', 'Firefox'], micVol: 1.2, musicVol: 0.6, micNoise: 0.5, micBass: 0.2, musicBass: 0.35, micPeak: 0.45, outPeak: 0.62, error: '' }
+};
+for (const tab of ['Mic', 'Timers', 'Chatbox']) {
+    await desk.evaluate((st) => window.deskState(JSON.stringify(st)), deskState);
+    await desk.getByRole('button', { name: tab }).first().click().catch(() => {});
+    await desk.waitForTimeout(500);
+    await desk.screenshot({ path: `${out}/desk-${tab.toLowerCase()}.jpg`, type: 'jpeg', quality: 85 });
+}
+
+// ---- the VR panels (wrist and SteamVR dashboard) ----
+const vr = await browser.newPage({ viewport: { width: 2048, height: 1536 } });
+vr.on('pageerror', (e) => logs.push(`[vr pageerror] ${e.message}`.slice(0, 300)));
+await vr.addInitScript(() => {
+    window.WINDOWS = false;
+    window.LINUX = false;
+    window.interopApi = { callDotNetMethod: async () => null };
+});
+await vr.goto(`${base}/vr.html`, { waitUntil: 'load' });
+await vr.waitForTimeout(2500);
+await vr
+    .evaluate(() =>
+        window.$vr?.neonState?.(
+            JSON.stringify({
+                accent: '#a48cff',
+                chatbox: true,
+                mm: true,
+                mmMuted: false,
+                mmApp: 'Spotify',
+                mmVol: 60,
+                song: 'Night Drive',
+                artist: 'xoliexen',
+                playing: true,
+                sounds: true,
+                afk: false,
+                music: true,
+                preview: '21:14 | The Great Pug | 7 friends online',
+                nextAlarm: '21:40'
+            })
+        )
+    )
+    .catch((e) => logs.push('[vr state] ' + e.message));
+await vr.waitForTimeout(800);
+await vr.screenshot({ path: `${out}/vr-dash.jpg`, type: 'jpeg', quality: 80, clip: { x: 1024, y: 0, width: 1024, height: 1024 } });
+await vr.screenshot({ path: `${out}/vr-wrist.jpg`, type: 'jpeg', quality: 85, clip: { x: 0, y: 0, width: 512, height: 512 } });
+
 fs.writeFileSync(`${out}/console.txt`, logs.join('\n'));
 await browser.close();

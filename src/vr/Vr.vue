@@ -1,27 +1,28 @@
 <template>
     <div id="x-app" class="flex w-screen h-screen overflow-hidden cursor-default x-app-type">
         <div class="wrist" :class="{ background: config && config.backgroundEnabled }">
-            <div v-if="alarmBanner" class="neon-alarm">ALARM {{ alarmBanner.time }} - {{ alarmBanner.label }}</div>
-            <div class="neon-clock">
-                <div class="neon-clock-day">{{ clock.day }}</div>
-                <div class="neon-clock-time">
-                    {{ clock.hm }}<span class="neon-clock-sec">{{ clock.sec }}</span>
+            <div v-if="alarmBanner" class="vr-alarm">
+                <AuroraIcon name="alarm" :size="18" /> {{ alarmBanner.time }} {{ alarmBanner.label }}
+            </div>
+            <div class="vr-top">
+                <div class="vr-clock">
+                    <span class="vr-time">{{ clock.hm }}</span>
+                    <span class="vr-date">{{ clock.day }}, {{ clock.date }}</span>
                 </div>
-                <div class="neon-clock-date">{{ clock.date }}</div>
-                <div class="neon-clock-bar"></div>
+                <AuroraLogo :size="30" class="vr-logo" />
             </div>
-            <div class="neon-wmusic">
-                <span class="neon-music-eq" :class="{ live: neonState.playing }"><i></i><i></i><i></i><i></i><i></i></span>
-                <span class="neon-wmusic-text">{{ musicLine }}</span>
+            <div v-if="neonState.song" class="vr-now">
+                <span class="vr-eq" :class="{ live: neonState.playing }"><i></i><i></i><i></i><i></i></span>
+                <span class="vr-now-text">{{ musicLine }}</span>
             </div>
-            <div class="neon-chips">
-                <span class="neon-chip" :class="{ on: neonState.chatbox }">CHAT {{ neonState.chatbox ? 'ON' : 'OFF' }}</span>
-                <span class="neon-chip">FRIENDS {{ onlineFriendCount }}</span>
-                <span class="neon-chip">PLAYERS {{ lastLocation.playerList.length }}</span>
-                <span v-if="neonState.nextAlarm" class="neon-chip on">ALARM {{ neonState.nextAlarm }}</span>
-            </div>
-            <div class="neon-ticker">
-                <span>AURORA</span><span>{{ clock.hm }}</span>
+            <div class="vr-chips">
+                <span class="vr-chip" :class="{ on: neonState.chatbox }"><i></i>Chatbox</span>
+                <span v-if="neonState.mm" class="vr-chip" :class="{ on: !neonState.mmMuted, warn: neonState.mmMuted }"
+                    ><i></i>{{ neonState.mmMuted ? 'Mic muted' : 'Mic' }}</span
+                >
+                <span class="vr-chip">{{ onlineFriendCount }} online</span>
+                <span class="vr-chip">{{ lastLocation.playerList.length }} here</span>
+                <span v-if="neonState.nextAlarm" class="vr-chip on"><i></i>{{ neonState.nextAlarm }}</span>
             </div>
             <div class="x-container" style="flex: 1">
                 <div class="x-friend-list" ref="list" style="color: var(--vr-text-secondary)">
@@ -1350,39 +1351,49 @@
                 <span style="display: inline-block; margin-left: 5px">{{ customInfo }}</span>
             </div>
         </div>
-        <!-- Neon SteamVR dashboard: big buttons for the laser pointer -->
-        <div class="neon-dash">
-            <div class="neon-dash-head">
-                <span class="neon-dash-title">AURORA//CONTROL</span>
-                <span class="neon-dash-clock">{{ clock.hm }}<small>{{ clock.sec }}</small></span>
+        <!-- Aurora SteamVR dashboard: big buttons for the laser pointer -->
+        <div class="vr-dash">
+            <div class="vr-dash-head">
+                <AuroraLogo :size="44" />
+                <span class="vr-dash-name">aurora</span>
+                <span class="vr-dash-clock">{{ clock.hm }}</span>
             </div>
-            <div class="neon-dash-sub">
-                <span>{{ clock.day }} {{ clock.date }}</span>
-                <span v-if="neonState.nextAlarm">NEXT ALARM {{ neonState.nextAlarm }}</span>
+            <div class="vr-dash-sub">
+                <span>{{ clock.day }}, {{ clock.date }}</span>
+                <span v-if="neonState.nextAlarm">Next alarm {{ neonState.nextAlarm }}</span>
             </div>
-            <div class="neon-dash-grid">
-                <button
-                    v-for="b in dashButtons"
-                    :key="b.cmd"
-                    type="button"
-                    class="neon-tile"
-                    :class="{ on: b.on, warn: b.warn }"
-                    @click="dashPress(b.cmd)">
-                    <span class="neon-tile-icon">{{ b.icon }}</span>
-                    <span class="neon-tile-label">{{ b.label }}</span>
-                    <span v-if="b.state !== undefined" class="neon-tile-state">{{ b.state }}</span>
-                </button>
-            </div>
-            <div class="neon-music">
-                <button type="button" class="neon-mbtn" @click="dashPress('mPrev')">&#9198;</button>
-                <button type="button" class="neon-mbtn big" @click="dashPress('mPlay')">&#9199;</button>
-                <button type="button" class="neon-mbtn" @click="dashPress('mNext')">&#9197;</button>
-                <div class="neon-music-text">
-                    <span class="neon-music-eq" :class="{ live: neonState.playing }"><i></i><i></i><i></i><i></i><i></i></span>
-                    <span class="neon-music-title">{{ musicLine }}</span>
+            <div v-for="g in dashGroups" :key="g.title" class="vr-group">
+                <div class="vr-group-title">{{ g.title }}</div>
+                <div class="vr-grid">
+                    <button
+                        v-for="b in g.buttons"
+                        :key="b.cmd"
+                        type="button"
+                        class="vr-tile"
+                        :class="{ on: b.on, warn: b.warn }"
+                        @click="dashPress(b.cmd)">
+                        <AuroraIcon :name="b.icon" :size="34" :stroke="1.8" />
+                        <span class="vr-tile-label">{{ b.label }}</span>
+                        <span v-if="b.state !== undefined" class="vr-tile-state">{{ b.state }}</span>
+                    </button>
                 </div>
             </div>
-            <div class="neon-dash-bubble">&gt; {{ neonState.preview || 'chatbox is empty' }}</div>
+            <div class="vr-music">
+                <button type="button" class="vr-mbtn" aria-label="Previous" @click="dashPress('mPrev')">
+                    <AuroraIcon name="prev" :size="34" />
+                </button>
+                <button type="button" class="vr-mbtn big" aria-label="Play or pause" @click="dashPress('mPlay')">
+                    <AuroraIcon name="playpause" :size="38" />
+                </button>
+                <button type="button" class="vr-mbtn" aria-label="Next" @click="dashPress('mNext')">
+                    <AuroraIcon name="next" :size="34" />
+                </button>
+                <div class="vr-music-text">
+                    <span class="vr-eq" :class="{ live: neonState.playing }"><i></i><i></i><i></i><i></i></span>
+                    <span class="vr-music-title">{{ musicLine }}</span>
+                </div>
+            </div>
+            <div class="vr-bubble">{{ neonState.preview || 'The chatbox is empty' }}</div>
         </div>
         <!-- HMD Overlay -->
         <div class="hmd">
@@ -1565,6 +1576,8 @@
     import { removeFromArray } from '../shared/utils/base/array';
     import { timeToText } from '../shared/utils/base/format';
 
+    import AuroraIcon from '../components/AuroraIcon.vue';
+    import AuroraLogo from '../components/AuroraLogo.vue';
     import VrLocation from './components/VrLocation.vue';
 
     import * as workerTimers from 'worker-timers';
@@ -1577,10 +1590,10 @@
 
 
     // Aurora in the headset: a tiny synth blip for events, alarms and the quick controls.
-    const neonState = reactive({ accent: '#ff3d9a', mm: false, mmMuted: false, mmApp: '', mmVol: 80, song: '', artist: '', playing: false, chatbox: false, sounds: true, afk: false, music: false, preview: '', nextAlarm: '' });
+    const neonState = reactive({ accent: '#a48cff', mm: false, mmMuted: false, mmApp: '', mmVol: 80, song: '', artist: '', playing: false, chatbox: false, sounds: true, afk: false, music: false, preview: '', nextAlarm: '' });
     function neonStateUpdate(json) {
         Object.assign(neonState, JSON.parse(json));
-        document.documentElement.style.setProperty('--vr-accent', neonState.accent || '#ff3d9a');
+        document.documentElement.style.setProperty('--vr-accent', neonState.accent || '#a48cff');
     }
     function dashPress(cmd) {
         try {
@@ -1590,24 +1603,42 @@
         }
         blip([[900, 0.05]]);
     }
-    const onOff = (v) => (v ? 'ON' : 'OFF');
-    const dashButtons = computed(() => [
-        { cmd: 'mmToggle', icon: '\u{1F399}', label: 'MUSIC > MIC', state: onOff(neonState.mm), on: neonState.mm },
-        { cmd: 'mmMute', icon: '\u{1F507}', label: 'MIC MUTE', state: onOff(neonState.mmMuted), on: neonState.mmMuted, warn: neonState.mmMuted },
-        { cmd: 'mmSource', icon: '\u21BB', label: 'SOURCE', state: neonState.mmApp ? neonState.mmApp.slice(0, 10).toUpperCase() : 'NONE' },
-        { cmd: 'mmDown', icon: '\u2212', label: 'MIC MUSIC -' },
-        { cmd: 'mmUp', icon: '+', label: 'MIC MUSIC +', state: neonState.mmVol + '%' },
-        { cmd: 'chatbox', icon: '\u2709', label: 'CHATBOX', state: onOff(neonState.chatbox), on: neonState.chatbox },
-        { cmd: 'brb', icon: '\u23F3', label: 'SEND BRB' },
-        { cmd: 'clear', icon: '\u2716', label: 'CLEAR TEXT' },
-        { cmd: 'afk', icon: '\u263E', label: 'AFK TAG', state: onOff(neonState.afk), on: neonState.afk },
-        { cmd: 'timer5', icon: '\u23F0', label: '5 MIN' },
-        { cmd: 'timer15', icon: '\u23F0', label: '15 MIN' },
-        { cmd: 'timer30', icon: '\u23F0', label: '30 MIN' },
-        { cmd: 'timer60', icon: '\u23F0', label: '1 HOUR' },
-        { cmd: 'stopAlarm', icon: '\u25A0', label: 'STOP ALARM', warn: true },
-        { cmd: 'music', icon: '\u266A', label: 'MUSIC LINE', state: onOff(neonState.music), on: neonState.music },
-        { cmd: 'sounds', icon: '\u266B', label: 'VR BEEPS', state: onOff(neonState.sounds), on: neonState.sounds }
+    const onOffWord = (v) => (v ? 'On' : 'Off');
+    const dashGroups = computed(() => [
+        {
+            title: 'Mic',
+            buttons: [
+                { cmd: 'mmToggle', icon: 'power', label: 'Mic mix', state: onOffWord(neonState.mm), on: neonState.mm },
+                { cmd: 'mmMute', icon: neonState.mmMuted ? 'mute' : 'mic', label: 'Mute', state: onOffWord(neonState.mmMuted), on: neonState.mmMuted, warn: neonState.mmMuted },
+                { cmd: 'mmSource', icon: 'refresh', label: 'Music from', state: neonState.mmApp ? neonState.mmApp.slice(0, 12) : 'None' },
+                { cmd: 'mmDown', icon: 'minus', label: 'Music' },
+                { cmd: 'mmUp', icon: 'plus', label: 'Music', state: neonState.mmVol + '%' }
+            ]
+        },
+        {
+            title: 'Chatbox',
+            buttons: [
+                { cmd: 'chatbox', icon: 'chat', label: 'Chatbox', state: onOffWord(neonState.chatbox), on: neonState.chatbox },
+                { cmd: 'brb', icon: 'arrow', label: 'Send BRB' },
+                { cmd: 'clear', icon: 'close', label: 'Clear' },
+                { cmd: 'afk', icon: 'moon', label: 'AFK tag', state: onOffWord(neonState.afk), on: neonState.afk },
+                { cmd: 'music', icon: 'music', label: 'Song line', state: onOffWord(neonState.music), on: neonState.music }
+            ]
+        },
+        {
+            title: 'Timers',
+            buttons: [
+                { cmd: 'timer5', icon: 'alarm', label: '5 min' },
+                { cmd: 'timer15', icon: 'alarm', label: '15 min' },
+                { cmd: 'timer30', icon: 'alarm', label: '30 min' },
+                { cmd: 'timer60', icon: 'alarm', label: '1 hour' },
+                { cmd: 'stopAlarm', icon: 'close', label: 'Stop alarm', warn: true }
+            ]
+        },
+        {
+            title: 'Overlay',
+            buttons: [{ cmd: 'sounds', icon: 'speaker', label: 'Beeps', state: onOffWord(neonState.sounds), on: neonState.sounds }]
+        }
     ]);
     const musicLine = computed(() =>
         neonState.song ? `${neonState.artist ? neonState.artist + ' - ' : ''}${neonState.song}` : 'nothing playing'

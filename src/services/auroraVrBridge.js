@@ -1,21 +1,155 @@
 /**
- * Carries Neon's SteamVR dashboard buttons to the app and the app's state back to the dashboard.
- * Dashboard click -> AppApiVr.NeonCommand -> window.$bridge.neonCommand(command) here.
+ * Carries the SteamVR dashboard and the desktop overlay buttons to the app, and the app's state back to them.
+ * VR:      dashboard click -> AppApiVr.NeonCommand -> window.$bridge.neonCommand(command)
+ * Desktop: overlay click   -> DeskApi.Command      -> window.$bridge.deskCommand(command, value)
  */
 import { watch } from 'vue';
 
 import { accent } from './auroraAccent';
 import { sysInfo } from './auroraChatbox';
-import { mm, nextMusicSource, nudgeMusicVolume, toggleMicMute, toggleMusicMic } from './auroraMusicMic';
-import { addTimer, alarms, stopRinging } from './auroraAlarms';
+import {
+    audioApps,
+    mm,
+    nextMusicSource,
+    nudgeMusicVolume,
+    refreshAudioLists,
+    setMm,
+    toggleMicMute,
+    toggleMusicMic
+} from './auroraMusicMic';
+import { addTimer, alarms, removeAlarm, stopRinging } from './auroraAlarms';
 import configRepository from './config';
 import { chatboxEnabled, chatboxPreview, sendChatboxNow, setChatboxEnabled } from './auroraChatbox';
 import { setEnabled, state } from './auroraIntegrations';
 
 let vrSounds = true;
+let deskTimer = null;
+let deskHotkey = '';
+const MM_KEYS = ['micVol', 'musicVol', 'micNoise', 'micBass', 'musicBass'];
 let started = false;
 
+/** Everything the desktop overlay shows. */
+function pushDesk() {
+    clearTimeout(deskTimer);
+    deskTimer = setTimeout(() => {
+        const root = document.documentElement;
+        const m = mm.value;
+        try {
+            AppApi.DeskOverlayState(
+                JSON.stringify({
+                    theme: root.getAttribute('data-theme') || 'xraydark',
+                    dark: root.classList.contains('dark'),
+                    axh: root.style.getPropertyValue('--axh'),
+                    axk: root.style.getPropertyValue('--axk'),
+                    accent: accent.value,
+                    hotkey: deskHotkey,
+                    chatbox: { enabled: chatboxEnabled.value, preview: String(chatboxPreview.value || '').slice(0, 144) },
+                    alarms: alarms.value.map((a) => ({
+                        id: a.id,
+                        time: a.time,
+                        label: a.label,
+                        daily: a.daily,
+                        enabled: a.enabled
+                    })),
+                    mm: {
+                        running: m.running,
+                        micMuted: m.micMuted,
+                        app: m.app,
+                        apps: audioApps.value.slice(0, 20),
+                        micVol: m.micVol,
+                        musicVol: m.musicVol,
+                        micNoise: m.micNoise,
+                        micBass: m.micBass,
+                        musicBass: m.musicBass,
+                        micPeak: m.micPeak || 0,
+                        outPeak: m.outPeak || 0,
+                        error: m.error || ''
+                    }
+                })
+            );
+        } catch {
+            // only the Windows app has the desktop overlay
+        }
+    }, 60);
+}
+
+/** A button or slider in the desktop overlay. */
+export function deskCommand(command, value) {
+    const cmd = String(command);
+    const v = value === undefined || value === null ? '' : String(value);
+    switch (cmd) {
+        case 'timer': {
+            const minutes = Math.round(Number(v));
+            if (minutes >= 1 && minutes <= 24 * 60) {
+                addTimer(minutes);
+            }
+            break;
+        }
+        case 'alarmRemove':
+            removeAlarm(Number(v));
+            break;
+        case 'alarmToggle': {
+            const a = alarms.value.find((x) => x.id === Number(v));
+            if (a) {
+                a.enabled = !a.enabled;
+            }
+            break;
+        }
+        case 'stopAlarm':
+            stopRinging();
+            break;
+        case 'chatboxToggle':
+            setChatboxEnabled(!chatboxEnabled.value);
+            break;
+        case 'chatboxSend':
+            if (v.trim()) {
+                sendChatboxNow(v.slice(0, 144));
+            }
+            break;
+        case 'brb':
+            sendChatboxNow('Be right back');
+            break;
+        case 'clear':
+            sendChatboxNow(' ');
+            break;
+        case 'mmToggle':
+            toggleMusicMic();
+            break;
+        case 'mmMute':
+            toggleMicMute();
+            break;
+        case 'mmSet': {
+            try {
+                const { key, value: num } = JSON.parse(v);
+                if (MM_KEYS.includes(key) && Number.isFinite(Number(num))) {
+                    setMm(key, Number(num));
+                }
+            } catch {
+                // ignore a broken message
+            }
+            break;
+        }
+        case 'mmApp':
+            setMm('app', v);
+            break;
+        case 'mmRefresh':
+            refreshAudioLists();
+            break;
+        case 'open':
+            try {
+                AppApi.FocusWindow();
+            } catch {
+                // ignore
+            }
+            break;
+        default:
+            break;
+    }
+    pushState();
+}
+
 function pushState() {
+    pushDesk();
     const next = alarms.value.filter((a) => a.enabled).map((a) => a.time).sort()[0] || '';
     try {
         AppApi.ExecuteVrOverlayFunction(
@@ -114,7 +248,49 @@ export async function initVrBridge() {
     }
     started = true;
     vrSounds = await configRepository.getBool('Neon_vrSounds', true);
-    watch([accent, mm, chatboxEnabled, chatboxPreview, alarms], pushState, { deep: true });
+    watch([accent, mm, chatboxEnabled, chatboxPreview, alarms, audioApps], pushState, { deep: true });
+    // the overlay follows the theme too
+    new MutationObserver(pushDesk).observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class', 'data-theme', 'style']
+    });
+    initDeskHotkey();
     setInterval(pushState, 5000);
     pushState();
+}
+
+/** The desktop overlay hotkey, saved as text like "Ctrl+Shift+A". */
+/** Opens or closes the desktop overlay, like the hotkey. */
+export function toggleDeskOverlay() {
+    try {
+        AppApi.ToggleDeskOverlay();
+    } catch {
+        // not available here
+    }
+}
+export const DEFAULT_DESK_HOTKEY = 'Ctrl+Shift+A';
+export async function getDeskHotkey() {
+    return configRepository.getString('Aurora_deskHotkey', DEFAULT_DESK_HOTKEY);
+}
+export async function setDeskHotkey(combo) {
+    let ok = false;
+    try {
+        ok = await AppApi.SetDeskOverlayHotkey(combo || '');
+    } catch {
+        ok = false;
+    }
+    if (ok) {
+        await configRepository.setString('Aurora_deskHotkey', combo || '');
+        deskHotkey = combo || '';
+        pushDesk();
+    }
+    return ok;
+}
+async function initDeskHotkey() {
+    try {
+        deskHotkey = await getDeskHotkey();
+        await AppApi.SetDeskOverlayHotkey(deskHotkey);
+    } catch {
+        // Electron or an older Windows build: no overlay
+    }
 }

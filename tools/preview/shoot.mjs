@@ -47,6 +47,17 @@ for (const [name, path] of Object.entries(routes)) {
     logs.push(`--- after ${name}: ${page.url()}`);
     fs.writeFileSync(`${out}/console.txt`, logs.join('\n') + '\n');
 }
+// the lower half of Insights, and Mic while it is running
+await page.evaluate(() => (window.location.hash = '#/insights'));
+await page.waitForTimeout(2000);
+await page.evaluate(() => document.querySelector('.a-page')?.scrollTo(0, 99999));
+await page.waitForTimeout(1200);
+await page.screenshot({ path: `${out}/insights-2.jpg`, type: 'jpeg', quality: 80 });
+await page.evaluate(() => (window.location.hash = '#/mic'));
+await page.waitForTimeout(1500);
+await page.locator('button:has-text("Turn on")').first().click().catch(() => {});
+await page.waitForTimeout(1500);
+await page.screenshot({ path: `${out}/mic-on.jpg`, type: 'jpeg', quality: 80 });
 // the sidebar folded down to icons
 await page.evaluate(() => (window.location.hash = '#/insights'));
 await page.evaluate(() => window.$pinia?.appearanceSettings?.setNavCollapsed?.(true));

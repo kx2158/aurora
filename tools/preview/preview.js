@@ -237,6 +237,13 @@ friendsList.forEach((p, i) => {
 });
 }
 populateFriends();
+// the preview has no real VRChat account, so never log the fake user out
+try {
+    stores.auth.handleLogoutEvent = async () => console.warn('[preview] logout blocked');
+    stores.auth.logout = async () => console.warn('[preview] logout blocked');
+} catch (e) {
+    console.warn('[preview] auth', e);
+}
 watchState.isFriendsLoaded = true;
 watchState.isLoggedIn = true;
 await router.push({ name: 'home' });

@@ -126,7 +126,7 @@
                                     <span>{{ item.displayName }}</span>
                                     <span class="text-muted-foreground"> {{ item.type }}</span>
                                     <span v-if="item.data || item.message" class="ml-1 text-muted-foreground"
-                                        >— {{ item.data || item.message }}</span
+                                        >- {{ item.data || item.message }}</span
                                     >
                                 </template>
                             </template>

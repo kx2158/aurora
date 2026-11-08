@@ -6,7 +6,7 @@
 
 <script setup>
     /**
-     * Renderless bridge component — must live inside the Command context.
+     * Renderless bridge component - must live inside the Command context.
      * Watches filterState.search (set by CommandInput) and syncs it
      * to the global search store's query ref.
      * Overrides the built-in Command filter so that visibility is fully

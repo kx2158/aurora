@@ -119,16 +119,16 @@
                             {{ row.dateFormatted }}
                         </td>
                         <td class="text-sm px-3 py-2 border-b whitespace-nowrap overflow-hidden text-ellipsis">
-                            {{ row.world || '—' }}
+                            {{ row.world || '-' }}
                         </td>
                         <td
                             v-if="searchHasMatchColumn"
                             class="text-sm px-3 py-2 border-b whitespace-nowrap overflow-hidden text-ellipsis text-primary">
-                            {{ row.match || '—' }}
+                            {{ row.match || '-' }}
                         </td>
                         <td
                             class="text-sm px-3 py-2 border-b whitespace-nowrap overflow-hidden text-ellipsis text-muted-foreground">
-                            {{ row.author || '—' }}
+                            {{ row.author || '-' }}
                         </td>
                         <td class="text-sm px-3 py-2 border-b whitespace-nowrap overflow-hidden text-ellipsis">
                             <span class="inline-flex items-center gap-1">
@@ -432,7 +432,7 @@
                 const extra = JSON.parse(extraJson);
 
                 let dateTime = 0;
-                let dateFormatted = '—';
+                let dateFormatted = '-';
                 if (meta.timestamp) {
                     dateTime = Date.parse(meta.timestamp);
                 } else if (extra.creationDate) {

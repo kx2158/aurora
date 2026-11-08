@@ -937,7 +937,7 @@ export const useNotificationStore = defineStore('Notification', () => {
     });
 
     // Overlay dispatch functions (notySaveImage, displayDesktopToast, etc.)
-    // are in ./overlayDispatch.js — destructured above via createOverlayDispatch().
+    // are in ./overlayDispatch.js - destructured above via createOverlayDispatch().
 
     /**
      * @param {object} noty

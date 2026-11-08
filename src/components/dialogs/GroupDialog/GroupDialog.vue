@@ -507,7 +507,7 @@
                             class="flex justify-between items-start gap-2 text-xs cursor-pointer hover:text-foreground"
                             @click="showPreviousInstancesListDialog(groupDialog.ref)">
                             <span class="text-muted-foreground shrink-0">{{ t('dialog.user.info.join_count') }}</span>
-                            <span class="text-right text-muted-foreground">{{ groupDialog.joinCount || '—' }}</span>
+                            <span class="text-right text-muted-foreground">{{ groupDialog.joinCount || '-' }}</span>
                         </div>
                     </TooltipWrapper>
                 </div>
@@ -549,7 +549,7 @@
                     <div class="flex justify-between items-start gap-2 text-xs">
                         <span class="text-muted-foreground shrink-0">{{ t('dialog.group.info.roles') }}</span>
                         <span v-if="groupDialog.memberRoles.length === 0" class="text-right text-muted-foreground"
-                            >—</span
+                            >-</span
                         >
                         <span v-else class="text-right text-muted-foreground">
                             <template v-for="(role, rIndex) in groupDialog.memberRoles" :key="rIndex">

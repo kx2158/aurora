@@ -27,7 +27,7 @@ export function sanitizeUserJson(json, robotUrl) {
 
 /**
  * Compute trust level, moderator status, and troll status from user tags.
- * Pure function — no store dependencies.
+ * Pure function - no store dependencies.
  *
  * @param {string[]} tags - User tags array
  * @param {string} developerType - User's developerType field

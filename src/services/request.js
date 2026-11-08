@@ -38,7 +38,7 @@ export function buildRequestInit(endpoint, options) {
             init.url = url.toString();
         }
     } else if (init.uploadImage || init.uploadFilePUT || init.uploadImageLegacy) {
-        // nothing — upload requests handle their own body
+        // nothing - upload requests handle their own body
     } else {
         init.headers = {
             'Content-Type': 'application/json;charset=utf-8',

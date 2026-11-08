@@ -441,7 +441,7 @@
                     loading="lazy" />
             </template>
             <template v-else>
-                <div class="text-xs text-muted-foreground">—</div>
+                <div class="text-xs text-muted-foreground">-</div>
             </template>
         </div>
     </div>
@@ -481,7 +481,7 @@
                 </Avatar>
             </div>
         </div>
-        <div v-else class="text-xs text-muted-foreground">—</div>
+        <div v-else class="text-xs text-muted-foreground">-</div>
 
         <div class="mt-2">
             <img

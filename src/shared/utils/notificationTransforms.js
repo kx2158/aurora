@@ -47,7 +47,7 @@ export function parseNotificationDetails(details) {
 
 /**
  * Build a default V1 notification ref from JSON data.
- * Does NOT perform cache lookup — caller is responsible for
+ * Does NOT perform cache lookup - caller is responsible for
  * checking existing refs and merging.
  *
  * @param {Partial<import('@/types/vrcx').VrcxNotification>} json - Sanitized notification JSON

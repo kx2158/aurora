@@ -236,7 +236,7 @@
 }
 
 /* the old Neon page pieces, if any are still on screen, without cut corners */
-:root:is([data-theme='xray'], [data-theme='xraydark']) :is(.nx-chip, .nx-card, .nx-frame, .nx-tab) {
+:root:is([data-theme='xray'], [data-theme='xraydark']) :is(.nx-chip, .nx-card, .nx-tab) {
     clip-path: none !important;
     border-radius: var(--radius);
 }

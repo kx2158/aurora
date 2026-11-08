@@ -223,6 +223,7 @@ friendsList.forEach((p, i) => {
         status: i % 3 === 0 ? 'join me' : 'active',
         statusDescription: ['in a club', 'chilling', 'afk for a bit', ''][i % 4],
         location: 'private',
+        tags: i === 9 || i === 11 ? ['language_ces'] : i === 3 ? ['language_slk', 'language_eng'] : ['language_eng'],
         $userColour: '#cccccc'
     };
     try {
@@ -250,4 +251,19 @@ await router.push({ name: 'home' });
 await new Promise((r) => setTimeout(r, 3000));
 // the login flow may have reset the list, fill it again
 populateFriends();
+// two example status rules so the Automations page has something to show
+try {
+    const sr = await import('./services/auroraStatusRules.js');
+    await sr.initStatusRules();
+    sr.statusRules.value.rules = [
+        sr.newRule({ people: friendsList.slice(0, 2).map((p) => ({ id: p.id, name: p.name })), onlineDesc: 'come hang' }),
+        sr.newRule({ people: [{ id: friendsList[4].id, name: friendsList[4].name }], onlineStatus: 'ask me', joinedStatus: 'busy', waitMin: 20 })
+    ];
+    sr.statusRules.value.avoid.people = [{ id: friendsList[9].id, name: friendsList[9].name }];
+    sr.statusRules.value.avoid.langs = ['ces', 'slk', 'pol'];
+    for (const f of friendsList.slice(0, 7)) await sr.statusRuleFriendChange(f.id, true);
+    await sr.statusRuleFriendChange(friendsList[0].id, true);
+} catch (e) {
+    console.warn('[preview] rules', e);
+}
 window.__previewReady = true;

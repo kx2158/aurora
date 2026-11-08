@@ -1,6 +1,6 @@
-/* accent colour, changed live from the Neon settings */
+/* accent colour, changed live from the Aurora settings */
 :root {
-    --vr-accent: #ff3d9a;
+    --vr-accent: #b4b4b4;
     --vr-accent-light: color-mix(in srgb, var(--vr-accent) 60%, white);
 }
 
@@ -41,17 +41,17 @@ body {
     --platform-quest: #3ddc84;
     --platform-ios: #8e8e93;
 
-    --vr-bg: #07050d;
-    --vr-bg-surface: #120b1d;
-    --vr-text: #f6eef6;
-    --vr-text-secondary: #d9b8cf;
-    --vr-text-muted: var(--vr-accent);
-    --vr-text-name: #f6eef6;
+    --vr-bg: #15171b;
+    --vr-bg-surface: #1c1e23;
+    --vr-text: #eceef2;
+    --vr-text-secondary: #a3a7b0;
+    --vr-text-muted: #8a8f99;
+    --vr-text-name: #eceef2;
     --vr-text-friend: #ffffff;
     --vr-text-favorite: var(--vr-accent-light);
-    --vr-border: color-mix(in srgb, var(--vr-accent) 20%, transparent);
-    --vr-border-strong: var(--vr-accent);
-    --vr-radius: 0;
+    --vr-border: rgba(236, 238, 242, 0.09);
+    --vr-border-strong: rgba(236, 238, 242, 0.14);
+    --vr-radius: 22px;
 
     --vr-font-xs: 14px;
     --vr-font-sm: 16px;
@@ -59,7 +59,8 @@ body {
     --vr-font-lg: 20px;
 }
 body {
-    font-family: var(--font-western), var(--font-symbol), var(--font-primary-cjk), var(--font-fallback-cjk);
+    font-family: 'Inter Variable', var(--font-western), var(--font-symbol), var(--font-primary-cjk), var(--font-fallback-cjk);
+    -webkit-font-smoothing: antialiased;
 }
 
 .noty_body {
@@ -603,641 +604,505 @@ i.x-user-status.busy {
 }
 
 
-/* ---- Neon in-game look: black, hot pink, white, sharp cut corners ---- */
+/* ---- Aurora in-game look: quiet graphite panels, one accent colour, no glow ---- */
 .wrist {
-    border-width: 2px;
-    clip-path: polygon(0 0, calc(100% - 22px) 0, 100% 22px, 100% 100%, 22px 100%, 0 calc(100% - 22px));
+    width: 510px;
+    height: 510px;
+    background: transparent;
+    border: none;
+    border-radius: 50%;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'JetBrains Mono', 'Cascadia Mono', Consolas, 'Courier New', monospace;
 }
-
-.wrist::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 0;
-    height: 5px;
-    z-index: 2;
-    background: repeating-linear-gradient(135deg, var(--vr-accent) 0, var(--vr-accent) 10px, #000 10px, #000 20px);
+.wrist .x-friend-item,
+.wrist .x-friend-item .name,
+.wrist .x-friend-item .time {
+    font-family: inherit;
 }
-
-.wrist::after {
-    content: '';
+/* the round interface */
+.vr-hud {
     position: absolute;
     inset: 0;
-    z-index: 2;
+    width: 510px;
+    height: 510px;
     pointer-events: none;
-    background: repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.03) 0, rgba(255, 255, 255, 0.03) 1px, transparent 1px, transparent 3px);
 }
-
-.wrist .x-container {
-    padding-top: 12px;
+.vr-hud .hud-face {
+    fill: url(#vr-glow);
+    stroke: rgba(255, 255, 255, 0.16);
+    stroke-width: 1.2;
 }
-
-.x-friend-item {
-    border-left: 3px solid transparent;
-    padding-left: 6px;
+.vr-hud .hud-ring {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.2);
+    stroke-width: 0.8;
 }
-
-.x-friend-item.friend {
-    border-left-color: var(--vr-accent);
+.vr-hud .hud-ring.faint {
+    stroke: rgba(255, 255, 255, 0.08);
 }
-
-.x-friend-item.favorite {
-    border-left-color: #ffffff;
+.vr-hud .hud-ring.dashed {
+    stroke-dasharray: 2 5;
 }
-
-.x-friend-item .time {
-    font-weight: 700;
-    letter-spacing: 0.04em;
+.vr-hud .hud-tick {
+    stroke: rgba(255, 255, 255, 0.22);
+    stroke-width: 1;
 }
-
-.x-containerbottom {
-    border-top: 1px solid var(--vr-border);
+.vr-hud .hud-tick.big {
+    stroke: rgba(255, 255, 255, 0.75);
+    stroke-width: 1.8;
+}
+.vr-hud .hud-arc {
+    fill: none;
+    stroke: var(--vr-accent);
+    stroke-width: 2;
+    opacity: 0.8;
+    filter: drop-shadow(0 0 4px var(--vr-accent));
+}
+.vr-hud .hud-arc.dim {
+    stroke-width: 1;
+    opacity: 0.45;
+    filter: none;
+}
+.vr-hud .hud-mark {
+    fill: var(--vr-text);
+}
+.vr-hud .hud-hour {
+    stroke: var(--vr-text);
+    stroke-width: 3;
+    stroke-linecap: round;
+}
+.vr-hud .hud-sec {
+    fill: var(--vr-accent);
+    filter: drop-shadow(0 0 5px var(--vr-accent));
+}
+.vr-hud .hud-seg {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.1);
+    stroke-width: 9;
+}
+.vr-hud .hud-seg.on {
+    stroke: var(--vr-accent);
+    opacity: 0.85;
+}
+.vr-hud text {
+    font-family: 'JetBrains Mono', 'Cascadia Mono', Consolas, 'Courier New', monospace;
+    fill: var(--vr-text-muted);
+    text-anchor: middle;
+}
+.vr-hud .hud-small {
+    font-size: 11px;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
+}
+.vr-hud .hud-curve {
+    font-size: 12px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    fill: var(--vr-text-secondary);
+}
+.vr-hud .hud-curve.low {
+    fill: var(--vr-text-muted);
+}
+.vr-core {
+    position: absolute;
+    top: 118px;
+    left: 105px;
+    width: 300px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    z-index: 2;
+}
+.vr-layer {
+    font-size: 11px;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: var(--vr-text-muted);
+}
+.vr-digits {
+    margin-top: 4px;
+    font-size: 64px;
+    font-weight: 300;
+    line-height: 1;
+    letter-spacing: 0.04em;
+    font-variant-numeric: tabular-nums;
+    color: var(--vr-text);
+    text-shadow: 0 0 14px rgba(230, 232, 238, 0.22);
+}
+.vr-digits small {
+    margin-left: 2px;
+    font-size: 18px;
+    color: var(--vr-text-muted);
+}
+.vr-date {
+    margin-top: 6px;
+    font-size: 13px;
+    letter-spacing: 0.16em;
+    text-transform: lowercase;
+    color: var(--vr-text-secondary);
+}
+.vr-blink {
+    animation: vr-blink 1.1s steps(1) infinite;
+}
+@keyframes vr-blink {
+    50% {
+        opacity: 0;
+    }
+}
+.wrist .vr-ring-feed {
+    position: absolute;
+    top: 296px;
+    left: 120px;
+    width: 270px;
+    height: 104px;
+    padding: 0;
+    overflow: hidden;
+    z-index: 2;
+    -webkit-mask-image: linear-gradient(to bottom, #000 70%, transparent);
+}
+.wrist .vr-ring-feed .x-friend-item {
+    padding: 2px 0;
+    background: none;
+    border-radius: 0;
+    text-align: center;
+}
+.wrist .vr-ring-feed .detail,
+.wrist .vr-ring-feed .extra {
+    font-size: 12px !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    justify-content: center;
+}
+.wrist .x-container {
+    padding-top: 4px;
+}
+.x-friend-item {
+    padding: 4px 6px;
+    border-radius: 10px;
+}
+.x-friend-item:nth-child(even) {
+    background: rgba(255, 255, 255, 0.025);
+}
+.x-friend-item.favorite .name {
+    color: var(--vr-accent-light);
+}
+.x-friend-item .time {
+    color: var(--vr-text-muted);
+}
+.x-containerbottom {
+    color: var(--vr-text-secondary);
 }
 
 /* notifications shown inside VR */
-.noty_theme__relax.noty_bar,
 .noty_theme__sunset.noty_bar {
-    border-radius: 0;
-    clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px));
+    margin: 6px 0;
+    border-radius: 16px;
+    background: rgba(28, 30, 35, 0.95);
+    border: 1px solid var(--vr-border-strong);
+    border-left: 4px solid var(--vr-accent);
+    box-shadow: 0 18px 40px -20px rgba(0, 0, 0, 0.6);
+    color: var(--vr-text);
 }
-
-.noty_theme__relax.noty_type__alert,
-.noty_theme__relax.noty_type__notification,
-.noty_theme__relax.noty_type__info,
-.noty_theme__relax.noty_type__information,
-.noty_theme__relax.noty_type__success,
-.noty_theme__sunset.noty_type__alert,
-.noty_theme__sunset.noty_type__notification,
-.noty_theme__sunset.noty_type__info,
-.noty_theme__sunset.noty_type__information,
 .noty_theme__sunset.noty_type__success {
-    color: #ffffff;
-    background: #07050d;
-    border: 2px solid var(--vr-accent);
+    border-left-color: var(--vr-accent);
 }
-
-.noty_theme__relax.noty_type__warning,
 .noty_theme__sunset.noty_type__warning {
-    color: #ffffff;
-    background: #07050d;
-    border: 2px solid var(--vr-accent-light);
+    border-left-color: #e8a13a;
 }
-
-.noty_theme__relax.noty_type__error,
 .noty_theme__sunset.noty_type__error {
-    color: #ffffff;
-    background: #1a0510;
-    border: 2px solid #ff2c2c;
+    border-left-color: #ef5b5b;
 }
-
-.noty_theme__relax.noty_bar .noty_body,
 .noty_theme__sunset.noty_bar .noty_body {
-    text-shadow: none;
+    padding: 12px 16px;
 }
 
 /* the HUD feed over the game view */
 .hud-feed .item {
-    color: #ffffff;
-    text-shadow: 0 0 6px var(--vr-accent), 0 0 3px #000, 0 0 3px #000, 0 0 3px #000;
+    border-radius: 12px;
+    background: rgba(21, 23, 27, 0.78);
 }
 
-/* ---- Neon wrist clock: glowing, see-through, day / date / time ---- */
-.wrist {
-    background: linear-gradient(180deg, rgba(10, 4, 18, 0.55), rgba(5, 3, 10, 0.78));
-}
-
-.neon-clock {
-    position: relative;
-    z-index: 3;
-    flex-shrink: 0;
-    margin: 14px 14px 4px;
-    padding: 8px 18px 12px;
-    text-align: center;
-    font-family: 'Share Tech Mono', ui-monospace, monospace;
-    color: #ffffff;
-    background: linear-gradient(180deg, color-mix(in srgb, var(--vr-accent) 16%, transparent), color-mix(in srgb, var(--vr-accent) 3%, transparent));
-    border: 1px solid color-mix(in srgb, var(--vr-accent) 70%, transparent);
-    box-shadow: 0 0 18px color-mix(in srgb, var(--vr-accent) 45%, transparent), inset 0 0 22px color-mix(in srgb, var(--vr-accent) 18%, transparent);
-    clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px));
-}
-
-.neon-clock-day {
-    font-size: 15px;
-    letter-spacing: 0.4em;
-    text-transform: uppercase;
-    color: var(--vr-accent);
-    text-shadow: 0 0 8px color-mix(in srgb, var(--vr-accent) 90%, transparent);
-}
-
-.neon-clock-time {
-    font-size: 72px;
-    line-height: 1.05;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-shadow: 0 0 6px #fff, 0 0 18px var(--vr-accent), 0 0 36px color-mix(in srgb, var(--vr-accent) 80%, transparent);
-}
-
-.neon-clock-sec {
-    font-size: 28px;
-    letter-spacing: 0.02em;
-    color: var(--vr-accent-light);
-    text-shadow: 0 0 10px color-mix(in srgb, var(--vr-accent) 90%, transparent);
-}
-
-.neon-clock-date {
-    font-size: 16px;
-    letter-spacing: 0.3em;
-    text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.85);
-}
-
-.neon-clock-bar {
-    position: absolute;
-    left: 24px;
-    right: 24px;
-    bottom: 4px;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, var(--vr-accent), transparent);
-    box-shadow: 0 0 10px var(--vr-accent);
-}
-
-.wrist .x-container {
-    padding-top: 4px;
-}
-
-/* Neon face in the wrist clock */
-.neon-face {
-    position: absolute;
-    left: 12px;
-    top: 12px;
-    width: 64px;
-    height: 64px;
-    object-fit: cover;
-    border: 2px solid var(--vr-accent);
-    box-shadow: 0 0 12px color-mix(in srgb, var(--vr-accent) 70%, transparent);
-    clip-path: polygon(8px 0, calc(100% - 8px) 0, 100% 8px, 100% calc(100% - 8px), calc(100% - 8px) 100%, 8px 100%, 0 calc(100% - 8px), 0 8px);
-}
-.neon-face.pop {
-    animation: neon-pop 0.5s ease-out;
-}
-@keyframes neon-pop {
-    0% {
-        transform: scale(0.8) rotate(-6deg);
-        box-shadow: 0 0 2px #fff;
-    }
-    50% {
-        transform: scale(1.18) rotate(4deg);
-        box-shadow: 0 0 26px var(--vr-accent);
-    }
-    100% {
-        transform: scale(1) rotate(0);
-    }
-}
-
-.neon-alarm {
-    position: relative;
-    z-index: 4;
-    margin: 10px 14px 0;
-    padding: 6px 12px;
-    font-family: 'Share Tech Mono', ui-monospace, monospace;
-    font-size: 20px;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: #05030a;
+/* ---- wrist: clock, now playing, little status chips ---- */
+.vr-alarm {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0 0 2px;
+    padding: 3px 14px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #15171b;
     background: var(--vr-accent);
-    box-shadow: 0 0 24px var(--vr-accent);
-    animation: neon-blink 0.7s steps(2) infinite;
+    animation: vr-pulse 1.2s ease-in-out infinite alternate;
 }
-@keyframes neon-blink {
-    50% {
-        background: #ffffff;
-        box-shadow: 0 0 24px #ffffff;
+@keyframes vr-pulse {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0.65;
+    }
+}
+.vr-now {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    max-width: 250px;
+    margin-top: 10px;
+    padding: 5px 14px;
+    border: 1px solid var(--vr-border);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.03);
+    font-size: var(--vr-font-xs);
+    color: var(--vr-text);
+}
+.vr-now-text {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.vr-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 0 8px 8px;
+    border-bottom: 1px solid var(--vr-border);
+}
+.vr-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 28px;
+    padding: 0 12px;
+    border-radius: 999px;
+    font-size: var(--vr-font-xs);
+    color: var(--vr-text-secondary);
+    background: rgba(255, 255, 255, 0.05);
+}
+.vr-chip i {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: rgba(236, 238, 242, 0.3);
+}
+.vr-chip.on {
+    color: var(--vr-text);
+}
+.vr-chip.on i {
+    background: var(--vr-accent);
+}
+.vr-chip.warn i {
+    background: #ef5b5b;
+}
+
+/* small equalizer next to the song */
+.vr-eq {
+    display: inline-flex;
+    align-items: flex-end;
+    gap: 3px;
+    height: 16px;
+    flex-shrink: 0;
+}
+.vr-eq i {
+    width: 3px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--vr-accent);
+}
+.vr-eq.live i {
+    animation: vr-eq 0.7s ease-in-out infinite alternate;
+}
+.vr-eq.live i:nth-child(2) {
+    animation-duration: 0.45s;
+}
+.vr-eq.live i:nth-child(3) {
+    animation-duration: 0.6s;
+}
+.vr-eq.live i:nth-child(4) {
+    animation-duration: 0.38s;
+}
+@keyframes vr-eq {
+    from {
+        height: 3px;
+    }
+    to {
+        height: 16px;
     }
 }
 
-/* ---- Neon SteamVR dashboard: big laser-friendly tiles, right of the HMD/wrist column ---- */
-.neon-dash {
+/* ---- SteamVR dashboard: big, calm tiles for the laser pointer ---- */
+.vr-dash {
     position: absolute;
     left: 1024px;
     top: 0;
     width: 1024px;
     height: 1024px;
     box-sizing: border-box;
-    padding: 28px 32px;
+    padding: 36px 40px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    color: #fff;
-    font-family: 'Share Tech Mono', ui-monospace, monospace;
-    background:
-        linear-gradient(color-mix(in srgb, var(--vr-accent) 7%, transparent) 1px, transparent 1px) 0 0 / 48px 48px,
-        linear-gradient(90deg, color-mix(in srgb, var(--vr-accent) 7%, transparent) 1px, transparent 1px) 0 0 / 48px 48px,
-        linear-gradient(180deg, #0b0614, #05030a);
-    border: 3px solid var(--vr-accent);
-    box-shadow: inset 0 0 60px color-mix(in srgb, var(--vr-accent) 25%, transparent);
-    clip-path: polygon(0 0, calc(100% - 40px) 0, 100% 40px, 100% 100%, 40px 100%, 0 calc(100% - 40px));
+    gap: 16px;
+    color: var(--vr-text);
+    background: #15171b;
+    border: 1px solid var(--vr-border-strong);
+    border-radius: 36px;
+    font-family: 'Inter Variable', var(--font-western), sans-serif;
 }
-.neon-dash::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 0;
-    height: 12px;
-    background: repeating-linear-gradient(135deg, var(--vr-accent) 0, var(--vr-accent) 20px, #000 20px, #000 40px);
+.vr-dash-head {
+    display: flex;
+    align-items: center;
+    gap: 14px;
 }
-.neon-dash-head {
+.vr-dash-name {
+    font-size: 34px;
+    font-weight: 500;
+}
+.vr-dash-clock {
+    margin-left: auto;
+    font-size: 44px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+}
+.vr-dash-sub {
     display: flex;
     justify-content: space-between;
-    align-items: baseline;
-    margin-top: 10px;
+    font-size: 20px;
+    color: var(--vr-text-secondary);
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--vr-border);
 }
-.neon-dash-title {
-    font-size: 54px;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    color: #fff;
-    text-shadow: 4px 0 var(--vr-accent), -4px 0 rgba(255, 255, 255, 0.4);
-}
-.neon-dash-clock {
-    font-size: 64px;
-    text-shadow: 0 0 20px var(--vr-accent);
-}
-.neon-dash-clock small {
-    font-size: 30px;
-    color: var(--vr-accent-light);
-}
-.neon-dash-sub {
+.vr-group {
     display: flex;
-    justify-content: space-between;
-    font-size: 26px;
-    letter-spacing: 0.18em;
+    flex-direction: column;
+    gap: 8px;
+}
+.vr-group-title {
+    font-size: 17px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: var(--vr-accent-light);
+    color: var(--vr-text-muted);
 }
-.neon-dash-grid {
-    flex: 1;
+.vr-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    grid-template-rows: repeat(5, 1fr);
-    gap: 12px;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 10px;
 }
-.neon-tile {
+.vr-tile {
     position: relative;
+    height: 104px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: 6px;
-    color: #fff;
-    font: inherit;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.045);
+    border: 1px solid var(--vr-border);
+    color: var(--vr-text);
     cursor: pointer;
-    background: color-mix(in srgb, var(--vr-accent) 8%, transparent);
-    border: 2px solid color-mix(in srgb, var(--vr-accent) 60%, transparent);
-    clip-path: polygon(0 0, calc(100% - 22px) 0, 100% 22px, 100% 100%, 22px 100%, 0 calc(100% - 22px));
     transition:
-        background 0.08s,
-        transform 0.08s;
+        background-color 0.15s ease,
+        border-color 0.15s ease;
 }
-.neon-tile:hover {
-    background: color-mix(in srgb, var(--vr-accent) 35%, transparent);
-    border-color: #fff;
-    box-shadow: 0 0 30px var(--vr-accent);
-    transform: scale(1.04);
+.vr-tile:hover {
+    background: rgba(255, 255, 255, 0.09);
 }
-.neon-tile:active {
-    background: var(--vr-accent);
-    color: #05030a;
+.vr-tile:active {
+    background: rgba(255, 255, 255, 0.14);
 }
-.neon-tile.on {
-    background: color-mix(in srgb, var(--vr-accent) 28%, transparent);
-    border-color: var(--vr-accent);
+.vr-tile.on {
+    background: color-mix(in srgb, var(--vr-accent) 18%, transparent);
+    border-color: color-mix(in srgb, var(--vr-accent) 55%, transparent);
 }
-.neon-tile.warn {
-    border-color: #ffffff;
-    background: rgba(255, 255, 255, 0.1);
+.vr-tile.on svg {
+    color: var(--vr-accent);
 }
-.neon-tile-icon {
-    font-size: 40px;
-    line-height: 1;
-    text-shadow: 0 0 18px var(--vr-accent);
+.vr-tile.warn {
+    border-color: rgba(239, 91, 91, 0.5);
 }
-.neon-tile-label {
+.vr-tile.warn svg {
+    color: #ef5b5b;
+}
+.vr-tile-label {
     font-size: 19px;
-    font-weight: 700;
-    letter-spacing: 0.1em;
+    font-weight: 500;
 }
-.neon-tile-state {
-    font-size: 17px;
-    padding: 0 8px;
-    background: var(--vr-accent);
-    color: #05030a;
-    font-weight: 700;
-}
-.neon-tile:not(.on) .neon-tile-state {
-    background: transparent;
-    color: var(--vr-accent-light);
-    border: 1px solid var(--vr-accent-light);
-}
-.neon-dash-bubble {
-    min-height: 40px;
-    padding: 6px 16px;
-    font-size: 22px;
-    background: #05030a;
-    border: 2px solid var(--vr-accent);
-    color: #fff;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-}
-
-/* wrist extras: status chips, ticker, corner brackets */
-.neon-chips {
-    position: relative;
-    z-index: 3;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    margin: 4px 14px 0;
-}
-.neon-chip {
-    padding: 1px 10px;
-    font-family: 'Share Tech Mono', ui-monospace, monospace;
+.vr-tile-state {
     font-size: 15px;
-    letter-spacing: 0.08em;
-    color: var(--vr-accent-light);
-    border: 1px solid color-mix(in srgb, var(--vr-accent) 60%, transparent);
-    background: color-mix(in srgb, var(--vr-accent) 8%, transparent);
+    color: var(--vr-text-secondary);
+    max-width: 90%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
-.neon-chip.on {
-    color: #05030a;
-    background: var(--vr-accent);
-    box-shadow: 0 0 10px color-mix(in srgb, var(--vr-accent) 80%, transparent);
-}
-.neon-ticker {
-    position: relative;
-    z-index: 3;
-    display: flex;
-    justify-content: space-between;
-    margin: 6px 14px 0;
-    padding-top: 3px;
-    border-top: 1px dashed color-mix(in srgb, var(--vr-accent) 50%, transparent);
-    font-family: 'Share Tech Mono', ui-monospace, monospace;
-    font-size: 12px;
-    letter-spacing: 0.2em;
-    color: rgba(255, 255, 255, 0.55);
-}
-.wrist .x-friend-item {
-    background: linear-gradient(90deg, color-mix(in srgb, var(--vr-accent) 10%, transparent), transparent 70%);
-}
-
-/* ---- bloom: everything glows like a neon sign ---- */
-.wrist {
-    background:
-        radial-gradient(120% 50% at 50% 0%, color-mix(in srgb, var(--vr-accent) 22%, transparent), transparent 70%),
-        radial-gradient(90% 40% at 50% 100%, color-mix(in srgb, var(--vr-accent) 16%, transparent), transparent 70%),
-        linear-gradient(180deg, rgba(10, 4, 18, 0.55), rgba(5, 3, 10, 0.78));
-    border: 3px solid var(--vr-accent);
-    box-shadow:
-        inset 0 0 3px #fff,
-        inset 0 0 14px var(--vr-accent),
-        inset 0 0 38px color-mix(in srgb, var(--vr-accent) 70%, transparent),
-        inset 0 0 80px color-mix(in srgb, var(--vr-accent) 35%, transparent);
-    animation: neon-border 3.2s ease-in-out infinite alternate;
-}
-@keyframes neon-border {
-    from {
-        box-shadow:
-            inset 0 0 3px #fff,
-            inset 0 0 12px var(--vr-accent),
-            inset 0 0 30px color-mix(in srgb, var(--vr-accent) 60%, transparent),
-            inset 0 0 64px color-mix(in srgb, var(--vr-accent) 28%, transparent);
-    }
-    to {
-        box-shadow:
-            inset 0 0 4px #fff,
-            inset 0 0 18px var(--vr-accent),
-            inset 0 0 46px color-mix(in srgb, var(--vr-accent) 80%, transparent),
-            inset 0 0 96px color-mix(in srgb, var(--vr-accent) 42%, transparent);
-    }
-}
-
-.neon-clock {
-    border: 2px solid var(--vr-accent);
-    box-shadow:
-        0 0 4px #fff,
-        0 0 14px var(--vr-accent),
-        0 0 34px var(--vr-accent),
-        inset 0 0 4px #fff,
-        inset 0 0 26px color-mix(in srgb, var(--vr-accent) 55%, transparent);
-}
-.neon-clock-time {
-    text-shadow:
-        0 0 2px #fff,
-        0 0 8px #fff,
-        0 0 16px var(--vr-accent),
-        0 0 32px var(--vr-accent),
-        0 0 60px var(--vr-accent),
-        0 0 100px var(--vr-accent);
-}
-.neon-clock-day {
-    text-shadow:
-        0 0 3px #fff,
-        0 0 10px var(--vr-accent),
-        0 0 24px var(--vr-accent),
-        0 0 48px var(--vr-accent);
-    animation: neon-flicker 5s linear infinite;
-}
-.neon-clock-date {
-    text-shadow:
-        0 0 4px #fff,
-        0 0 12px var(--vr-accent),
-        0 0 26px color-mix(in srgb, var(--vr-accent) 70%, transparent);
-}
-@keyframes neon-flicker {
-    0%,
-    18%,
-    22%,
-    62%,
-    64%,
-    100% {
-        opacity: 1;
-    }
-    20%,
-    63% {
-        opacity: 0.35;
-    }
-}
-.neon-clock-bar {
-    height: 3px;
-    background: linear-gradient(90deg, transparent, var(--vr-accent), #fff, var(--vr-accent), transparent);
-    background-size: 200% 100%;
-    animation: neon-sweep 2.4s linear infinite;
-    box-shadow:
-        0 0 8px var(--vr-accent),
-        0 0 22px var(--vr-accent);
-}
-@keyframes neon-sweep {
-    from {
-        background-position: 200% 0;
-    }
-    to {
-        background-position: -200% 0;
-    }
-}
-.neon-chip {
-    text-shadow: 0 0 8px var(--vr-accent);
-    box-shadow:
-        inset 0 0 8px color-mix(in srgb, var(--vr-accent) 35%, transparent),
-        0 0 8px color-mix(in srgb, var(--vr-accent) 45%, transparent);
-}
-.neon-chip.on {
-    text-shadow: none;
-    box-shadow:
-        0 0 6px var(--vr-accent),
-        0 0 18px var(--vr-accent),
-        0 0 36px color-mix(in srgb, var(--vr-accent) 70%, transparent);
-}
-.wrist .x-friend-item .time {
-    text-shadow: 0 0 10px var(--vr-accent);
-}
-.wrist .x-friend-item .name {
-    text-shadow: 0 0 8px color-mix(in srgb, var(--vr-accent) 70%, transparent);
-}
-.neon-face {
-    box-shadow:
-        0 0 6px #fff,
-        0 0 18px var(--vr-accent),
-        0 0 38px var(--vr-accent);
-}
-
-/* equalizer bars, wrist music line, dashboard music bar */
-.neon-wmusic {
-    position: relative;
-    z-index: 3;
+.vr-music {
     display: flex;
     align-items: center;
     gap: 10px;
-    margin: 6px 14px 0;
-    padding: 3px 10px;
-    font-family: 'Share Tech Mono', ui-monospace, monospace;
-    font-size: 17px;
-    letter-spacing: 0.06em;
-    color: #fff;
-    background: color-mix(in srgb, var(--vr-accent) 10%, transparent);
-    border-left: 3px solid var(--vr-accent);
-    text-shadow: 0 0 8px var(--vr-accent);
-    overflow: hidden;
-}
-.neon-wmusic-text {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-.neon-music-eq {
-    display: inline-flex;
-    align-items: flex-end;
-    gap: 3px;
-    height: 20px;
+    height: 96px;
+    margin-top: auto;
     flex-shrink: 0;
 }
-.neon-music-eq i {
-    display: block;
-    width: 4px;
-    height: 4px;
-    background: var(--vr-accent);
-    box-shadow: 0 0 8px var(--vr-accent);
-}
-.neon-music-eq.live i {
-    animation: neon-eq 0.7s ease-in-out infinite alternate;
-}
-.neon-music-eq.live i:nth-child(2) {
-    animation-duration: 0.45s;
-}
-.neon-music-eq.live i:nth-child(3) {
-    animation-duration: 0.6s;
-}
-.neon-music-eq.live i:nth-child(4) {
-    animation-duration: 0.35s;
-}
-.neon-music-eq.live i:nth-child(5) {
-    animation-duration: 0.55s;
-}
-@keyframes neon-eq {
-    from {
-        height: 3px;
-    }
-    to {
-        height: 20px;
-    }
-}
-
-.neon-music {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    height: 110px;
-    flex-shrink: 0;
-}
-.neon-mbtn {
-    width: 110px;
-    height: 100%;
-    font-size: 54px;
-    color: #fff;
+.vr-mbtn {
+    width: 96px;
+    height: 96px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    color: var(--vr-text);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--vr-border);
     cursor: pointer;
-    background: color-mix(in srgb, var(--vr-accent) 12%, transparent);
-    border: 2px solid var(--vr-accent);
-    text-shadow: 0 0 14px var(--vr-accent);
-    clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px));
 }
-.neon-mbtn.big {
-    width: 150px;
-    background: color-mix(in srgb, var(--vr-accent) 30%, transparent);
+.vr-mbtn.big {
+    width: 110px;
+    height: 110px;
+    color: #15171b;
+    background: var(--vr-text);
 }
-.neon-mbtn:hover {
-    background: color-mix(in srgb, var(--vr-accent) 45%, transparent);
-    box-shadow: 0 0 30px var(--vr-accent);
-    border-color: #fff;
+.vr-mbtn:hover {
+    background: rgba(255, 255, 255, 0.1);
 }
-.neon-mbtn:active {
-    background: var(--vr-accent);
-    color: #05030a;
+.vr-mbtn.big:hover {
+    background: #ffffff;
 }
-.neon-music-text {
+.vr-music-text {
     flex: 1;
     min-width: 0;
     display: flex;
     align-items: center;
     gap: 14px;
-    font-size: 28px;
-    color: #fff;
-    text-shadow: 0 0 10px var(--vr-accent);
+    padding-left: 10px;
+    font-size: 24px;
 }
-.neon-music-title {
+.vr-music-title {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
-.neon-dash .neon-music-eq {
-    height: 46px;
+.vr-dash .vr-eq {
+    height: 30px;
 }
-.neon-dash .neon-music-eq i {
-    width: 8px;
+.vr-dash .vr-eq i {
+    width: 5px;
 }
-.neon-dash-title,
-.neon-tile-icon,
-.neon-dash-clock {
-    text-shadow:
-        0 0 4px #fff,
-        0 0 16px var(--vr-accent),
-        0 0 40px var(--vr-accent);
-}
-.neon-tile {
-    box-shadow:
-        inset 0 0 18px color-mix(in srgb, var(--vr-accent) 30%, transparent),
-        0 0 10px color-mix(in srgb, var(--vr-accent) 35%, transparent);
+.vr-bubble {
+    padding: 16px 20px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.045);
+    border: 1px solid var(--vr-border);
+    font-size: 22px;
+    line-height: 1.4;
+    color: var(--vr-text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }

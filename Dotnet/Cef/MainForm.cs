@@ -96,6 +96,17 @@ namespace VRCX
             Controls.Add(Browser);
         }
 
+        protected override void WndProc(ref Message m)
+        {
+            // the desktop overlay hotkey
+            if (m.Msg == DeskHotkey.WM_HOTKEY && m.WParam.ToInt32() == DeskHotkey.Id)
+            {
+                DeskOverlayForm.Toggle();
+                return;
+            }
+            base.WndProc(ref m);
+        }
+
         private void MainForm_Load(object sender, System.EventArgs e)
         {
             try

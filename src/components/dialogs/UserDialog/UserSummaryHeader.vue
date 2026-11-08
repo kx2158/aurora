@@ -88,7 +88,7 @@
                                         placement="top">
                                         <span>{{ data.displayName }}</span>
                                         <span v-if="data.updated_at">
-                                            &horbar; {{ formatDateFilter(data.updated_at, 'long') }}</span
+                                            · {{ formatDateFilter(data.updated_at, 'long') }}</span
                                         >
                                     </div>
                                 </template>

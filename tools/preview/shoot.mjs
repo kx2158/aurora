@@ -28,7 +28,8 @@ page.on('framenavigated', (f) => {
 });
 page.on('pageerror', (e) => logs.push(`[pageerror] ${e.message}`.slice(0, 300)));
 await page.goto(`${base}/preview.html`, { waitUntil: 'load' });
-await page.waitForTimeout(1200);
+await page.waitForSelector('#login-form', { timeout: 20000 }).catch(() => {});
+await page.waitForTimeout(300);
 await page.screenshot({ path: `${out}/login.jpg`, type: 'jpeg', quality: 80 });
 try {
     await page.waitForFunction(() => window.__previewReady === true, null, { timeout: 60000 });
@@ -61,6 +62,17 @@ await page.screenshot({ path: `${out}/home-light.jpg`, type: 'jpeg', quality: 82
 await page.evaluate(() => window.$pinia?.appearanceSettings?.setThemeMode('xraydark'));
 await page.evaluate(() => (window.location.hash = '#/charts/mutual'));
 await page.waitForTimeout(5000);
+try {
+    const diag = await page.evaluate(() => ({
+        appChildren: document.querySelector('#x-app')?.children.length ?? -1,
+        canvases: document.querySelectorAll('canvas').length,
+        webgl: !!document.createElement('canvas').getContext('webgl2'),
+        text: document.body.innerText.slice(0, 200)
+    }));
+    logs.push('[network diag] ' + JSON.stringify(diag));
+} catch (e) {
+    logs.push('[network diag failed] ' + e.message);
+}
 await page.screenshot({ path: `${out}/network.jpg`, type: 'jpeg', quality: 80 });
 fs.writeFileSync(`${out}/console.txt`, logs.join('\n'));
 await browser.close();

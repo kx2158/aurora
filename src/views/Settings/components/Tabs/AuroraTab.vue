@@ -135,7 +135,6 @@
             </SettingsItem>
         </SettingsGroup>
     </div>
-    </div>
 </template>
 
 <script setup>

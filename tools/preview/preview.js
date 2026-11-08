@@ -1,0 +1,213 @@
+// Aurora preview harness: fake native bridge + in-memory SQLite (sql.js) + a fake logged-in user.
+import initSqlJs from 'sql.js';
+import wasmUrl from 'sql.js/dist/sql-wasm.wasm?url';
+
+window.WINDOWS = false;
+window.LINUX = false;
+
+const SQL = await initSqlJs({ locateFile: () => wasmUrl });
+const db = new SQL.Database();
+
+function bindArgs(args) {
+    if (!args) return undefined;
+    const out = {};
+    const entries = args instanceof Map ? [...args.entries()] : Object.entries(args);
+    for (const [k, v] of entries) {
+        const key = /^[@:$]/.test(k) ? k : '@' + k;
+        out[key] = typeof v === 'boolean' ? Number(v) : v === undefined ? null : v;
+    }
+    return out;
+}
+function query(sql, args) {
+    const rows = [];
+    try {
+        const stmt = db.prepare(sql);
+        const b = bindArgs(args);
+        if (b) stmt.bind(b);
+        while (stmt.step()) rows.push(stmt.get());
+        stmt.free();
+    } catch (e) {
+        console.warn('[preview sql]', e.message, sql.slice(0, 120));
+    }
+    return rows;
+}
+
+const devices = {
+    render: [
+        { id: 'out-cable', name: 'CABLE Input (VB-Audio Virtual Cable)' },
+        { id: 'out-speakers', name: 'Speakers (Realtek Audio)' }
+    ],
+    capture: [{ id: 'mic-1', name: 'Microphone (Shure MV7)' }]
+};
+let mixRunning = false;
+
+function native(cls, method, args) {
+    if (cls === 'SQLite') {
+        if (method === 'Execute') return query(args[0], args[1]);
+        if (method === 'ExecuteJson') return JSON.stringify(query(args[0], args[1]));
+        if (method === 'ExecuteNonQuery') {
+            query(args[0], args[1]);
+            return 0;
+        }
+    }
+    if (cls === 'AppApi') {
+        switch (method) {
+            case 'GetNeonAudioDevices':
+                return JSON.stringify(devices);
+            case 'GetNeonAudioApps':
+                return JSON.stringify(['Spotify', 'Firefox', 'Discord']);
+            case 'NeonMusicMicStart':
+                mixRunning = true;
+                return true;
+            case 'NeonMusicMicStatus':
+                return JSON.stringify({
+                    running: mixRunning,
+                    error: '',
+                    micPeak: 0.42,
+                    musicPeak: 0.61,
+                    outPeak: 0.7,
+                    info: 'mic 48000 Hz | out CABLE Input'
+                });
+            case 'GetVersion':
+                return 'Aurora 2026.11.08';
+            case 'CurrentCulture':
+                return 'en-US';
+            case 'CurrentLanguage':
+                return 'en';
+            default:
+                return null;
+        }
+    }
+    if (cls === 'VRCXStorage') {
+        if (method === 'GetAll') return '{}';
+        return '';
+    }
+    if (cls === 'WebApi') {
+        return { status: 401, data: '{"error":{"message":"preview"}}' };
+    }
+    return null;
+}
+window.interopApi = {
+    callDotNetMethod: async (cls, method, args) => native(cls, method, args || [])
+};
+
+// ---- fake history: 120 days of sessions, people, friends ----
+const now = Date.now();
+const DAY = 86400000;
+const iso = (t) => new Date(t).toISOString();
+const worlds = [
+    ['wrld_a', 'The Great Pug'],
+    ['wrld_b', 'Midnight Rooftop'],
+    ['wrld_c', 'Movie & Chill'],
+    ['wrld_d', 'Japan Shrine'],
+    ['wrld_e', 'Void Club'],
+    ['wrld_f', 'Cozy Cabin'],
+    ['wrld_g', 'Just B Club 3']
+];
+const people = [
+    'Rin', 'Kaito', 'Mika', 'Sol', 'Juno', 'Ezra', 'Nova', 'Lumi', 'Pixel', 'Atlas', 'Wren', 'Echo', 'Sage', 'Indigo'
+].map((name, i) => ({ id: `usr_preview${String(i).padStart(4, '0')}`, name }));
+
+let seed = 7;
+const rnd = () => ((seed = (seed * 9301 + 49297) % 233280) / 233280);
+
+window.__seedPreview = async function seedPreview(prefix) {
+    for (let d = 120; d >= 0; d--) {
+        if (rnd() < 0.25) continue;
+        const sessions = 1 + Math.floor(rnd() * 3);
+        for (let s = 0; s < sessions; s++) {
+            const w = worlds[Math.floor(Math.pow(rnd(), 1.6) * worlds.length)];
+            const day = new Date(now - d * DAY);
+            day.setHours(18 + Math.floor(rnd() * 6), Math.floor(rnd() * 60), 0, 0);
+            const start = day.getTime() + s * 2 * 3600000;
+            if (start > now) continue;
+            const time = Math.floor((20 + rnd() * 140) * 60000);
+            const loc = `${w[0]}:${1000 + d}~private`;
+            query(
+                'INSERT OR IGNORE INTO gamelog_location (created_at, location, world_id, world_name, time, group_name) VALUES (@a,@b,@c,@d,@e,@f)',
+                { a: iso(start), b: loc, c: w[0], d: w[1], e: time, f: '' }
+            );
+            for (const p of people) {
+                if (rnd() < 0.2 + (people.indexOf(p) < 5 ? 0.4 : 0)) {
+                    const t = Math.floor(time * (0.3 + rnd() * 0.7));
+                    query(
+                        'INSERT OR IGNORE INTO gamelog_join_leave (created_at, type, display_name, location, user_id, time) VALUES (@a,@b,@c,@d,@e,@f)',
+                        { a: iso(start + 60000), b: 'OnPlayerJoined', c: p.name, d: loc, e: p.id, f: 0 }
+                    );
+                    query(
+                        'INSERT OR IGNORE INTO gamelog_join_leave (created_at, type, display_name, location, user_id, time) VALUES (@a,@b,@c,@d,@e,@f)',
+                        { a: iso(start + 60000 + t), b: 'OnPlayerLeft', c: p.name, d: loc, e: p.id, f: t }
+                    );
+                }
+            }
+        }
+        for (let k = 0; k < 6; k++) {
+            const p = people[Math.floor(rnd() * people.length)];
+            const at = new Date(now - d * DAY);
+            at.setHours(Math.floor(Math.pow(rnd(), 0.5) * 24), Math.floor(rnd() * 60));
+            if (at.getTime() > now) continue;
+            query(
+                `INSERT INTO ${prefix}_feed_online_offline (created_at, user_id, display_name, type, location, world_name, time, group_name) VALUES (@a,@b,@c,'Online','','',0,'')`,
+                { a: iso(at.getTime()), b: p.id, c: p.name }
+            );
+        }
+    }
+    people.forEach((p, i) => {
+        query(
+            `INSERT INTO ${prefix}_friend_log_history (created_at, type, user_id, display_name, previous_display_name, trust_level, previous_trust_level, friend_number) VALUES (@a,'Friend',@b,@c,'','','',@d)`,
+            { a: iso(now - (110 - i * 7) * DAY), b: p.id, c: p.name, d: i + 1 }
+        );
+    });
+    return people;
+};
+
+await import('./app.js');
+
+// ---- log in a fake user once the app has started ----
+const { database } = await import('./services/database/index.js');
+const { watchState } = await import('./services/watchState.js');
+const { router } = await import('./plugins/router.js');
+const { reactive } = await import('vue');
+
+await new Promise((r) => setTimeout(r, 1500));
+await database.initTables();
+await database.initUserTables('usr_preview');
+const { dbVars } = await import('./services/database/index.js');
+const friendsList = await window.__seedPreview(dbVars.userPrefix);
+
+const stores = window.$pinia;
+try {
+    stores.user.currentUser = {
+        ...stores.user.currentUser,
+        id: 'usr_preview',
+        displayName: 'Xen',
+        status: 'active',
+        statusDescription: 'building things',
+        friends: friendsList.map((p) => p.id)
+    };
+} catch (e) {
+    console.warn('[preview] user', e);
+}
+friendsList.forEach((p, i) => {
+    const ref = {
+        id: p.id,
+        displayName: p.name,
+        status: i % 3 === 0 ? 'join me' : 'active',
+        statusDescription: ['in a club', 'chilling', 'afk for a bit', ''][i % 4],
+        location: 'private',
+        $userColour: '#cccccc'
+    };
+    try {
+        stores.user.cachedUsers.set(p.id, ref);
+    } catch {
+        // ignore
+    }
+    stores.friend.friends.set(
+        p.id,
+        reactive({ id: p.id, state: i < 7 ? 'online' : 'offline', isVIP: false, ref, name: p.name, pendingOffline: false, $nickName: '' })
+    );
+});
+watchState.isFriendsLoaded = true;
+watchState.isLoggedIn = true;
+await router.push({ name: 'home' });
+window.__previewReady = true;

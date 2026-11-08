@@ -35,3 +35,34 @@ jobs:
       - name: Build the Windows app (CEF)
         shell: bash
         run: dotnet build Dotnet/VRCX-Cef.csproj -p:Configuration=Release -p:WarningLevel=0 -p:Platform=x64 -p:PlatformTarget=x64 -maxcpucount --runtime win-x64 --self-contained
+
+  screenshots:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+      - name: Install dependencies
+        run: |
+          npm install --no-audit --no-fund
+          npm install --no-save --no-audit --no-fund sql.js@1.13.0 playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Start the preview
+        run: |
+          cp tools/preview/preview.html tools/preview/preview.js src/
+          npx vite src --port 9000 --strictPort > vite.log 2>&1 &
+          for i in $(seq 1 60); do curl -sf http://localhost:9000/preview.html > /dev/null && break; sleep 2; done
+      - name: Screenshots
+        run: node tools/preview/shoot.mjs http://localhost:9000 shots
+      - name: Print screenshots (base64, for remote review)
+        if: always()
+        run: |
+          tail -40 vite.log || true
+          echo "=== console ==="; cat shots/console.txt || true
+          for f in shots/*.jpg; do echo "=== SHOT $(basename $f) ==="; base64 -w0 "$f"; echo; echo "=== END ==="; done
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: screenshots
+          path: shots

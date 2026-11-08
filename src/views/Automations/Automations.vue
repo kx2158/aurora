@@ -190,6 +190,53 @@
                     </div>
                 </div>
             </section>
+
+            <section class="a-card">
+                <div class="flex items-center gap-3">
+                    <h2 class="a-h2 flex-1"><AuroraIcon name="people" :size="15" /> {{ t('view.automations.watch') }}</h2>
+                    <button
+                        type="button"
+                        class="a-toggle"
+                        :class="{ on: instanceWatch.enabled }"
+                        :aria-pressed="instanceWatch.enabled"
+                        :aria-label="t('view.automations.enabled')"
+                        @click="instanceWatch.enabled = !instanceWatch.enabled"></button>
+                </div>
+                <p class="a-note mb-4">{{ t('view.automations.watch_desc') }}</p>
+                <div class="watch-opts">
+                    <label v-for="o in watchOptions" :key="o.key" class="watch-opt">
+                        <button
+                            type="button"
+                            class="a-toggle"
+                            :class="{ on: instanceWatch[o.key] }"
+                            :aria-pressed="instanceWatch[o.key]"
+                            @click="instanceWatch[o.key] = !instanceWatch[o.key]"></button>
+                        <span>{{ o.label }}</span>
+                        <template v-if="o.key === 'newAccounts'">
+                            <input
+                                v-model.number="instanceWatch.newDays"
+                                type="number"
+                                min="1"
+                                max="365"
+                                class="a-input watch-days" />
+                            <span class="a-note">{{ t('view.automations.watch_days') }}</span>
+                        </template>
+                    </label>
+                </div>
+                <h3 class="rule-step-label mt-4">{{ t('view.automations.watch_list') }}</h3>
+                <p v-if="!instanceWatch.people.length" class="a-note">{{ t('view.automations.watch_list_empty') }}</p>
+                <div v-for="p in instanceWatch.people" :key="p.id" class="watch-person">
+                    <button type="button" class="watch-name" @click="openProfile(p.id)">{{ p.name }}</button>
+                    <input v-model="p.note" class="a-input flex-1" :placeholder="t('view.automations.watch_note')" />
+                    <button
+                        type="button"
+                        class="a-btn icon"
+                        :aria-label="t('view.automations.remove')"
+                        @click="removeWatched(p.id)">
+                        <AuroraIcon name="close" :size="14" />
+                    </button>
+                </div>
+            </section>
         </div>
     </div>
 </template>
@@ -211,8 +258,15 @@
         ruleState,
         statusRules
     } from '../../services/auroraStatusRules';
+    import { initInstanceWatch, instanceWatch, openProfile, removeWatched } from '../../services/auroraWatch';
 
     const { t, locale } = useI18n();
+    const watchOptions = [
+        { key: 'blocked', label: t('view.automations.watch_blocked') },
+        { key: 'watch', label: t('view.automations.watch_listed') },
+        { key: 'newAccounts', label: t('view.automations.watch_new') },
+        { key: 'visitors', label: t('view.automations.watch_visitors') }
+    ];
 
     function langName(code) {
         try {
@@ -229,6 +283,7 @@
     onMounted(() => {
         initAlarms();
         initStatusRules();
+        initInstanceWatch();
         tick = setInterval(() => (now.value = Date.now()), 1000);
     });
     onBeforeUnmount(() => clearInterval(tick));
@@ -360,5 +415,37 @@
     .auto-time {
         width: 120px;
         font-variant-numeric: tabular-nums;
+    }
+    .watch-opts {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    .watch-opt {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 0.86rem;
+    }
+    .watch-days {
+        width: 64px;
+    }
+    .watch-person {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 6px;
+    }
+    .watch-name {
+        min-width: 120px;
+        max-width: 200px;
+        text-align: left;
+        font-size: 0.86rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .watch-name:hover {
+        text-decoration: underline;
     }
 </style>

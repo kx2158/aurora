@@ -1,1273 +1,1328 @@
 <template>
     <div id="x-app" class="flex w-screen h-screen overflow-hidden cursor-default x-app-type">
         <div class="wrist" :class="{ background: config && config.backgroundEnabled }">
-            <!-- the round wrist: one circular interface, no boxes -->
-            <svg class="vr-hud" viewBox="0 0 510 510" aria-hidden="true">
-                <defs>
-                    <pattern id="vr-scan" width="4" height="3" patternUnits="userSpaceOnUse">
-                        <rect width="4" height="1" fill="#fff" opacity="0.035" />
-                    </pattern>
-                    <radialGradient id="vr-glow" cx="50%" cy="50%" r="50%">
-                        <stop offset="0%" stop-color="#1b1d21" />
-                        <stop offset="70%" stop-color="#0f1013" />
-                        <stop offset="100%" stop-color="#08090a" />
-                    </radialGradient>
-                    <path id="vr-arc-top" d="M 63 255 A 192 192 0 0 1 447 255" />
-                    <path id="vr-arc-bottom" d="M 45 255 A 210 210 0 0 0 465 255" />
-                </defs>
-                <circle cx="255" cy="255" r="253" class="hud-face" />
-                <circle cx="255" cy="255" r="253" fill="url(#vr-scan)" />
-                <circle cx="255" cy="255" r="246" class="hud-ring" />
-                <circle cx="255" cy="255" r="226" class="hud-ring faint" />
-                <circle cx="255" cy="255" r="172" class="hud-ring faint dashed" />
-                <circle cx="255" cy="255" r="160" class="hud-ring faint" />
-                <g v-for="i in 120" :key="`t${i}`" :transform="`rotate(${i * 3} 255 255)`">
-                    <line
-                        x1="255"
-                        :y1="i % 10 === 0 ? 10 : i % 2 === 0 ? 15 : 18"
-                        x2="255"
-                        y2="22"
-                        :class="i % 10 === 0 ? 'hud-tick big' : 'hud-tick'" />
-                </g>
-                <!-- the minute fills the inner ring, the second runs round the outside -->
-                <path :d="arcPath(226, 0, clock.ma)" class="hud-arc" />
-                <path :d="arcPath(172, 0, clock.ha)" class="hud-arc dim" />
-                <g :transform="`rotate(${clock.ma} 255 255)`">
-                    <path d="M 255 32 l -5 -8 h 10 Z" class="hud-mark" />
-                </g>
-                <g :transform="`rotate(${clock.ha} 255 255)`">
-                    <line x1="255" y1="88" x2="255" y2="100" class="hud-hour" />
-                </g>
-                <circle cx="255" cy="16" r="4" class="hud-sec" :transform="`rotate(${clock.sa} 255 255)`" />
-                <!-- side gauges: mic volume on the left, people here on the right -->
-                <path
-                    v-for="g in 16"
-                    :key="`l${g}`"
-                    :d="arcPath(200, 296 - g * 4.4, 296 - g * 4.4 + 3.2)"
-                    class="hud-seg"
-                    :class="{ on: neonState.mm && !neonState.mmMuted && g <= Math.round((neonState.mmVol / 100) * 16) }" />
-                <path
-                    v-for="g in 16"
-                    :key="`r${g}`"
-                    :d="arcPath(200, 64 + g * 4.4 - 3.2, 64 + g * 4.4)"
-                    class="hud-seg"
-                    :class="{ on: g <= Math.min(16, lastLocation.playerList.length) }" />
-                <text class="hud-small" x="84" y="259">{{ neonState.mm ? (neonState.mmMuted ? 'mute' : 'mic') : 'off' }}</text>
-                <text class="hud-small" x="426" y="259">{{ lastLocation.playerList.length }}</text>
-                <text class="hud-curve">
-                    <textPath href="#vr-arc-top" startOffset="50%">{{ topLine }}</textPath>
-                </text>
-                <text class="hud-curve low">
-                    <textPath href="#vr-arc-bottom" startOffset="50%">{{ bottomLine }}</textPath>
-                </text>
-            </svg>
-            <div class="vr-core">
-                <div v-if="alarmBanner" class="vr-alarm">
-                    <AuroraIcon name="alarm" :size="14" /> {{ alarmBanner.time }} {{ alarmBanner.label }}
+            <!-- the round wrist: stacked layers at different depths, tilted, with bloom on the bright parts -->
+            <div
+                ref="wristStage"
+                class="vr-stage"
+                :class="[wristPhase, { glitch: glitchOn, hiss: neonState.mm && neonState.mmMuted }]"
+                :style="noiseStyle">
+                <!-- layer 0: the glass face -->
+                <svg class="vr-hud vr-l0" viewBox="0 0 510 510" aria-hidden="true">
+                    <defs>
+                        <pattern id="vr-scan" width="4" height="3" patternUnits="userSpaceOnUse">
+                            <rect width="4" height="1" fill="#fff" opacity="0.035" />
+                        </pattern>
+                        <radialGradient id="vr-glow" cx="46%" cy="40%" r="62%">
+                            <stop offset="0%" stop-color="#202328" />
+                            <stop offset="62%" stop-color="#0f1013" />
+                            <stop offset="100%" stop-color="#050506" />
+                        </radialGradient>
+                        <radialGradient id="vr-rim" cx="50%" cy="50%" r="50%">
+                            <stop offset="88%" stop-color="#000" stop-opacity="0" />
+                            <stop offset="96%" stop-color="#000" stop-opacity="0.55" />
+                            <stop offset="100%" stop-color="#000" stop-opacity="0.9" />
+                        </radialGradient>
+                        <linearGradient id="vr-bezel" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0%" stop-color="#fff" stop-opacity="0.55" />
+                            <stop offset="45%" stop-color="#fff" stop-opacity="0.06" />
+                            <stop offset="100%" stop-color="#fff" stop-opacity="0.3" />
+                        </linearGradient>
+                        <!-- bloom: the shape, plus a tight and a wide blur of itself on top -->
+                        <filter id="vr-bloom" x="-60%" y="-60%" width="220%" height="220%">
+                            <feGaussianBlur in="SourceGraphic" stdDeviation="2.2" result="near" />
+                            <feGaussianBlur in="SourceGraphic" stdDeviation="7" result="far" />
+                            <feMerge>
+                                <feMergeNode in="far" />
+                                <feMergeNode in="near" />
+                                <feMergeNode in="SourceGraphic" />
+                            </feMerge>
+                        </filter>
+                        <path id="vr-arc-top" d="M 63 255 A 192 192 0 0 1 447 255" />
+                        <path id="vr-arc-bottom" d="M 45 255 A 210 210 0 0 0 465 255" />
+                    </defs>
+                    <circle cx="255" cy="255" r="253" class="hud-face" />
+                    <circle cx="255" cy="255" r="253" fill="url(#vr-scan)" />
+                    <circle cx="255" cy="255" r="253" fill="url(#vr-rim)" />
+                    <circle cx="255" cy="255" r="251.5" class="hud-bezel" />
+                    <circle cx="255" cy="255" r="226" class="hud-ring faint" />
+                    <circle cx="255" cy="255" r="160" class="hud-ring faint" />
+                    <circle cx="255" cy="255" r="10" class="hud-shock" />
+                </svg>
+                <!-- layer 1: the tick ring, the arcs and the hands -->
+                <svg class="vr-hud vr-l1" viewBox="0 0 510 510" aria-hidden="true">
+                    <circle cx="255" cy="255" r="246" class="hud-ring" />
+                    <circle cx="255" cy="255" r="172" class="hud-ring faint dashed" />
+                    <g class="hud-ticks">
+                        <g v-for="i in 120" :key="`t${i}`" :transform="`rotate(${i * 3} 255 255)`">
+                            <line
+                                x1="255"
+                                :y1="i % 10 === 0 ? 10 : i % 2 === 0 ? 15 : 18"
+                                x2="255"
+                                y2="22"
+                                :class="i % 10 === 0 ? 'hud-tick big' : 'hud-tick'"
+                                :style="{ '--i': i }" />
+                        </g>
+                    </g>
+                    <g class="hud-bright">
+                        <!-- the minute fills the inner ring, the second runs round the outside -->
+                        <path :d="arcPath(226, 0, clock.ma)" class="hud-arc" />
+                        <path :d="arcPath(172, 0, clock.ha)" class="hud-arc dim" />
+                        <g :transform="`rotate(${clock.ma} 255 255)`">
+                            <path d="M 255 32 l -5 -8 h 10 Z" class="hud-mark" />
+                        </g>
+                        <g :transform="`rotate(${clock.ha} 255 255)`">
+                            <line x1="255" y1="88" x2="255" y2="100" class="hud-hour" />
+                        </g>
+                        <circle cx="255" cy="16" r="4" class="hud-sec" :transform="`rotate(${clock.sa} 255 255)`" />
+                    </g>
+                </svg>
+                <!-- layer 2: gauges and the text round the edge -->
+                <svg class="vr-hud vr-l2" viewBox="0 0 510 510" aria-hidden="true">
+                    <!-- side gauges: mic volume on the left, people here on the right -->
+                    <path
+                        v-for="g in 16"
+                        :key="`l${g}`"
+                        :d="arcPath(200, 296 - g * 4.4, 296 - g * 4.4 + 3.2)"
+                        class="hud-seg"
+                        :style="{ '--i': g }"
+                        :class="{ on: neonState.mm && !neonState.mmMuted && g <= Math.round((neonState.mmVol / 100) * 16) }" />
+                    <path
+                        v-for="g in 16"
+                        :key="`r${g}`"
+                        :d="arcPath(200, 64 + g * 4.4 - 3.2, 64 + g * 4.4)"
+                        class="hud-seg"
+                        :style="{ '--i': g }"
+                        :class="{ on: g <= Math.min(16, lastLocation.playerList.length) }" />
+                    <text class="hud-small" x="84" y="259">{{ neonState.mm ? (neonState.mmMuted ? 'mute' : 'mic') : 'off' }}</text>
+                    <text class="hud-small" x="426" y="259">{{ lastLocation.playerList.length }}</text>
+                    <text class="hud-curve">
+                        <textPath href="#vr-arc-top" startOffset="50%">{{ topLine }}</textPath>
+                    </text>
+                    <text class="hud-curve low">
+                        <textPath href="#vr-arc-bottom" startOffset="50%">{{ bottomLine }}</textPath>
+                    </text>
+                </svg>
+                <!-- the glitch layer: static on the glass, and bars that tear across it now and then -->
+                <div class="vr-glitch" aria-hidden="true">
+                    <i v-for="b in glitchBars" :key="b.id" :style="{ top: `${b.top}px`, height: `${b.h}px`, '--dx': `${b.dx}px` }"></i>
                 </div>
-                <span v-else class="vr-layer">layer {{ clock.layer }}<span class="vr-blink">_</span></span>
-                <span class="vr-digits">{{ clock.hm }}<small>{{ clock.sec }}</small></span>
-                <span class="vr-date">{{ clock.day }} / {{ clock.date }}</span>
-                <div v-if="neonState.song" class="vr-now">
-                    <span class="vr-eq" :class="{ live: neonState.playing }"><i></i><i></i><i></i><i></i></span>
-                    <span class="vr-now-text">{{ musicLine }}</span>
+                <!-- layer 3: the time, floating highest -->
+                <div class="vr-core">
+                    <div v-if="alarmBanner" class="vr-alarm">
+                        <AuroraIcon name="alarm" :size="14" /> {{ alarmBanner.time }} {{ alarmBanner.label }}
+                    </div>
+                    <div v-else-if="neonState.watchAlert" class="vr-alarm vr-watch">
+                        <AuroraIcon name="shield" :size="14" />
+                        <span class="vr-watch-text">{{ neonState.watchAlert.name }} / {{ neonState.watchAlert.text }}</span>
+                    </div>
+                    <span v-else class="vr-layer">layer {{ clock.layer }}<span class="vr-blink">_</span></span>
+                    <span class="vr-digits">{{ clock.hm }}<small>{{ clock.sec }}</small></span>
+                    <span class="vr-date">{{ clock.day }} / {{ clock.date }}</span>
+                    <div v-if="neonState.song" class="vr-now">
+                        <span class="vr-eq" :class="{ live: neonState.playing }"><i></i><i></i><i></i><i></i></span>
+                        <span class="vr-now-text">{{ musicLine }}</span>
+                    </div>
                 </div>
-            </div>
-            <div class="x-container vr-ring-feed">
-                <div class="x-friend-list" ref="list" style="color: var(--vr-text-secondary)">
-                    <template v-if="config && config.minimalFeed">
-                        <template
-                            v-for="(feed, index) in wristFeed"
-                            :key="`minimal-${index}-${feed.type}-${feed.created_at}`">
-                            <div
-                                v-if="feed.type === 'GPS'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra flex items-center">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <span class="name" v-text="feed.displayName"></span>
-                                        <Loader2 v-if="feed.isTraveling" class="is-loading ml-2 h-4 w-4" />
-                                        <VrLocation
-                                            :location="feed.location"
-                                            :hint="feed.worldName"
-                                            :grouphint="feed.groupName"
-                                            :instancedisplayname="feed.instanceDisplayName"
-                                            style="margin-left: 2px"></VrLocation>
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'Offline'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra flex items-center">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <span class="name" v-text="feed.displayName"></span>
-                                        <X class="h-5 w-5" />
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'Online'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra flex items-center">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <span class="name" v-text="feed.displayName"></span>
-                                        <Check class="h-5 w-5" />
-                                        <template v-if="feed.worldName">
+                <div class="x-container vr-ring-feed">
+                    <div class="x-friend-list" ref="list" style="color: var(--vr-text-secondary)">
+                        <template v-if="config && config.minimalFeed">
+                            <template
+                                v-for="(feed, index) in wristFeed"
+                                :key="`minimal-${index}-${feed.type}-${feed.created_at}`">
+                                <div
+                                    v-if="feed.type === 'GPS'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra flex items-center">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <span class="name" v-text="feed.displayName"></span>
+                                            <Loader2 v-if="feed.isTraveling" class="is-loading ml-2 h-4 w-4" />
                                             <VrLocation
                                                 :location="feed.location"
                                                 :hint="feed.worldName"
                                                 :grouphint="feed.groupName"
                                                 :instancedisplayname="feed.instanceDisplayName"
-                                                style="margin-left: 5px"></VrLocation>
-                                        </template>
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'Status'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra flex items-center">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <span class="name" v-text="feed.displayName" style="margin-right: 5px"></span>
-                                        <template v-if="feed.statusDescription === feed.previousStatusDescription">
-                                            <i class="x-user-status" :class="statusClass(feed.previousStatus)"></i>
-                                            <ArrowRight class="h-4 w-4 inline-block" />
-                                            <i class="x-user-status" :class="statusClass(feed.status)"></i>
-                                        </template>
-                                        <template v-else>
-                                            <i class="x-user-status" :class="statusClass(feed.status)"></i>
-                                            {{ feed.statusDescription }}
-                                        </template>
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'OnPlayerJoined'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra flex items-center">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <Play class="mr-5 h-5 w-5" />
-                                        <span
-                                            class="name"
-                                            v-text="feed.displayName"
-                                            :style="{ color: feed.tagColour }"></span>
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'OnPlayerLeft'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra flex items-center">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <Play class="mr-5 h-5 w-5 rotate-180" />
-                                        <span
-                                            class="name"
-                                            v-text="feed.displayName"
-                                            :style="{ color: feed.tagColour }"></span>
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'OnPlayerJoining'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra flex items-center">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <Play class="h-5 w-5" />
-                                        <Loader2 class="is-loading mr-5 h-4 w-4" />
-                                        <span class="name" v-text="feed.displayName"></span>
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'Location'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra flex items-center">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <VrLocation
-                                            :location="feed.location"
-                                            :hint="feed.worldName"
-                                            :grouphint="feed.groupName"
-                                            :instancedisplayname="feed.instanceDisplayName"></VrLocation>
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'VideoPlay'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra flex items-center">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <TvMinimalPlay class="mr-5 h-5 w-5" />
-                                        <span
-                                            v-if="feed.displayName"
-                                            class="name"
-                                            v-text="feed.displayName"
-                                            style="margin-right: 5px"
-                                            :style="{ color: feed.tagColour }"></span>
-                                        <template v-if="feed.videoName">
-                                            <span v-text="feed.videoName"></span>
-                                        </template>
-                                        <template v-else>
-                                            <span v-text="feed.videoUrl"></span>
-                                        </template>
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'invite'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra flex items-center">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <Send class="mr-5 h-5 w-5" />
-                                        <span class="name mr-5" v-text="feed.senderUsername"></span>
-                                        <VrLocation
-                                            :location="feed.details.worldId"
-                                            :hint="feed.details.worldName"
-                                            :instancedisplayname="feed.instanceDisplayName"></VrLocation>
-                                        <span v-text="feed.details.inviteMessage"></span>
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'requestInvite'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra flex items-center">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <Send class="mr-5 h-5 w-5" />
-                                        <span class="name mr-5" v-text="feed.senderUsername"></span>
-                                        <span v-text="feed.details.requestMessage"></span>
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'inviteResponse'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra flex items-center">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <Send class="mr-5 h-5 w-5" />
-                                        <span class="name mr-5" v-text="feed.senderUsername"></span>
-                                        <span v-text="feed.details.responseMessage"></span>
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'requestInviteResponse'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra flex items-center">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <Send class="mr-5 h-5 w-5" />
-                                        <span class="name mr-5" v-text="feed.senderUsername"></span>
-                                        <span v-text="feed.details.responseMessage"></span>
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'friendRequest'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra flex items-center">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <HeartPlus class="mr-5 h-5 w-5" />
-                                        <span class="name" v-text="feed.senderUsername"></span>
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'Friend'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra flex items-center">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <Heart class="mr-5 h-5 w-5" />
-                                        <span class="name" v-text="feed.displayName"></span>
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'Unfriend'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra flex items-center">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <ThumbsDown class="mr-5 h-5 w-5" />
-                                        <span class="name" v-text="feed.displayName"></span>
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'DisplayName'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra flex items-center">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <Pencil class="mr-5 h-5 w-5" />
-                                        <span class="name" v-text="feed.previousDisplayName"></span>
-                                        <ArrowRight class="mr-5 h-4 w-4 inline-block" />
-                                        <span class="name" v-text="feed.displayName"></span>
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'TrustLevel'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra flex items-center">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <GraduationCap class="mr-5 h-5 w-5" />
-                                        <span class="name" v-text="feed.displayName"></span>
-                                        {{ feed.previousTrustLevel }}
-                                        <ArrowRight class="mx-1 inline-block h-4 w-4" />
-                                        {{ feed.trustLevel }}
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'boop'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra flex items-center">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <HeartHandshake class="mr-5 h-5 w-5" />
-                                        <span class="name mr-5" v-text="feed.senderUsername"></span>
-                                        <span v-text="feed.message"></span>
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'groupChange'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra flex items-center">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <Tag class="mr-5 h-5 w-5" />
-                                        <span class="name mr-5" v-text="feed.senderUsername"></span>
-                                        <span v-text="feed.message"></span>
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'group.announcement'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra flex items-center">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <Megaphone class="mr-5 h-5 w-5" />
-                                        <span class="name" v-text="feed.message"></span>
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'group.event.created'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra flex items-center">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <CalendarPlus class="mr-5 h-5 w-5" />
-                                        <span class="name" v-text="feed.message"></span>
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'group.event.starting'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra flex items-center">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <CalendarCheck class="mr-5 h-5 w-5" />
-                                        <span class="name" v-text="feed.message"></span>
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'group.informative'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra flex items-center">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <Megaphone class="mr-5 h-5 w-5" />
-                                        <span class="name" v-text="feed.message"></span>
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'group.invite'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra flex items-center">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <Tag class="mr-5 h-5 w-5" />
-                                        <span class="name" v-text="feed.message"></span>
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'group.joinRequest'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra flex items-center">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <Tag class="mr-5 h-5 w-5" />
-                                        <span class="name" v-text="feed.message"></span>
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'group.transfer'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra flex items-center">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <Tag class="mr-5 h-5 w-5" />
-                                        <span class="name" v-text="feed.message"></span>
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'group.queueReady'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra flex items-center">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <Send class="mr-5 h-5 w-5" />
-                                        <span class="name" v-text="feed.message"></span>
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'instance.closed'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra flex items-center">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <XCircle class="mr-5 h-5 w-5" />
-                                        <span class="name" v-text="feed.message"></span>
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'PortalSpawn'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra flex items-center">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <template v-if="feed.displayName">
-                                            <Music class="mr-5 h-5 w-5" />
-                                            <span
-                                                class="name mr-5"
-                                                v-text="feed.displayName"
-                                                :style="{ color: feed.tagColour }"></span>
-                                            <VrLocation
-                                                :location="feed.instanceId"
-                                                :hint="feed.worldName"
-                                                :grouphint="feed.groupName"></VrLocation>
-                                        </template>
-                                        <template v-else>
-                                            <Music class="mr-1 h-5 w-5 inline-block" /> User has spawned a portal
-                                        </template>
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'AvatarChange'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra flex items-center">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <Footprints class="mr-5 h-5 w-5" />
-                                        <span
-                                            class="name mr-5"
-                                            v-text="feed.displayName"
-                                            :style="{ color: feed.tagColour }"></span>
-                                        <template v-if="feed.releaseStatus === 'public'">
-                                            <i class="x-user-status online"></i>&nbsp;
-                                        </template>
-                                        <template v-else-if="feed.releaseStatus === 'private'">
-                                            <i class="x-user-status askme"></i>&nbsp;
-                                        </template>
-                                        {{ feed.name }}
-                                        <template v-if="feed.description && feed.description !== feed.name">
-                                            - {{ feed.description }}
-                                        </template>
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'ChatBoxMessage'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra flex items-center">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <MessageSquare class="mr-5 h-5 w-5" />
-                                        <span
-                                            class="name"
-                                            v-text="feed.displayName"
-                                            :style="{ color: feed.tagColour }"></span>
-                                        <span v-text="feed.text"></span>
-                                    </span>
-                                </div>
-                            </div>
-                            <div v-else-if="feed.type === 'Event'" class="x-friend-item">
-                                <div class="detail">
-                                    <span class="extra flex items-center">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <AlertTriangle class="mr-5 h-5 w-5" />
-                                        <span class="name" v-text="feed.data"></span>
-                                    </span>
-                                </div>
-                            </div>
-                            <div v-else-if="feed.type === 'External'" class="x-friend-item">
-                                <div class="detail">
-                                    <span class="extra flex items-center">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <Info class="mr-5 h-5 w-5" />
-                                        <span
-                                            class="name mr-5"
-                                            v-text="feed.displayName"
-                                            :style="{ color: feed.tagColour }"></span>
-                                        <span class="name" v-text="feed.message"></span>
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'BlockedOnPlayerJoined'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra flex items-center">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <Play class="mr-1 h-5 w-5 inline-block" /><Ban class="mr-5 h-5 w-5" />
-                                        <span class="name" v-text="feed.displayName"></span>
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'BlockedOnPlayerLeft'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra flex items-center">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <Play class="mr-1 inline-block h-5 w-5 rotate-180" /><Ban
-                                            class="mr-5 h-5 w-5" />
-                                        <span class="name" v-text="feed.displayName"></span>
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'MutedOnPlayerJoined'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra flex items-center">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <Play class="mr-1 h-5 w-5 inline-block" /><VolumeX class="mr-5 h-5 w-5" />
-                                        <span class="name" v-text="feed.displayName"></span>
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'MutedOnPlayerLeft'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra flex items-center">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <Play class="mr-1 inline-block h-5 w-5 rotate-180" /><VolumeX
-                                            class="mr-5 h-5 w-5" />
-                                        <span class="name" v-text="feed.displayName"></span>
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'Blocked'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra flex items-center">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <Ban class="mr-5 h-5 w-5" />
-                                        <span
-                                            class="name"
-                                            v-text="feed.displayName"
-                                            :style="{ color: feed.tagColour }"></span>
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'Unblocked'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra flex items-center">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <Circle class="mr-5 h-5 w-5" />
-                                        <span
-                                            class="name"
-                                            v-text="feed.displayName"
-                                            :style="{ color: feed.tagColour }"></span>
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'Muted'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra flex items-center">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <VolumeX class="mr-5 h-5 w-5" />
-                                        <span
-                                            class="name"
-                                            v-text="feed.displayName"
-                                            :style="{ color: feed.tagColour }"></span>
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'Unmuted'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra flex items-center">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <Volume2 class="mr-5 h-5 w-5" />
-                                        <span
-                                            class="name"
-                                            v-text="feed.displayName"
-                                            :style="{ color: feed.tagColour }"></span>
-                                    </span>
-                                </div>
-                            </div>
-                        </template>
-                    </template>
-                    <template v-else>
-                        <template
-                            v-for="(feed, index) in wristFeed"
-                            :key="`full-${index}-${feed.type}-${feed.created_at}`">
-                            <div
-                                v-if="feed.type === 'GPS'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra flex items-center">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <template v-if="feed.isTraveling">
-                                            <span class="name" v-text="feed.displayName"></span> is traveling to
-                                            <VrLocation
-                                                :location="feed.location"
-                                                :hint="feed.worldName"
-                                                :grouphint="feed.groupName"
-                                                :instancedisplayname="feed.instanceDisplayName"></VrLocation>
-                                        </template>
-                                        <template v-else>
-                                            <span class="name" v-text="feed.displayName"></span> is in
-                                            <VrLocation
-                                                :location="feed.location"
-                                                :hint="feed.worldName"
-                                                :grouphint="feed.groupName"
-                                                :instancedisplayname="feed.instanceDisplayName"></VrLocation>
-                                        </template>
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'Offline'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <span class="name" v-text="feed.displayName"></span> has logged out
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'Online'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra flex items-center">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <span class="name" v-text="feed.displayName"></span>
-                                        <span class="vr-mx">has logged in</span>
-                                        <template v-if="feed.worldName">
-                                            to
-                                            <VrLocation
-                                                :location="feed.location"
-                                                :hint="feed.worldName"
-                                                :grouphint="feed.groupName"
-                                                :instancedisplayname="feed.instanceDisplayName"></VrLocation>
-                                        </template>
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'Status'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra flex items-center">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <span class="name" v-text="feed.displayName" style="margin-right: 5px"></span>
-                                        <template v-if="feed.statusDescription === feed.previousStatusDescription">
-                                            <i class="x-user-status" :class="statusClass(feed.previousStatus)"></i>
-                                            <ArrowRight class="inline-block h-4 w-4" />
-                                            <i class="x-user-status" :class="statusClass(feed.status)"></i>
-                                        </template>
-                                        <template v-else>
-                                            <i class="x-user-status" :class="statusClass(feed.status)"></i>
-                                            {{ feed.statusDescription }}
-                                        </template>
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'OnPlayerJoined'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <span
-                                            class="name"
-                                            v-text="feed.displayName"
-                                            :style="{ color: feed.tagColour }"></span>
-                                        has joined
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'OnPlayerLeft'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <span
-                                            class="name"
-                                            v-text="feed.displayName"
-                                            :style="{ color: feed.tagColour }"></span>
-                                        has left
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'OnPlayerJoining'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <span class="name" v-text="feed.displayName"></span> is joining
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'Location'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra flex items-center">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <VrLocation
-                                            :location="feed.location"
-                                            :hint="feed.worldName"
-                                            :grouphint="feed.groupName"
-                                            :instancedisplayname="feed.instanceDisplayName"></VrLocation>
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'VideoPlay'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <span
-                                            class="name"
-                                            v-text="feed.displayName"
-                                            :style="{ color: feed.tagColour }"></span>
-                                        <span class="vr-mx">changed video to</span>
-                                        <template v-if="feed.videoName">
-                                            <span v-text="feed.videoName"></span>
-                                        </template>
-                                        <template v-else>
-                                            <span v-text="feed.videoUrl"></span>
-                                        </template>
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'invite'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra flex items-center">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <span class="name" v-text="feed.senderUsername"></span> has invited you to
-                                        <VrLocation
-                                            :location="feed.details.worldId"
-                                            :hint="feed.details.worldName"
-                                            :instancedisplayname="feed.instanceDisplayName"></VrLocation>
-                                        <span v-text="feed.details.inviteMessage"></span>
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'requestInvite'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <span class="name" v-text="feed.senderUsername"></span> has requested an invite
-                                        <span v-text="feed.details.requestMessage"></span>
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'inviteResponse'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <span class="name" v-text="feed.senderUsername"></span> has responded to your
-                                        invite <span v-text="feed.details.responseMessage"></span>
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'requestInviteResponse'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <span class="name" v-text="feed.senderUsername"></span> has responded to your
-                                        invite request <span v-text="feed.details.responseMessage"></span>
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'friendRequest'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <span class="name" v-text="feed.senderUsername"></span> has sent you a friend
-                                        request
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'Friend'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <span class="name" v-text="feed.displayName"></span> is now your friend
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'Unfriend'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <span class="name" v-text="feed.displayName"></span> is no longer your friend
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'DisplayName'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <span class="name" v-text="feed.previousDisplayName"></span> changed their name
-                                        to <span class="name" v-text="feed.displayName"></span>
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'TrustLevel'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <span class="name" v-text="feed.displayName"></span> trust level is now
-                                        {{ feed.trustLevel }}
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'boop'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <span class="name" v-text="feed.senderUsername"></span>
-                                        <span v-text="feed.message"></span>
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'groupChange'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <span class="name" v-text="feed.senderUsername"></span>
-                                        <span v-text="feed.message"></span>
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'group.announcement'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <span class="name" v-text="feed.message"></span>
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'group.event.created'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra flex items-center">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <CalendarPlus class="mr-5 h-5 w-5" />
-                                        <span class="name" v-text="feed.message"></span>
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'group.event.starting'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra flex items-center">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <Clock class="mr-5 h-5 w-5" />
-                                        <span class="name" v-text="feed.message"></span>
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'group.informative'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <span class="name" v-text="feed.message"></span>
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'group.invite'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <span class="name" v-text="feed.message"></span>
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'group.joinRequest'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <span class="name" v-text="feed.message"></span>
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'group.transfer'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <span class="name" v-text="feed.message"></span>
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'group.queueReady'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <span class="name" v-text="feed.message"></span>
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'instance.closed'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <span class="name" v-text="feed.message"></span>
-                                    </span>
-                                </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'PortalSpawn'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra flex items-center">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <template v-if="feed.displayName">
+                                                style="margin-left: 2px"></VrLocation>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else-if="feed.type === 'Offline'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra flex items-center">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <span class="name" v-text="feed.displayName"></span>
+                                            <X class="h-5 w-5" />
+                                        </span>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else-if="feed.type === 'Online'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra flex items-center">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <span class="name" v-text="feed.displayName"></span>
+                                            <Check class="h-5 w-5" />
+                                            <template v-if="feed.worldName">
+                                                <VrLocation
+                                                    :location="feed.location"
+                                                    :hint="feed.worldName"
+                                                    :grouphint="feed.groupName"
+                                                    :instancedisplayname="feed.instanceDisplayName"
+                                                    style="margin-left: 5px"></VrLocation>
+                                            </template>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else-if="feed.type === 'Status'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra flex items-center">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <span class="name" v-text="feed.displayName" style="margin-right: 5px"></span>
+                                            <template v-if="feed.statusDescription === feed.previousStatusDescription">
+                                                <i class="x-user-status" :class="statusClass(feed.previousStatus)"></i>
+                                                <ArrowRight class="h-4 w-4 inline-block" />
+                                                <i class="x-user-status" :class="statusClass(feed.status)"></i>
+                                            </template>
+                                            <template v-else>
+                                                <i class="x-user-status" :class="statusClass(feed.status)"></i>
+                                                {{ feed.statusDescription }}
+                                            </template>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else-if="feed.type === 'OnPlayerJoined'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra flex items-center">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <Play class="mr-5 h-5 w-5" />
                                             <span
                                                 class="name"
                                                 v-text="feed.displayName"
                                                 :style="{ color: feed.tagColour }"></span>
-                                            has spawned a portal to
+                                        </span>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else-if="feed.type === 'OnPlayerLeft'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra flex items-center">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <Play class="mr-5 h-5 w-5 rotate-180" />
+                                            <span
+                                                class="name"
+                                                v-text="feed.displayName"
+                                                :style="{ color: feed.tagColour }"></span>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else-if="feed.type === 'OnPlayerJoining'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra flex items-center">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <Play class="h-5 w-5" />
+                                            <Loader2 class="is-loading mr-5 h-4 w-4" />
+                                            <span class="name" v-text="feed.displayName"></span>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else-if="feed.type === 'Location'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra flex items-center">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
                                             <VrLocation
-                                                :location="feed.instanceId"
+                                                :location="feed.location"
                                                 :hint="feed.worldName"
                                                 :grouphint="feed.groupName"
-                                                style="margin-left: 5px"></VrLocation>
-                                        </template>
-                                        <template v-else> User has spawned a portal </template>
-                                    </span>
+                                                :instancedisplayname="feed.instanceDisplayName"></VrLocation>
+                                        </span>
+                                    </div>
                                 </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'AvatarChange'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <span
-                                            class="name"
-                                            v-text="feed.displayName"
-                                            :style="{ color: feed.tagColour }"></span>
-                                        <span class="vr-mx">changed into avatar</span>
-                                        <template v-if="feed.releaseStatus === 'public'">
-                                            <i class="x-user-status online"></i>
-                                        </template>
-                                        <template v-else>
-                                            <i class="x-user-status askme"></i>
-                                        </template>
-                                        {{ feed.name }}
-                                        <template v-if="feed.description && feed.description !== feed.name">
-                                            - {{ feed.description }}
-                                        </template>
-                                    </span>
+                                <div
+                                    v-else-if="feed.type === 'VideoPlay'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra flex items-center">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <TvMinimalPlay class="mr-5 h-5 w-5" />
+                                            <span
+                                                v-if="feed.displayName"
+                                                class="name"
+                                                v-text="feed.displayName"
+                                                style="margin-right: 5px"
+                                                :style="{ color: feed.tagColour }"></span>
+                                            <template v-if="feed.videoName">
+                                                <span v-text="feed.videoName"></span>
+                                            </template>
+                                            <template v-else>
+                                                <span v-text="feed.videoUrl"></span>
+                                            </template>
+                                        </span>
+                                    </div>
                                 </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'ChatBoxMessage'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <span
-                                            class="name"
-                                            v-text="feed.displayName"
-                                            :style="{ color: feed.tagColour }"></span>
-                                        said <span v-text="feed.text"></span>
-                                    </span>
+                                <div
+                                    v-else-if="feed.type === 'invite'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra flex items-center">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <Send class="mr-5 h-5 w-5" />
+                                            <span class="name mr-5" v-text="feed.senderUsername"></span>
+                                            <VrLocation
+                                                :location="feed.details.worldId"
+                                                :hint="feed.details.worldName"
+                                                :instancedisplayname="feed.instanceDisplayName"></VrLocation>
+                                            <span v-text="feed.details.inviteMessage"></span>
+                                        </span>
+                                    </div>
                                 </div>
-                            </div>
-                            <div v-else-if="feed.type === 'Event'" class="x-friend-item">
-                                <div class="detail">
-                                    <span class="extra">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        Event: <span class="name" v-text="feed.data"></span>
-                                    </span>
+                                <div
+                                    v-else-if="feed.type === 'requestInvite'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra flex items-center">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <Send class="mr-5 h-5 w-5" />
+                                            <span class="name mr-5" v-text="feed.senderUsername"></span>
+                                            <span v-text="feed.details.requestMessage"></span>
+                                        </span>
+                                    </div>
                                 </div>
-                            </div>
-                            <div v-else-if="feed.type === 'External'" class="x-friend-item">
-                                <div class="detail">
-                                    <span class="extra">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        External:
-                                        <span
-                                            class="name"
-                                            v-text="feed.displayName"
-                                            :style="{ color: feed.tagColour }"></span>
-                                        <span class="name" v-text="feed.message"></span>
-                                    </span>
+                                <div
+                                    v-else-if="feed.type === 'inviteResponse'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra flex items-center">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <Send class="mr-5 h-5 w-5" />
+                                            <span class="name mr-5" v-text="feed.senderUsername"></span>
+                                            <span v-text="feed.details.responseMessage"></span>
+                                        </span>
+                                    </div>
                                 </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'BlockedOnPlayerJoined'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        Blocked user <span class="name" v-text="feed.displayName"></span> has joined
-                                    </span>
+                                <div
+                                    v-else-if="feed.type === 'requestInviteResponse'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra flex items-center">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <Send class="mr-5 h-5 w-5" />
+                                            <span class="name mr-5" v-text="feed.senderUsername"></span>
+                                            <span v-text="feed.details.responseMessage"></span>
+                                        </span>
+                                    </div>
                                 </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'BlockedOnPlayerLeft'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        Blocked user <span class="name" v-text="feed.displayName"></span> has left
-                                    </span>
+                                <div
+                                    v-else-if="feed.type === 'friendRequest'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra flex items-center">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <HeartPlus class="mr-5 h-5 w-5" />
+                                            <span class="name" v-text="feed.senderUsername"></span>
+                                        </span>
+                                    </div>
                                 </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'MutedOnPlayerJoined'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        Muted user <span class="name" v-text="feed.displayName"></span> has joined
-                                    </span>
+                                <div
+                                    v-else-if="feed.type === 'Friend'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra flex items-center">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <Heart class="mr-5 h-5 w-5" />
+                                            <span class="name" v-text="feed.displayName"></span>
+                                        </span>
+                                    </div>
                                 </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'MutedOnPlayerLeft'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        Muted user <span class="name" v-text="feed.displayName"></span> has left
-                                    </span>
+                                <div
+                                    v-else-if="feed.type === 'Unfriend'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra flex items-center">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <ThumbsDown class="mr-5 h-5 w-5" />
+                                            <span class="name" v-text="feed.displayName"></span>
+                                        </span>
+                                    </div>
                                 </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'Blocked'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <span
-                                            class="name"
-                                            v-text="feed.displayName"
-                                            :style="{ color: feed.tagColour }"></span>
-                                        has blocked you
-                                    </span>
+                                <div
+                                    v-else-if="feed.type === 'DisplayName'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra flex items-center">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <Pencil class="mr-5 h-5 w-5" />
+                                            <span class="name" v-text="feed.previousDisplayName"></span>
+                                            <ArrowRight class="mr-5 h-4 w-4 inline-block" />
+                                            <span class="name" v-text="feed.displayName"></span>
+                                        </span>
+                                    </div>
                                 </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'Unblocked'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <span
-                                            class="name"
-                                            v-text="feed.displayName"
-                                            :style="{ color: feed.tagColour }"></span>
-                                        has unblocked you
-                                    </span>
+                                <div
+                                    v-else-if="feed.type === 'TrustLevel'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra flex items-center">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <GraduationCap class="mr-5 h-5 w-5" />
+                                            <span class="name" v-text="feed.displayName"></span>
+                                            {{ feed.previousTrustLevel }}
+                                            <ArrowRight class="mx-1 inline-block h-4 w-4" />
+                                            {{ feed.trustLevel }}
+                                        </span>
+                                    </div>
                                 </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'Muted'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <span
-                                            class="name"
-                                            v-text="feed.displayName"
-                                            :style="{ color: feed.tagColour }"></span>
-                                        has muted you
-                                    </span>
+                                <div
+                                    v-else-if="feed.type === 'boop'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra flex items-center">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <HeartHandshake class="mr-5 h-5 w-5" />
+                                            <span class="name mr-5" v-text="feed.senderUsername"></span>
+                                            <span v-text="feed.message"></span>
+                                        </span>
+                                    </div>
                                 </div>
-                            </div>
-                            <div
-                                v-else-if="feed.type === 'Unmuted'"
-                                class="x-friend-item"
-                                :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
-                                <div class="detail">
-                                    <span class="extra">
-                                        <span class="time">{{ formatDate(feed.created_at) }}</span>
-                                        <span
-                                            class="name"
-                                            v-text="feed.displayName"
-                                            :style="{ color: feed.tagColour }"></span>
-                                        has unmuted you
-                                    </span>
+                                <div
+                                    v-else-if="feed.type === 'groupChange'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra flex items-center">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <Tag class="mr-5 h-5 w-5" />
+                                            <span class="name mr-5" v-text="feed.senderUsername"></span>
+                                            <span v-text="feed.message"></span>
+                                        </span>
+                                    </div>
                                 </div>
-                            </div>
+                                <div
+                                    v-else-if="feed.type === 'group.announcement'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra flex items-center">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <Megaphone class="mr-5 h-5 w-5" />
+                                            <span class="name" v-text="feed.message"></span>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else-if="feed.type === 'group.event.created'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra flex items-center">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <CalendarPlus class="mr-5 h-5 w-5" />
+                                            <span class="name" v-text="feed.message"></span>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else-if="feed.type === 'group.event.starting'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra flex items-center">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <CalendarCheck class="mr-5 h-5 w-5" />
+                                            <span class="name" v-text="feed.message"></span>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else-if="feed.type === 'group.informative'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra flex items-center">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <Megaphone class="mr-5 h-5 w-5" />
+                                            <span class="name" v-text="feed.message"></span>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else-if="feed.type === 'group.invite'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra flex items-center">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <Tag class="mr-5 h-5 w-5" />
+                                            <span class="name" v-text="feed.message"></span>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else-if="feed.type === 'group.joinRequest'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra flex items-center">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <Tag class="mr-5 h-5 w-5" />
+                                            <span class="name" v-text="feed.message"></span>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else-if="feed.type === 'group.transfer'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra flex items-center">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <Tag class="mr-5 h-5 w-5" />
+                                            <span class="name" v-text="feed.message"></span>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else-if="feed.type === 'group.queueReady'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra flex items-center">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <Send class="mr-5 h-5 w-5" />
+                                            <span class="name" v-text="feed.message"></span>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else-if="feed.type === 'instance.closed'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra flex items-center">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <XCircle class="mr-5 h-5 w-5" />
+                                            <span class="name" v-text="feed.message"></span>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else-if="feed.type === 'PortalSpawn'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra flex items-center">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <template v-if="feed.displayName">
+                                                <Music class="mr-5 h-5 w-5" />
+                                                <span
+                                                    class="name mr-5"
+                                                    v-text="feed.displayName"
+                                                    :style="{ color: feed.tagColour }"></span>
+                                                <VrLocation
+                                                    :location="feed.instanceId"
+                                                    :hint="feed.worldName"
+                                                    :grouphint="feed.groupName"></VrLocation>
+                                            </template>
+                                            <template v-else>
+                                                <Music class="mr-1 h-5 w-5 inline-block" /> User has spawned a portal
+                                            </template>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else-if="feed.type === 'AvatarChange'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra flex items-center">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <Footprints class="mr-5 h-5 w-5" />
+                                            <span
+                                                class="name mr-5"
+                                                v-text="feed.displayName"
+                                                :style="{ color: feed.tagColour }"></span>
+                                            <template v-if="feed.releaseStatus === 'public'">
+                                                <i class="x-user-status online"></i>&nbsp;
+                                            </template>
+                                            <template v-else-if="feed.releaseStatus === 'private'">
+                                                <i class="x-user-status askme"></i>&nbsp;
+                                            </template>
+                                            {{ feed.name }}
+                                            <template v-if="feed.description && feed.description !== feed.name">
+                                                - {{ feed.description }}
+                                            </template>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else-if="feed.type === 'ChatBoxMessage'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra flex items-center">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <MessageSquare class="mr-5 h-5 w-5" />
+                                            <span
+                                                class="name"
+                                                v-text="feed.displayName"
+                                                :style="{ color: feed.tagColour }"></span>
+                                            <span v-text="feed.text"></span>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div v-else-if="feed.type === 'Event'" class="x-friend-item">
+                                    <div class="detail">
+                                        <span class="extra flex items-center">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <AlertTriangle class="mr-5 h-5 w-5" />
+                                            <span class="name" v-text="feed.data"></span>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div v-else-if="feed.type === 'External'" class="x-friend-item">
+                                    <div class="detail">
+                                        <span class="extra flex items-center">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <Info class="mr-5 h-5 w-5" />
+                                            <span
+                                                class="name mr-5"
+                                                v-text="feed.displayName"
+                                                :style="{ color: feed.tagColour }"></span>
+                                            <span class="name" v-text="feed.message"></span>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else-if="feed.type === 'BlockedOnPlayerJoined'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra flex items-center">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <Play class="mr-1 h-5 w-5 inline-block" /><Ban class="mr-5 h-5 w-5" />
+                                            <span class="name" v-text="feed.displayName"></span>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else-if="feed.type === 'BlockedOnPlayerLeft'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra flex items-center">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <Play class="mr-1 inline-block h-5 w-5 rotate-180" /><Ban
+                                                class="mr-5 h-5 w-5" />
+                                            <span class="name" v-text="feed.displayName"></span>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else-if="feed.type === 'MutedOnPlayerJoined'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra flex items-center">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <Play class="mr-1 h-5 w-5 inline-block" /><VolumeX class="mr-5 h-5 w-5" />
+                                            <span class="name" v-text="feed.displayName"></span>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else-if="feed.type === 'MutedOnPlayerLeft'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra flex items-center">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <Play class="mr-1 inline-block h-5 w-5 rotate-180" /><VolumeX
+                                                class="mr-5 h-5 w-5" />
+                                            <span class="name" v-text="feed.displayName"></span>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else-if="feed.type === 'Blocked'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra flex items-center">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <Ban class="mr-5 h-5 w-5" />
+                                            <span
+                                                class="name"
+                                                v-text="feed.displayName"
+                                                :style="{ color: feed.tagColour }"></span>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else-if="feed.type === 'Unblocked'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra flex items-center">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <Circle class="mr-5 h-5 w-5" />
+                                            <span
+                                                class="name"
+                                                v-text="feed.displayName"
+                                                :style="{ color: feed.tagColour }"></span>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else-if="feed.type === 'Muted'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra flex items-center">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <VolumeX class="mr-5 h-5 w-5" />
+                                            <span
+                                                class="name"
+                                                v-text="feed.displayName"
+                                                :style="{ color: feed.tagColour }"></span>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else-if="feed.type === 'Unmuted'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra flex items-center">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <Volume2 class="mr-5 h-5 w-5" />
+                                            <span
+                                                class="name"
+                                                v-text="feed.displayName"
+                                                :style="{ color: feed.tagColour }"></span>
+                                        </span>
+                                    </div>
+                                </div>
+                            </template>
                         </template>
-                    </template>
+                        <template v-else>
+                            <template
+                                v-for="(feed, index) in wristFeed"
+                                :key="`full-${index}-${feed.type}-${feed.created_at}`">
+                                <div
+                                    v-if="feed.type === 'GPS'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra flex items-center">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <template v-if="feed.isTraveling">
+                                                <span class="name" v-text="feed.displayName"></span> is traveling to
+                                                <VrLocation
+                                                    :location="feed.location"
+                                                    :hint="feed.worldName"
+                                                    :grouphint="feed.groupName"
+                                                    :instancedisplayname="feed.instanceDisplayName"></VrLocation>
+                                            </template>
+                                            <template v-else>
+                                                <span class="name" v-text="feed.displayName"></span> is in
+                                                <VrLocation
+                                                    :location="feed.location"
+                                                    :hint="feed.worldName"
+                                                    :grouphint="feed.groupName"
+                                                    :instancedisplayname="feed.instanceDisplayName"></VrLocation>
+                                            </template>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else-if="feed.type === 'Offline'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <span class="name" v-text="feed.displayName"></span> has logged out
+                                        </span>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else-if="feed.type === 'Online'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra flex items-center">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <span class="name" v-text="feed.displayName"></span>
+                                            <span class="vr-mx">has logged in</span>
+                                            <template v-if="feed.worldName">
+                                                to
+                                                <VrLocation
+                                                    :location="feed.location"
+                                                    :hint="feed.worldName"
+                                                    :grouphint="feed.groupName"
+                                                    :instancedisplayname="feed.instanceDisplayName"></VrLocation>
+                                            </template>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else-if="feed.type === 'Status'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra flex items-center">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <span class="name" v-text="feed.displayName" style="margin-right: 5px"></span>
+                                            <template v-if="feed.statusDescription === feed.previousStatusDescription">
+                                                <i class="x-user-status" :class="statusClass(feed.previousStatus)"></i>
+                                                <ArrowRight class="inline-block h-4 w-4" />
+                                                <i class="x-user-status" :class="statusClass(feed.status)"></i>
+                                            </template>
+                                            <template v-else>
+                                                <i class="x-user-status" :class="statusClass(feed.status)"></i>
+                                                {{ feed.statusDescription }}
+                                            </template>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else-if="feed.type === 'OnPlayerJoined'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <span
+                                                class="name"
+                                                v-text="feed.displayName"
+                                                :style="{ color: feed.tagColour }"></span>
+                                            has joined
+                                        </span>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else-if="feed.type === 'OnPlayerLeft'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <span
+                                                class="name"
+                                                v-text="feed.displayName"
+                                                :style="{ color: feed.tagColour }"></span>
+                                            has left
+                                        </span>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else-if="feed.type === 'OnPlayerJoining'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <span class="name" v-text="feed.displayName"></span> is joining
+                                        </span>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else-if="feed.type === 'Location'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra flex items-center">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <VrLocation
+                                                :location="feed.location"
+                                                :hint="feed.worldName"
+                                                :grouphint="feed.groupName"
+                                                :instancedisplayname="feed.instanceDisplayName"></VrLocation>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else-if="feed.type === 'VideoPlay'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <span
+                                                class="name"
+                                                v-text="feed.displayName"
+                                                :style="{ color: feed.tagColour }"></span>
+                                            <span class="vr-mx">changed video to</span>
+                                            <template v-if="feed.videoName">
+                                                <span v-text="feed.videoName"></span>
+                                            </template>
+                                            <template v-else>
+                                                <span v-text="feed.videoUrl"></span>
+                                            </template>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else-if="feed.type === 'invite'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra flex items-center">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <span class="name" v-text="feed.senderUsername"></span> has invited you to
+                                            <VrLocation
+                                                :location="feed.details.worldId"
+                                                :hint="feed.details.worldName"
+                                                :instancedisplayname="feed.instanceDisplayName"></VrLocation>
+                                            <span v-text="feed.details.inviteMessage"></span>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else-if="feed.type === 'requestInvite'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <span class="name" v-text="feed.senderUsername"></span> has requested an invite
+                                            <span v-text="feed.details.requestMessage"></span>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else-if="feed.type === 'inviteResponse'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <span class="name" v-text="feed.senderUsername"></span> has responded to your
+                                            invite <span v-text="feed.details.responseMessage"></span>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else-if="feed.type === 'requestInviteResponse'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <span class="name" v-text="feed.senderUsername"></span> has responded to your
+                                            invite request <span v-text="feed.details.responseMessage"></span>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else-if="feed.type === 'friendRequest'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <span class="name" v-text="feed.senderUsername"></span> has sent you a friend
+                                            request
+                                        </span>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else-if="feed.type === 'Friend'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <span class="name" v-text="feed.displayName"></span> is now your friend
+                                        </span>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else-if="feed.type === 'Unfriend'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <span class="name" v-text="feed.displayName"></span> is no longer your friend
+                                        </span>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else-if="feed.type === 'DisplayName'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <span class="name" v-text="feed.previousDisplayName"></span> changed their name
+                                            to <span class="name" v-text="feed.displayName"></span>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else-if="feed.type === 'TrustLevel'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <span class="name" v-text="feed.displayName"></span> trust level is now
+                                            {{ feed.trustLevel }}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else-if="feed.type === 'boop'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <span class="name" v-text="feed.senderUsername"></span>
+                                            <span v-text="feed.message"></span>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else-if="feed.type === 'groupChange'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <span class="name" v-text="feed.senderUsername"></span>
+                                            <span v-text="feed.message"></span>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else-if="feed.type === 'group.announcement'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <span class="name" v-text="feed.message"></span>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else-if="feed.type === 'group.event.created'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra flex items-center">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <CalendarPlus class="mr-5 h-5 w-5" />
+                                            <span class="name" v-text="feed.message"></span>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else-if="feed.type === 'group.event.starting'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra flex items-center">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <Clock class="mr-5 h-5 w-5" />
+                                            <span class="name" v-text="feed.message"></span>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else-if="feed.type === 'group.informative'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <span class="name" v-text="feed.message"></span>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else-if="feed.type === 'group.invite'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <span class="name" v-text="feed.message"></span>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else-if="feed.type === 'group.joinRequest'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <span class="name" v-text="feed.message"></span>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else-if="feed.type === 'group.transfer'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <span class="name" v-text="feed.message"></span>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else-if="feed.type === 'group.queueReady'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <span class="name" v-text="feed.message"></span>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else-if="feed.type === 'instance.closed'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <span class="name" v-text="feed.message"></span>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else-if="feed.type === 'PortalSpawn'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra flex items-center">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <template v-if="feed.displayName">
+                                                <span
+                                                    class="name"
+                                                    v-text="feed.displayName"
+                                                    :style="{ color: feed.tagColour }"></span>
+                                                has spawned a portal to
+                                                <VrLocation
+                                                    :location="feed.instanceId"
+                                                    :hint="feed.worldName"
+                                                    :grouphint="feed.groupName"
+                                                    style="margin-left: 5px"></VrLocation>
+                                            </template>
+                                            <template v-else> User has spawned a portal </template>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else-if="feed.type === 'AvatarChange'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <span
+                                                class="name"
+                                                v-text="feed.displayName"
+                                                :style="{ color: feed.tagColour }"></span>
+                                            <span class="vr-mx">changed into avatar</span>
+                                            <template v-if="feed.releaseStatus === 'public'">
+                                                <i class="x-user-status online"></i>
+                                            </template>
+                                            <template v-else>
+                                                <i class="x-user-status askme"></i>
+                                            </template>
+                                            {{ feed.name }}
+                                            <template v-if="feed.description && feed.description !== feed.name">
+                                                - {{ feed.description }}
+                                            </template>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else-if="feed.type === 'ChatBoxMessage'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <span
+                                                class="name"
+                                                v-text="feed.displayName"
+                                                :style="{ color: feed.tagColour }"></span>
+                                            said <span v-text="feed.text"></span>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div v-else-if="feed.type === 'Event'" class="x-friend-item">
+                                    <div class="detail">
+                                        <span class="extra">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            Event: <span class="name" v-text="feed.data"></span>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div v-else-if="feed.type === 'External'" class="x-friend-item">
+                                    <div class="detail">
+                                        <span class="extra">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            External:
+                                            <span
+                                                class="name"
+                                                v-text="feed.displayName"
+                                                :style="{ color: feed.tagColour }"></span>
+                                            <span class="name" v-text="feed.message"></span>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else-if="feed.type === 'BlockedOnPlayerJoined'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            Blocked user <span class="name" v-text="feed.displayName"></span> has joined
+                                        </span>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else-if="feed.type === 'BlockedOnPlayerLeft'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            Blocked user <span class="name" v-text="feed.displayName"></span> has left
+                                        </span>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else-if="feed.type === 'MutedOnPlayerJoined'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            Muted user <span class="name" v-text="feed.displayName"></span> has joined
+                                        </span>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else-if="feed.type === 'MutedOnPlayerLeft'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            Muted user <span class="name" v-text="feed.displayName"></span> has left
+                                        </span>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else-if="feed.type === 'Blocked'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <span
+                                                class="name"
+                                                v-text="feed.displayName"
+                                                :style="{ color: feed.tagColour }"></span>
+                                            has blocked you
+                                        </span>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else-if="feed.type === 'Unblocked'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <span
+                                                class="name"
+                                                v-text="feed.displayName"
+                                                :style="{ color: feed.tagColour }"></span>
+                                            has unblocked you
+                                        </span>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else-if="feed.type === 'Muted'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <span
+                                                class="name"
+                                                v-text="feed.displayName"
+                                                :style="{ color: feed.tagColour }"></span>
+                                            has muted you
+                                        </span>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else-if="feed.type === 'Unmuted'"
+                                    class="x-friend-item"
+                                    :class="{ friend: feed.isFriend, favorite: feed.isFavorite }">
+                                    <div class="detail">
+                                        <span class="extra">
+                                            <span class="time">{{ formatDate(feed.created_at) }}</span>
+                                            <span
+                                                class="name"
+                                                v-text="feed.displayName"
+                                                :style="{ color: feed.tagColour }"></span>
+                                            has unmuted you
+                                        </span>
+                                    </div>
+                                </div>
+                            </template>
+                        </template>
+                    </div>
                 </div>
+                <!-- the glass on top: a moving highlight, and the scan line that runs once on open -->
+                <div class="vr-glass"></div>
+                <div class="vr-scanline"></div>
             </div>
         </div>
         <!-- Aurora SteamVR dashboard: big buttons for the laser pointer -->
@@ -1509,12 +1564,111 @@
 
 
     // Aurora in the headset: a tiny synth blip for events, alarms and the quick controls.
-    const neonState = reactive({ accent: '#b4b4b4', mm: false, mmMuted: false, mmApp: '', mmVol: 80, song: '', artist: '', playing: false, chatbox: false, sounds: true, afk: false, music: false, preview: '', nextAlarm: '' });
+    const neonState = reactive({ accent: '#b4b4b4', mm: false, mmMuted: false, mmApp: '', mmVol: 80, song: '', artist: '', playing: false, chatbox: false, sounds: true, afk: false, music: false, preview: '', nextAlarm: '', watchAlert: null });
+    // ---- the wrist opening: the overlay host calls wristShown / wristHidden ----
+    const wristStage = ref(null);
+    const wristPhase = ref('');
+    let wristTimer = null;
+    function wristHidden() {
+        clearTimeout(wristTimer);
+        wristPhase.value = 'closed';
+    }
+    function wristShown() {
+        clearTimeout(wristTimer);
+        wristPhase.value = 'closed';
+        // restart the animation from the first frame
+        void wristStage.value?.offsetWidth;
+        requestAnimationFrame(() => {
+            wristPhase.value = 'opening';
+            wristTimer = setTimeout(() => (wristPhase.value = ''), 2000);
+        });
+    }
+
+    // ---- glitches: rare on their own, and whenever something happens ----
+    const glitchOn = ref(false);
+    const glitchBars = ref([]);
+    const noiseStyle = ref({});
+    let glitchTimer = null;
+    let glitchLoop = null;
+    let glitchId = 0;
+    function wristGlitch(strength = 1) {
+        const n = 3 + Math.round(Math.random() * 4 * strength);
+        glitchBars.value = Array.from({ length: n }, () => ({
+            id: glitchId++,
+            top: 40 + Math.random() * 420,
+            h: 2 + Math.random() * 16 * strength,
+            dx: (Math.random() - 0.5) * 50 * strength
+        }));
+        glitchOn.value = false;
+        void wristStage.value?.offsetWidth;
+        requestAnimationFrame(() => {
+            glitchOn.value = true;
+            clearTimeout(glitchTimer);
+            glitchTimer = setTimeout(() => (glitchOn.value = false), 420);
+        });
+    }
+    function scheduleGlitch() {
+        clearTimeout(glitchLoop);
+        glitchLoop = setTimeout(
+            () => {
+                if (wristPhase.value === '') {
+                    wristGlitch(0.6 + Math.random() * 0.6);
+                }
+                scheduleGlitch();
+            },
+            22000 + Math.random() * 26000
+        );
+    }
+    /** a small tile of grey static, made once */
+    function makeNoise() {
+        try {
+            const c = document.createElement('canvas');
+            c.width = c.height = 96;
+            const g = c.getContext('2d');
+            const img = g.createImageData(96, 96);
+            for (let i = 0; i < img.data.length; i += 4) {
+                const v = Math.random() * 255;
+                img.data[i] = img.data[i + 1] = img.data[i + 2] = v;
+                img.data[i + 3] = Math.random() < 0.5 ? 255 : 0;
+            }
+            g.putImageData(img, 0, 0);
+            noiseStyle.value = { '--vr-noise': `url(${c.toDataURL()})` };
+        } catch {
+            // no canvas, no static
+        }
+    }
+
+    let lastWatchAt = 0;
     function neonStateUpdate(json) {
-        Object.assign(neonState, JSON.parse(json));
+        Object.assign(neonState, { watchAlert: null }, JSON.parse(json));
+        // a soft double tick when someone flagged joins
+        if (neonState.watchAlert && neonState.watchAlert.at !== lastWatchAt) {
+            lastWatchAt = neonState.watchAlert.at;
+            wristGlitch(1.4);
+            if (neonState.sounds) {
+                blip([
+                    [660, 0.08],
+                    [520, 0.12]
+                ]);
+            }
+        }
         document.documentElement.style.setProperty('--vr-accent', neonState.accent || '#b4b4b4');
     }
+    // quitting needs a second tap within 3 seconds
+    const quitArmed = ref(false);
+    let quitArmTimer = null;
     function dashPress(cmd) {
+        if (cmd === 'quitGame' && !quitArmed.value) {
+            quitArmed.value = true;
+            clearTimeout(quitArmTimer);
+            quitArmTimer = setTimeout(() => (quitArmed.value = false), 3000);
+            blip([[600, 0.06]]);
+            return;
+        }
+        if (cmd === 'quitGame') {
+            quitArmed.value = false;
+            clearTimeout(quitArmTimer);
+        }
         try {
             AppApiVr.NeonCommand(cmd);
         } catch (e) {
@@ -1556,7 +1710,10 @@
         },
         {
             title: 'Overlay',
-            buttons: [{ cmd: 'sounds', icon: 'speaker', label: 'Beeps', state: onOffWord(neonState.sounds), on: neonState.sounds }]
+            buttons: [
+                { cmd: 'sounds', icon: 'speaker', label: 'Beeps', state: onOffWord(neonState.sounds), on: neonState.sounds },
+                { cmd: 'quitGame', icon: 'power', label: quitArmed.value ? 'Tap again' : 'Crash VRChat', state: quitArmed.value ? 'to crash' : undefined, warn: true }
+            ]
         }
     ]);
     const musicLine = computed(() =>
@@ -1571,6 +1728,7 @@
     function neonAlarm(json) {
         const data = JSON.parse(json);
         alarmBanner.value = data;
+        wristGlitch(1.2);
         const notes = [];
         for (let i = 0; i < 6; i++) {
             notes.push([880, 0.14], [1175, 0.14]);
@@ -1731,6 +1889,11 @@
         window.$vr.wristFeedUpdate = wristFeedUpdate;
         window.$vr.neonAlarm = neonAlarm;
         window.$vr.neonState = neonStateUpdate;
+        window.$vr.wristShown = wristShown;
+        window.$vr.wristHidden = wristHidden;
+        window.$vr.wristGlitch = wristGlitch;
+        makeNoise();
+        scheduleGlitch();
         window.$vr.neonAlarmStop = neonAlarmStop;
         window.$vr.refreshCustomScript = refreshCustomScript;
         window.$vr.playNoty = playNoty;
@@ -1765,6 +1928,8 @@
     onBeforeUnmount(() => {
         isUnmounted = true;
         clearInterval(clockTimer);
+        clearTimeout(glitchLoop);
+        clearTimeout(glitchTimer);
 
         if (updateStatsLoopTimeoutId !== null) {
             workerTimers.clearTimeout(updateStatsLoopTimeoutId);

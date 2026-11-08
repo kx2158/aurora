@@ -105,17 +105,27 @@ await desk.waitForTimeout(1500);
 const deskState = {
     theme: 'xraydark',
     dark: true,
-    axh: '293',
-    axk: '1.2',
+    axh: '0',
+    axk: '0',
     hotkey: 'Ctrl+Shift+A',
     chatbox: { enabled: true, preview: '21:14 | The Great Pug | 7 friends online' },
     alarms: [
         { id: 1, time: '21:40', label: 'Timer 25 min', daily: false, enabled: true },
         { id: 2, time: '23:30', label: 'Bed', daily: true, enabled: true }
     ],
+    here: {
+        place: 'The Great Pug',
+        alert: { id: 'usr_x1', name: 'NightOwl_42', text: 'Watch: spammed the mirror last week / Account 6 days old', at: Date.now() },
+        people: [
+            { id: 'usr_x1', name: 'NightOwl_42', since: Date.now() - 40000, trust: 'New User', friend: false, watched: true, flags: [{ key: 'watch', label: 'Watch: spammed the mirror last week' }, { key: 'new', label: 'Account 6 days old' }] },
+            { id: 'usr_x2', name: 'Mirai', since: Date.now() - 9 * 60000, trust: 'Trusted User', friend: true, watched: false, flags: [] },
+            { id: 'usr_x3', name: 'pixelmoth', since: Date.now() - 24 * 60000, trust: 'Known User', friend: false, watched: false, flags: [{ key: 'blocked', label: 'You blocked them' }] },
+            { id: 'usr_x4', name: 'Kael', since: Date.now() - 75 * 60000, trust: 'User', friend: true, watched: false, flags: [] }
+        ]
+    },
     mm: { running: true, micMuted: false, app: 'Spotify', apps: ['Spotify', 'Firefox'], micVol: 1.2, musicVol: 0.6, micNoise: 0.5, micBass: 0.2, musicBass: 0.35, micPeak: 0.45, outPeak: 0.62, error: '' }
 };
-for (const tab of ['Mic', 'Timers', 'Chatbox']) {
+for (const tab of ['Mic', 'Timers', 'Chatbox', 'Here']) {
     await desk.evaluate((st) => window.deskState(JSON.stringify(st)), deskState);
     await desk.getByRole('button', { name: tab }).first().click().catch(() => {});
     await desk.waitForTimeout(500);
@@ -157,6 +167,55 @@ await vr
 await vr.waitForTimeout(800);
 await vr.screenshot({ path: `${out}/vr-dash.jpg`, type: 'jpeg', quality: 80, clip: { x: 1024, y: 0, width: 1024, height: 1024 } });
 await vr.screenshot({ path: `${out}/vr-wrist.jpg`, type: 'jpeg', quality: 85, clip: { x: 0, y: 0, width: 512, height: 512 } });
+// the opening animation, frozen at a few moments
+try {
+    await vr.evaluate(() => window.$vr.wristShown());
+    await vr.waitForTimeout(100);
+    for (const t of [120, 380, 700, 1100]) {
+        await vr.evaluate((ms) => document.getAnimations().forEach((a) => { a.pause(); a.currentTime = ms; }), t);
+        await vr.waitForTimeout(150);
+        await vr.screenshot({ path: `${out}/vr-open-${t}.jpg`, type: 'jpeg', quality: 82, clip: { x: 0, y: 0, width: 512, height: 512 } });
+    }
+    await vr.evaluate(() => document.getAnimations().forEach((a) => a.play()));
+    await vr.waitForTimeout(2300);
+} catch (e) {
+    logs.push('[vr open] ' + e.message);
+}
+await vr.screenshot({ path: `${out}/vr-wrist-3d.jpg`, type: 'jpeg', quality: 88, clip: { x: 0, y: 0, width: 512, height: 512 } });
+// a made-up night world behind the watch, to show the see-through glass and the glitches
+await vr.addStyleTag({
+    content: `html, body, #x-app { background:
+        radial-gradient(circle at 18% 30%, rgba(255, 120, 200, 0.85), transparent 14%),
+        radial-gradient(circle at 70% 18%, rgba(90, 170, 255, 0.9), transparent 16%),
+        radial-gradient(circle at 45% 75%, rgba(255, 190, 90, 0.75), transparent 18%),
+        radial-gradient(circle at 85% 65%, rgba(140, 255, 210, 0.6), transparent 12%),
+        repeating-linear-gradient(90deg, rgba(255,255,255,0.06) 0 2px, transparent 2px 64px),
+        linear-gradient(180deg, #1a1630 0%, #2b2046 45%, #0e0c18 100%) !important; }`
+});
+await vr.waitForTimeout(400);
+await vr.screenshot({ path: `${out}/vr-glass.jpg`, type: 'jpeg', quality: 88, clip: { x: 0, y: 0, width: 512, height: 512 } });
+try {
+    await vr.evaluate(() => window.$vr.wristGlitch(1.4));
+    await vr.waitForTimeout(80);
+    for (const t of [40, 140, 240]) {
+        await vr.evaluate((ms) => document.getAnimations().forEach((a) => { a.pause(); a.currentTime = ms; }), t);
+        await vr.waitForTimeout(120);
+        await vr.screenshot({ path: `${out}/vr-glitch-${t}.jpg`, type: 'jpeg', quality: 85, clip: { x: 0, y: 0, width: 512, height: 512 } });
+    }
+    await vr.evaluate(() => document.getAnimations().forEach((a) => a.play()));
+} catch (e) {
+    logs.push('[vr glitch] ' + e.message);
+}
+// someone flagged joined
+await vr
+    .evaluate(() =>
+        window.$vr?.neonState?.(
+            JSON.stringify({ accent: '#b4b4b4', chatbox: true, mm: true, mmVol: 60, sounds: false, watchAlert: { id: 'usr_x1', name: 'NightOwl_42', text: 'Account 6 days old', at: 1 } })
+        )
+    )
+    .catch(() => {});
+await vr.waitForTimeout(500);
+await vr.screenshot({ path: `${out}/vr-wrist-alert.jpg`, type: 'jpeg', quality: 85, clip: { x: 0, y: 0, width: 512, height: 512 } });
 
 fs.writeFileSync(`${out}/console.txt`, logs.join('\n'));
 await browser.close();

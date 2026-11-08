@@ -42,6 +42,7 @@
     import { forgetOldAssistant } from './services/auroraLegacy';
     import { initAlarms } from './services/auroraAlarms';
     import { deskCommand, initVrBridge, neonCommand } from './services/auroraVrBridge';
+    import { initInstanceWatch } from './services/auroraWatch';
     import { initIntegrations } from './services/auroraIntegrations';
 
     import AuroraLockScreen from './components/AuroraLockScreen.vue';
@@ -72,6 +73,7 @@
     setTimeout(forgetOldAssistant, 20000);
     initAlarms();
     initVrBridge();
+    initInstanceWatch();
 
     const store = createGlobalStores();
     setTimeout(() => watchGameForMic(() => !!store.game?.isGameRunning), 4000);

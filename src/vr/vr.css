@@ -775,14 +775,22 @@ i.x-user-status.busy {
     gap: 2px;
     font-family: 'JetBrains Mono', 'Cascadia Mono', Consolas, 'Courier New', monospace;
 }
-.vr-day {
-    font-size: 30px;
-    font-weight: 500;
+.vr-digits {
+    font-size: 46px;
+    font-weight: 400;
+    line-height: 1;
     letter-spacing: 0.04em;
-    text-transform: lowercase;
+    font-variant-numeric: tabular-nums;
     color: var(--vr-text);
+    text-shadow: 0 0 10px rgba(230, 232, 238, 0.18);
+}
+.vr-digits small {
+    margin-left: 2px;
+    font-size: 16px;
+    color: var(--vr-text-muted);
 }
 .vr-date {
+    margin-top: 6px;
     font-size: var(--vr-font-sm);
     letter-spacing: 0.12em;
     text-transform: lowercase;

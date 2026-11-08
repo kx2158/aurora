@@ -27,12 +27,11 @@
                     <line x1="100" y1="100" x2="100" y2="30" class="orb-hand" :transform="`rotate(${clock.ma} 100 100)`" />
                     <circle cx="100" cy="12" r="3.2" class="orb-sec" :transform="`rotate(${clock.sa} 100 100)`" />
                     <circle cx="100" cy="100" r="3" class="orb-core" />
-                    <text x="100" y="140" class="orb-digits">{{ clock.hm }}<tspan class="orb-secs">{{ clock.sec }}</tspan></text>
                     <text x="100" y="74" class="orb-label">layer {{ clock.layer }}</text>
                 </svg>
                 <div class="vr-side">
-                    <span class="vr-day">{{ clock.day }}</span>
-                    <span class="vr-date">{{ clock.date }}</span>
+                    <span class="vr-digits">{{ clock.hm }}<small>{{ clock.sec }}</small></span>
+                    <span class="vr-date">{{ clock.day }} / {{ clock.date }}</span>
                     <span class="vr-wire">connected<span class="vr-blink">_</span></span>
                     <div v-if="neonState.song" class="vr-now">
                         <span class="vr-eq" :class="{ live: neonState.playing }"><i></i><i></i><i></i><i></i></span>

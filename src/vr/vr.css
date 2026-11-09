@@ -1560,7 +1560,7 @@ i.x-user-status.busy {
 
 /* ---- closing: about 0.65 seconds, like an old screen switching off ---- */
 .vr-stage.closing {
-    animation: vr-close-stage 0.66s cubic-bezier(0.55, 0, 0.75, 0.2) both;
+    animation: vr-close-stage 0.66s ease-in both;
 }
 @keyframes vr-close-stage {
     0% {
@@ -1634,12 +1634,12 @@ i.x-user-status.busy {
 }
 @keyframes vr-flash {
     0%,
-    35% {
+    48% {
         background-color: transparent;
     }
-    65%,
+    62%,
     100% {
-        background-color: rgba(255, 255, 255, 0.75);
+        background-color: rgba(255, 255, 255, 0.7);
     }
 }
 .closing .vr-glitch::before {

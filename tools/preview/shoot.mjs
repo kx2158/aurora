@@ -226,7 +226,7 @@ try {
     await cdp.send('Animation.setPlaybackRate', { playbackRate: 0.1 });
     const t0 = Date.now();
     await vr.evaluate(() => window.$vr.wristClosing());
-    for (const t of [120, 300, 450, 600]) {
+    for (const t of [150, 330, 440, 560]) {
         const wait = t0 + t * 10 - Date.now();
         if (wait > 0) await vr.waitForTimeout(wait);
         await vr.screenshot({ path: `${out}/vr-close-${t}.jpg`, type: 'jpeg', quality: 82, clip: { x: 0, y: 0, width: 512, height: 512 } });

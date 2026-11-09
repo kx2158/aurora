@@ -52,6 +52,26 @@
             <DeskSlider :label="t('view.mic.volume')" :value="mm.micVol" :max="5" :step="0.05" :fmt="pct" @set="(v) => setMm('micVol', v)" />
             <DeskSlider :label="t('view.mic.noise')" :value="mm.micNoise" :max="1" :step="0.05" :fmt="noise" @set="(v) => setMm('micNoise', v)" />
             <DeskSlider :label="t('view.mic.bass')" :value="mm.micBass" :max="1" :step="0.01" :fmt="pct" @set="(v) => setMm('micBass', v)" />
+            <div class="desk-fx">
+                <button
+                    v-for="fx in fxList"
+                    :key="fx"
+                    type="button"
+                    class="desk-chip"
+                    :class="{ on: (mm.voiceFx || 'none') === fx }"
+                    @click="send('mmFx', fx)">
+                    {{ t(`view.mic.fx_${fx}`) }}
+                </button>
+            </div>
+            <DeskSlider
+                v-if="mm.voiceFx && mm.voiceFx !== 'none'"
+                :label="t('view.mic.fx_amount')"
+                :value="mm.voiceAmount ?? 0.5"
+                :max="1"
+                :step="0.05"
+                :fmt="pct"
+                @set="(v) => setMm('voiceAmount', v)" />
+            <DeskSlider :label="t('view.mic.pitch')" :value="mm.voicePitch || 0" :min="-12" :max="12" :step="0.5" :fmt="semi" @set="(v) => setMm('voicePitch', v)" />
 
             <h3 class="desk-h">{{ t('view.mic.music') }}</h3>
             <select class="a-select desk-select" :value="mm.app" :aria-label="t('view.mic.source')" @change="(e) => send('mmApp', e.target.value)" @focus="send('mmRefresh')">
@@ -323,6 +343,8 @@
 
     // ---- mic ----
     const pct = (v) => `${Math.round(v * 100)}%`;
+    const semi = (v) => (Math.abs(v) < 0.01 ? t('view.mic.off') : `${v > 0 ? '+' : ''}${v} st`);
+    const fxList = ['none', 'ghost', 'reverb', 'echo', 'robot', 'radio'];
     const noise = (v) => (v <= 0.001 ? t('view.mic.off') : `${Math.round(v * 100)}%`);
     const meter = (v) => `${Math.min(100, Math.round((v || 0) * 110))}%`;
     const micStatus = computed(() =>
@@ -353,7 +375,7 @@
 
     /** label and value on top, the slider across the width below */
     const DeskSlider = defineComponent({
-        props: { label: String, value: Number, max: Number, step: Number, fmt: Function },
+        props: { label: String, value: Number, min: { type: Number, default: 0 }, max: Number, step: Number, fmt: Function },
         emits: ['set'],
         setup(props, { emit }) {
             return () =>
@@ -365,11 +387,11 @@
                     h('input', {
                         type: 'range',
                         class: 'a-range a-range-full',
-                        min: 0,
+                        min: props.min,
                         max: props.max,
                         step: props.step,
                         value: props.value,
-                        style: { '--fill': `${(props.value / (props.max || 1)) * 100}%` },
+                        style: { '--fill': `${((props.value - props.min) / (props.max - props.min || 1)) * 100}%` },
                         'aria-label': props.label,
                         onInput: (e) => emit('set', Number(e.target.value))
                     })
@@ -483,6 +505,24 @@
     }
     .desk-meters .a-meter {
         flex: none;
+    }
+    .desk-fx {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin: 4px 0 8px;
+    }
+    .desk-chip {
+        font-size: 0.74rem;
+        padding: 3px 10px;
+        border-radius: 999px;
+        border: 1px solid var(--a-line);
+        color: var(--a-muted);
+    }
+    .desk-chip.on {
+        color: var(--a-text);
+        border-color: var(--a-accent, #b4b4b4);
+        background: rgba(255, 255, 255, 0.06);
     }
     .desk-alert {
         display: flex;

@@ -17,6 +17,10 @@ export const mm = ref({
     micBass: 0,
     // noise suppression on your microphone, 0 = off, 1 = strongest
     micNoise: 0,
+    // voice effects: none, robot, radio, echo, reverb, ghost; amount 0-1; pitch in semitones
+    voiceFx: 'none',
+    voiceAmount: 0.5,
+    voicePitch: 0,
     micMuted: false,
     autoStart: true,
     latency: 30,
@@ -45,10 +49,10 @@ export async function initMusicMic() {
 }
 
 function save() {
-    const { app, mic, out, musicVol, micVol, musicBass, micBass, micNoise, latency, autoStart } = mm.value;
+    const { app, mic, out, musicVol, micVol, musicBass, micBass, micNoise, voiceFx, voiceAmount, voicePitch, latency, autoStart } = mm.value;
     configRepository.setString(
         'Neon_musicMic',
-        JSON.stringify({ app, mic, out, musicVol, micVol, musicBass, micBass, micNoise, latency, autoStart })
+        JSON.stringify({ app, mic, out, musicVol, micVol, musicBass, micBass, micNoise, voiceFx, voiceAmount, voicePitch, latency, autoStart })
     );
 }
 
@@ -73,6 +77,17 @@ function sendNoise() {
     AppApi.NeonMusicMicNoise(mm.value.micNoise);
 }
 
+function sendFx() {
+    try {
+        AppApi.NeonMusicMicFx(mm.value.voiceFx, mm.value.voiceAmount, mm.value.voicePitch);
+    } catch {
+        // older Windows app without voice effects
+    }
+}
+
+/** The built-in voice effects, with a short name for the buttons. */
+export const VOICE_EFFECTS = ['none', 'ghost', 'reverb', 'echo', 'robot', 'radio'];
+
 /** Mutes your microphone in the mix, the music keeps playing. */
 export function toggleMicMute() {
     mm.value.micMuted = !mm.value.micMuted;
@@ -86,6 +101,8 @@ export function setMm(key, value) {
     save();
     if (mm.value.running && key === 'micNoise') {
         sendNoise();
+    } else if (mm.value.running && (key === 'voiceFx' || key === 'voiceAmount' || key === 'voicePitch')) {
+        sendFx();
     } else if (mm.value.running && (key === 'musicBass' || key === 'micBass')) {
         sendBass();
     } else if (mm.value.running && (key === 'musicVol' || key === 'micVol')) {
@@ -109,6 +126,9 @@ export async function startMusicMic() {
             musicBass: m.musicBass,
             micBass: m.micBass,
             micNoise: m.micNoise,
+            voiceFx: m.voiceFx,
+            voiceAmount: m.voiceAmount,
+            voicePitch: m.voicePitch,
             latency: m.latency
         })
     );

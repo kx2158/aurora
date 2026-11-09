@@ -77,6 +77,41 @@
                         :step="0.01"
                         :format="pct"
                         @input="(v) => setMm('micBass', v)" />
+                    <div class="a-field a-field-stack">
+                        <div class="a-field-label">
+                            {{ t('view.mic.fx') }}
+                            <small>{{ t('view.mic.fx_hint') }}</small>
+                        </div>
+                        <div class="a-seg fx-seg">
+                            <button
+                                v-for="fx in VOICE_EFFECTS"
+                                :key="fx"
+                                type="button"
+                                :class="{ on: (mm.voiceFx || 'none') === fx }"
+                                @click="setMm('voiceFx', fx)">
+                                {{ t(`view.mic.fx_${fx}`) }}
+                            </button>
+                        </div>
+                        <p v-if="mm.voiceFx && mm.voiceFx !== 'none'" class="a-note">{{ t(`view.mic.fx_${mm.voiceFx}_desc`) }}</p>
+                    </div>
+                    <RangeField
+                        v-if="mm.voiceFx && mm.voiceFx !== 'none'"
+                        :label="t('view.mic.fx_amount')"
+                        :value="mm.voiceAmount ?? 0.5"
+                        :min="0"
+                        :max="1"
+                        :step="0.05"
+                        :format="pct"
+                        @input="(v) => setMm('voiceAmount', v)" />
+                    <RangeField
+                        :label="t('view.mic.pitch')"
+                        :hint="t('view.mic.pitch_hint')"
+                        :value="mm.voicePitch || 0"
+                        :min="-12"
+                        :max="12"
+                        :step="0.5"
+                        :format="semi"
+                        @input="(v) => setMm('voicePitch', v)" />
                 </section>
 
                 <section class="a-card">
@@ -191,7 +226,8 @@
         refreshAudioLists,
         setMm,
         toggleMicMute,
-        toggleMusicMic
+        toggleMusicMic,
+        VOICE_EFFECTS
     } from '../../services/auroraMusicMic';
 
     const { t } = useI18n();
@@ -202,6 +238,7 @@
     });
 
     const pct = (v) => `${Math.round(v * 100)}%`;
+    const semi = (v) => (Math.abs(v) < 0.01 ? t('view.mic.off') : `${v > 0 ? '+' : ''}${v} st`);
     const noiseLabel = (v) => (v <= 0.001 ? t('view.mic.off') : `${Math.round(v * 100)}%`);
     const meterWidth = (v) => `${Math.min(100, Math.round((v || 0) * 110))}%`;
 
@@ -288,5 +325,8 @@
         .mic-meters {
             grid-template-columns: minmax(0, 1fr);
         }
+    }
+    .fx-seg {
+        flex-wrap: wrap;
     }
 </style>

@@ -123,7 +123,7 @@ const deskState = {
             { id: 'usr_x4', name: 'Kael', since: Date.now() - 75 * 60000, trust: 'User', friend: true, watched: false, flags: [] }
         ]
     },
-    mm: { running: true, micMuted: false, app: 'Spotify', apps: ['Spotify', 'Firefox'], micVol: 1.2, musicVol: 0.6, micNoise: 0.5, micBass: 0.2, musicBass: 0.35, micPeak: 0.45, outPeak: 0.62, error: '' }
+    mm: { running: true, micMuted: false, app: 'Spotify', apps: ['Spotify', 'Firefox'], micVol: 1.2, musicVol: 0.6, micNoise: 0.5, micBass: 0.2, musicBass: 0.35, voiceFx: 'ghost', voiceAmount: 0.6, voicePitch: -2, micPeak: 0.45, outPeak: 0.62, error: '' }
 };
 for (const tab of ['Mic', 'Timers', 'Chatbox', 'Here']) {
     await desk.evaluate((st) => window.deskState(JSON.stringify(st)), deskState);

@@ -266,6 +266,13 @@ try {
 } catch (e) {
     console.warn('[preview] rules', e);
 }
+// a voice effect picked, so the Mic page shows its controls
+try {
+    const m = await import('./services/auroraMusicMic.js');
+    Object.assign(m.mm.value, { voiceFx: 'ghost', voiceAmount: 0.6, voicePitch: -2 });
+} catch (e) {
+    console.warn('[preview] mic', e);
+}
 // a short watch list so the instance watch card has something to show
 try {
     const w = await import('./services/auroraWatch.js');

@@ -69,6 +69,14 @@ function native(cls, method, args) {
                     outPeak: 0.7,
                     info: 'mic 48000 Hz | out CABLE Input'
                 });
+            case 'GetNeonMedia':
+            case 'GetNeonSystemInfo':
+                return JSON.stringify({
+                    sessions: [
+                        { id: 'Spotify.exe', title: 'Night Drive', artist: 'xoliexen', playing: true, state: 'playing', pos: 83, dur: 214 },
+                        { id: 'firefox.exe', title: 'lofi stream', artist: '', playing: false, state: 'paused', pos: 0, dur: 0 }
+                    ]
+                });
             case 'GetVersion':
                 return 'Aurora 2026.11.08';
             case 'CurrentCulture':
@@ -265,6 +273,14 @@ try {
     await sr.statusRuleFriendChange(friendsList[0].id, true);
 } catch (e) {
     console.warn('[preview] rules', e);
+}
+// MediaLink on with a progress bar, for the chatbox page
+try {
+    const ig = await import('./services/auroraIntegrations.js');
+    await ig.initIntegrations();
+    Object.assign(ig.state.medialink, { enabled: true, progress: 'barnumbers', separator: ' by ', titleFirst: true });
+} catch (e) {
+    console.warn('[preview] medialink', e);
 }
 // a voice effect picked, so the Mic page shows its controls
 try {

@@ -6,7 +6,7 @@
 import { reactive, ref, watch } from 'vue';
 
 import configRepository from './config';
-import { chatboxEnabled, chatboxPages, chatboxPageSlots, registerComposer, renderChatbox, sysInfo } from './auroraChatbox';
+import { chatboxEnabled, chatboxNudge, chatboxPages, chatboxPageSlots, registerComposer, renderChatbox, sysInfo } from './auroraChatbox';
 import { useGameStore, useLocationStore } from '../stores';
 
 const KEY = 'Neon_integrations';
@@ -57,8 +57,67 @@ export const INTEGRATIONS = [
         desktop: true,
         vr: true,
         icon: 'ri-music-2-line',
-        defaults: { enabled: false, autoswitch: true, picked: '', hidden: {}, noArtist: {}, noTitle: {} },
-        options: [{ key: 'autoswitch', label: 'Switch to whatever starts playing', type: 'bool' }]
+        defaults: {
+            enabled: false,
+            autoswitch: true,
+            picked: '',
+            hidden: {},
+            noArtist: {},
+            noTitle: {},
+            showIcon: true,
+            iconText: '\u266a',
+            showPaused: true,
+            showStop: false,
+            transient: false,
+            transientSec: 15,
+            playIcon: '',
+            pauseIcon: '||',
+            stopIcon: '\u25a0',
+            separator: ' - ',
+            titleFirst: false,
+            playingText: '',
+            pausedText: 'Paused',
+            upper: false,
+            autoswitchNew: true,
+            forgetSec: 3,
+            progress: 'none'
+        },
+        options: [
+            { type: 'heading', label: 'Basic options', hint: 'How the song looks in your chatbox.' },
+            { key: 'showIcon', label: 'Show media icon prefix', type: 'bool' },
+            { key: 'iconText', label: 'Media icon', type: 'text', small: true },
+            { key: 'showPaused', label: 'Show pause icon when music is paused', type: 'bool' },
+            { type: 'heading', label: 'Transient mode', hint: 'Only show the song for a short time after it changes.' },
+            { key: 'transient', label: 'Only show when changing', type: 'bool' },
+            { key: 'transientSec', label: 'Seconds to show it', type: 'number', small: true },
+            { type: 'heading', label: 'Customization', hint: 'Icons, separator and state text. Use \\n for a new line.' },
+            { key: 'showStop', label: 'Show stop icon', type: 'bool' },
+            { key: 'playIcon', label: 'Play icon', type: 'text', small: true },
+            { key: 'pauseIcon', label: 'Pause icon', type: 'text', small: true },
+            { key: 'stopIcon', label: 'Stop icon', type: 'text', small: true },
+            { key: 'separator', label: 'Separator', type: 'text', small: true },
+            { key: 'titleFirst', label: 'Title first (song, then artist)', type: 'bool' },
+            { key: 'playingText', label: 'Playing text', type: 'text', small: true },
+            { key: 'pausedText', label: 'Paused text', type: 'text', small: true },
+            { key: 'upper', label: 'Force uppercase', type: 'bool' },
+            { type: 'heading', label: 'MediaLink behavior', hint: 'How it picks and forgets media sessions.' },
+            { key: 'autoswitch', label: 'Switch to whatever starts playing', type: 'bool' },
+            { key: 'autoswitchNew', label: 'Turn switching on when a new session shows up', type: 'bool' },
+            { key: 'forgetSec', label: 'Forget a session this many seconds after it disconnects', type: 'number', small: true },
+            { type: 'heading', label: 'Media progress bar', hint: 'Whether and how the song position is shown.' },
+            {
+                key: 'progress',
+                label: 'Progress style',
+                type: 'select',
+                choices: [
+                    { value: 'none', label: 'Off' },
+                    { value: 'numbers', label: 'Numbers (1:23 / 3:45)' },
+                    { value: 'small', label: 'Small numbers' },
+                    { value: 'bar', label: 'Bar' },
+                    { value: 'barnumbers', label: 'Bar and numbers' }
+                ]
+            }
+        ]
     },
     {
         id: 'components',
@@ -161,6 +220,8 @@ export async function initIntegrations() {
     watch(state, () => configRepository.setString(KEY, JSON.stringify(state)), { deep: true });
     watch(() => [state.weather?.city, state.weather?.enabled, state.weather?.fahrenheit], startWeather);
     watch(() => sysInfo.value, trackMedia);
+    watch(() => state.medialink?.enabled, startMediaPoll);
+    startMediaPoll();
     registerComposer(compose);
     startWeather();
 }
@@ -174,18 +235,77 @@ export function setOption(id, key, value) {
 }
 
 // ---------- media: remember which session started playing last ----------
+const knownSessions = new Set();
+/** sessions that disappeared, kept for a few seconds: id -> { session, gone } */
+const goneSessions = new Map();
+let mediaTimer = null;
+let lastMediaKey = '';
+let songChangedAt = 0;
+
 function trackMedia(info) {
-    const sessions = info?.sessions || [];
-    mediaSessions.value = sessions;
+    if (!Array.isArray(info?.sessions)) {
+        return;
+    }
     const m = state.medialink;
+    const sessions = info.sessions;
+    const now = Date.now();
+    const ids = new Set(sessions.map((s) => s.id));
+    // keep sessions that just disconnected for a moment, so a short hiccup does not blank the chatbox
+    for (const old of mediaSessions.value) {
+        if (!ids.has(old.id) && !goneSessions.has(old.id)) {
+            goneSessions.set(old.id, { session: old, gone: now });
+        }
+    }
+    const forget = Math.max(0, Number(m?.forgetSec) || 0) * 1000;
+    for (const [id, g] of goneSessions) {
+        if (ids.has(id) || now - g.gone > forget) {
+            goneSessions.delete(id);
+        }
+    }
+    mediaSessions.value = [...sessions, ...[...goneSessions.values()].map((g) => g.session)];
     if (!m) {
         return;
     }
     for (const s of sessions) {
+        if (!knownSessions.has(s.id)) {
+            if (knownSessions.size && m.autoswitchNew) {
+                m.autoswitch = true;
+            }
+            knownSessions.add(s.id);
+        }
         if (s.playing && !lastPlaying[s.id] && m.autoswitch) {
             m.picked = s.id;
         }
         lastPlaying[s.id] = s.playing;
+    }
+    // a new song or play / pause: send it straight away instead of waiting for the next chatbox tick
+    const chosen = pickSession();
+    const key = chosen ? `${chosen.id}|${chosen.title}|${chosen.artist}|${chosen.state}` : '';
+    if (key !== lastMediaKey) {
+        const songChanged = !chosen || !lastMediaKey.startsWith(`${chosen.id}|${chosen.title}|${chosen.artist}|`);
+        lastMediaKey = key;
+        if (songChanged) {
+            songChangedAt = now;
+        }
+        if (m.enabled) {
+            chatboxNudge();
+        }
+    }
+}
+
+async function pollMedia() {
+    try {
+        trackMedia(JSON.parse((await AppApi.GetNeonMedia()) || '{}'));
+    } catch {
+        // older Windows app: the 3 second system snapshot still feeds trackMedia
+    }
+}
+function startMediaPoll() {
+    clearInterval(mediaTimer);
+    mediaTimer = null;
+    if (state.medialink?.enabled) {
+        pollMedia();
+        mediaTimer = setInterval(pollMedia, 1000);
     }
 }
 
@@ -195,17 +315,84 @@ export function friendlyApp(id) {
     return last.charAt(0).toUpperCase() + last.slice(1);
 }
 
+function pickSession() {
+    const m = state.medialink;
+    if (!m) {
+        return null;
+    }
+    const sessions = mediaSessions.value.filter((s) => !m.hidden?.[s.id] && s.title);
+    const st = (s) => s.state || (s.playing ? 'playing' : 'paused');
+    return (
+        sessions.find((s) => s.id === m.picked && st(s) === 'playing') ||
+        sessions.find((s) => st(s) === 'playing') ||
+        sessions.find((s) => s.id === m.picked) ||
+        sessions[0] ||
+        null
+    );
+}
+
+const SMALL = { 0: '⁰', 1: '¹', 2: '²', 3: '³', 4: '⁴', 5: '⁵', 6: '⁶', 7: '⁷', 8: '⁸', 9: '⁹', ':': 'ː', '/': 'ᐟ', ' ': ' ' };
+function clock(sec) {
+    const s = Math.max(0, Math.floor(sec || 0));
+    const h = Math.floor(s / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    const ss = String(s % 60).padStart(2, '0');
+    return h ? `${h}:${String(m).padStart(2, '0')}:${ss}` : `${m}:${ss}`;
+}
+function progressText(style, pos, dur) {
+    if (!dur || style === 'none') {
+        return '';
+    }
+    const nums = `${clock(pos)} / ${clock(dur)}`;
+    const width = 10;
+    const at = Math.min(width - 1, Math.floor((pos / dur) * width));
+    const bar = '━'.repeat(at) + '◉' + '─'.repeat(width - 1 - at);
+    switch (style) {
+        case 'numbers':
+            return nums;
+        case 'small':
+            return [...nums].map((c) => SMALL[c] ?? c).join('');
+        case 'bar':
+            return bar;
+        case 'barnumbers':
+            return `${clock(pos)} ${bar} ${clock(dur)}`;
+        default:
+            return '';
+    }
+}
+const nl = (text) => String(text ?? '').replace(/\\n/g, '\n');
+
 function mediaLine() {
     const m = state.medialink;
-    const sessions = mediaSessions.value.filter((s) => !m.hidden?.[s.id] && s.title);
-    const chosen = sessions.find((s) => s.id === m.picked && s.playing) || sessions.find((s) => s.playing);
+    const chosen = pickSession();
     if (!chosen) {
         return '';
     }
+    const st = chosen.state || (chosen.playing ? 'playing' : 'paused');
+    if ((st === 'paused' && !m.showPaused) || (st === 'stopped' && !m.showStop)) {
+        return '';
+    }
+    if (m.transient && st === 'playing' && Date.now() - songChangedAt > Math.max(3, Number(m.transientSec) || 15) * 1000) {
+        return '';
+    }
     const parts = [];
-    if (chosen.artist && !m.noArtist?.[chosen.id]) parts.push(chosen.artist);
-    if (!m.noTitle?.[chosen.id]) parts.push(chosen.title);
-    return parts.length ? `♪ ${parts.join(' - ')}` : '';
+    const artist = chosen.artist && !m.noArtist?.[chosen.id] ? chosen.artist : '';
+    const title = !m.noTitle?.[chosen.id] ? chosen.title : '';
+    const order = m.titleFirst ? [title, artist] : [artist, title];
+    const song = order.filter(Boolean).join(nl(m.separator ?? ' - '));
+    if (!song) {
+        return '';
+    }
+    if (m.showIcon && m.iconText) parts.push(nl(m.iconText));
+    const icon = st === 'playing' ? m.playIcon : st === 'paused' ? m.pauseIcon : m.stopIcon;
+    if (icon) parts.push(nl(icon));
+    const label = st === 'playing' ? m.playingText : st === 'paused' ? m.pausedText : '';
+    if (label) parts.push(nl(label));
+    parts.push(song);
+    let line = parts.join(' ');
+    const prog = progressText(m.progress, chosen.pos, chosen.dur);
+    if (prog) line += `\n${prog}`;
+    return m.upper ? line.toUpperCase() : line;
 }
 
 // ---------- weather (open-meteo, no key needed) ----------

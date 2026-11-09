@@ -70,6 +70,22 @@ await page.waitForTimeout(1500);
 await page.locator('button:has-text("Turn on")').first().click().catch(() => {});
 await page.waitForTimeout(1500);
 await page.screenshot({ path: `${out}/mic-on.jpg`, type: 'jpeg', quality: 80 });
+// the chatbox page with the MediaLink options open
+try {
+    await page.evaluate(() => (window.location.hash = '#/chatbox'));
+    await page.waitForTimeout(1500);
+    const row = page.locator('.nx-int', { has: page.locator('.nx-int-text b', { hasText: /^MediaLink$/ }) });
+    await row.locator('.nx-custom').click();
+    await page.waitForTimeout(600);
+    await row.getByText('Basic options').scrollIntoViewIfNeeded();
+    await page.waitForTimeout(300);
+    await page.screenshot({ path: `${out}/chatbox-medialink.jpg`, type: 'jpeg', quality: 80 });
+    await row.getByText('Media progress bar').scrollIntoViewIfNeeded();
+    await page.waitForTimeout(300);
+    await page.screenshot({ path: `${out}/chatbox-medialink-2.jpg`, type: 'jpeg', quality: 80 });
+} catch (e) {
+    logs.push('[chatbox] ' + e.message);
+}
 // the sidebar folded down to icons
 await page.evaluate(() => (window.location.hash = '#/insights'));
 await page.evaluate(() => window.$pinia?.appearanceSettings?.setNavCollapsed?.(true));

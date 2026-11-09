@@ -216,6 +216,18 @@ await vr
     .catch(() => {});
 await vr.waitForTimeout(500);
 await vr.screenshot({ path: `${out}/vr-wrist-alert.jpg`, type: 'jpeg', quality: 85, clip: { x: 0, y: 0, width: 512, height: 512 } });
+// the closing animation, frozen at a few moments
+try {
+    await vr.evaluate(() => window.$vr.wristClosing());
+    await vr.waitForTimeout(80);
+    for (const t of [120, 300, 450, 600]) {
+        await vr.evaluate((ms) => document.getAnimations().forEach((a) => { a.pause(); a.currentTime = ms; }), t);
+        await vr.waitForTimeout(120);
+        await vr.screenshot({ path: `${out}/vr-close-${t}.jpg`, type: 'jpeg', quality: 82, clip: { x: 0, y: 0, width: 512, height: 512 } });
+    }
+} catch (e) {
+    logs.push('[vr close] ' + e.message);
+}
 
 fs.writeFileSync(`${out}/console.txt`, logs.join('\n'));
 await browser.close();

@@ -643,6 +643,9 @@ namespace VRCX
             return err;
         }
 
+        private bool _wristClosing;
+        private DateTime _wristClosingUntil = DateTime.MinValue;
+
         internal EVROverlayError ProcessOverlay1(CVROverlay overlay, ref ulong overlayHandle, ref bool overlayVisible, bool dashboardVisible, uint overlayIndex)
         {
             var err = EVROverlayError.None;
@@ -715,8 +718,26 @@ namespace VRCX
                 }
             }
 
-            if (!dashboardVisible && DateTime.UtcNow.CompareTo(_nextOverlayUpdate) <= 0)
+            // Aurora: when the wrist should go away it first plays its closing animation, then hides
+            var now = DateTime.UtcNow;
+            var wantWrist = !dashboardVisible && now.CompareTo(_nextOverlayUpdate) <= 0;
+            var animateClose = !wantWrist && overlayVisible && !dashboardVisible;
+            if (animateClose && !_wristClosing)
             {
+                _wristClosing = true;
+                _wristClosingUntil = now.AddMilliseconds(700);
+                ExecuteVrOverlayFunction("wristClosing", "{}");
+            }
+
+            if (wantWrist || (animateClose && now < _wristClosingUntil))
+            {
+                if (wantWrist && _wristClosing)
+                {
+                    // asked for again while closing: open it back up
+                    _wristClosing = false;
+                    ExecuteVrOverlayFunction("wristShown", "{}");
+                }
+
                 unsafe
                 {
                     var texture = new Texture_t
@@ -752,6 +773,7 @@ namespace VRCX
                 }
 
                 overlayVisible = false;
+                _wristClosing = false;
                 // Aurora: reset to the first frame so the next opening starts clean
                 ExecuteVrOverlayFunction("wristHidden", "{}");
             }

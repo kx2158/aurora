@@ -1557,3 +1557,91 @@ i.x-user-status.busy {
             -3px 0 rgba(60, 220, 255, 0.7);
     }
 }
+
+/* ---- closing: about 0.65 seconds, like an old screen switching off ---- */
+.vr-stage.closing {
+    animation: vr-close-stage 0.66s cubic-bezier(0.55, 0, 0.75, 0.2) both;
+}
+@keyframes vr-close-stage {
+    0% {
+        opacity: 1;
+        transform: scale(0.93) rotateX(7deg) rotateY(-3deg);
+        filter: brightness(1);
+    }
+    30% {
+        transform: scale(0.95) rotateX(7deg) rotateY(-3deg);
+        filter: brightness(1.2);
+    }
+    65% {
+        opacity: 1;
+        transform: scale(0.93, 0.014);
+        filter: brightness(3);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(0, 0.014);
+        filter: brightness(4);
+    }
+}
+.closing .vr-core {
+    animation: vr-close-core 0.3s steps(3) both;
+}
+@keyframes vr-close-core {
+    0% {
+        opacity: 1;
+        transform: translateZ(78px);
+        clip-path: inset(0 0 0 0);
+    }
+    33% {
+        transform: translateZ(78px) translateX(-9px);
+        clip-path: inset(20% 0 45% 0);
+    }
+    66% {
+        opacity: 0.6;
+        transform: translateZ(110px) translateX(6px);
+        clip-path: inset(48% 0 10% 0);
+    }
+    100% {
+        opacity: 0;
+        transform: translateZ(150px);
+    }
+}
+.closing .vr-digits {
+    animation: vr-split 0.3s steps(2) both;
+}
+.closing .vr-l2,
+.closing .vr-ring-feed {
+    animation: vr-close-l2 0.36s 0.04s cubic-bezier(0.5, 0, 0.75, 0) both;
+}
+@keyframes vr-close-l2 {
+    to {
+        opacity: 0;
+        transform: translateZ(220px) scale(1.25);
+    }
+}
+.closing .vr-l1 {
+    animation: vr-close-l1 0.42s 0.08s cubic-bezier(0.5, 0, 0.75, 0) both;
+}
+@keyframes vr-close-l1 {
+    to {
+        opacity: 0;
+        transform: translateZ(140px) rotate(110deg) scale(0.85);
+    }
+}
+/* the glass flashes white as the picture collapses */
+.closing .vr-glass {
+    animation: vr-flash 0.66s both;
+}
+@keyframes vr-flash {
+    0%,
+    35% {
+        background-color: transparent;
+    }
+    65%,
+    100% {
+        background-color: rgba(255, 255, 255, 0.75);
+    }
+}
+.closing .vr-glitch::before {
+    opacity: 0.25;
+}

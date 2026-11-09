@@ -216,15 +216,22 @@ await vr
     .catch(() => {});
 await vr.waitForTimeout(500);
 await vr.screenshot({ path: `${out}/vr-wrist-alert.jpg`, type: 'jpeg', quality: 85, clip: { x: 0, y: 0, width: 512, height: 512 } });
-// the closing animation, frozen at a few moments
+// the closing animation, played 10x slower and captured as it runs
 try {
+    await vr.evaluate(() => document.getAnimations().forEach((a) => a.play()));
+    await vr.evaluate(() => window.$vr.wristShown());
+    await vr.waitForTimeout(2600);
+    const cdp = await vr.context().newCDPSession(vr);
+    await cdp.send('Animation.enable');
+    await cdp.send('Animation.setPlaybackRate', { playbackRate: 0.1 });
+    const t0 = Date.now();
     await vr.evaluate(() => window.$vr.wristClosing());
-    await vr.waitForTimeout(80);
     for (const t of [120, 300, 450, 600]) {
-        await vr.evaluate((ms) => document.getAnimations().forEach((a) => { a.pause(); a.currentTime = ms; }), t);
-        await vr.waitForTimeout(120);
+        const wait = t0 + t * 10 - Date.now();
+        if (wait > 0) await vr.waitForTimeout(wait);
         await vr.screenshot({ path: `${out}/vr-close-${t}.jpg`, type: 'jpeg', quality: 82, clip: { x: 0, y: 0, width: 512, height: 512 } });
     }
+    await cdp.send('Animation.setPlaybackRate', { playbackRate: 1 });
 } catch (e) {
     logs.push('[vr close] ' + e.message);
 }

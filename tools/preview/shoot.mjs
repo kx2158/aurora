@@ -80,6 +80,10 @@ try {
     await row.getByText('Basic options').scrollIntoViewIfNeeded();
     await page.waitForTimeout(300);
     await page.screenshot({ path: `${out}/chatbox-medialink.jpg`, type: 'jpeg', quality: 80 });
+    await page.locator('.nx-bubble').first().scrollIntoViewIfNeeded();
+    await page.waitForTimeout(6000);
+    const bub = await page.locator('.nx-bubble').first().boundingBox();
+    if (bub) await page.screenshot({ path: `${out}/chatbox-bubble.jpg`, type: 'jpeg', quality: 85, clip: { x: bub.x - 10, y: bub.y - 10, width: bub.width + 20, height: bub.height + 40 } });
     await row.getByText('Media progress bar').scrollIntoViewIfNeeded();
     await page.waitForTimeout(300);
     await page.screenshot({ path: `${out}/chatbox-medialink-2.jpg`, type: 'jpeg', quality: 80 });

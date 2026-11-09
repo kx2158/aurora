@@ -85,6 +85,7 @@ namespace VRCX
                 var mix = new NeonMusicMic(Str("app"), Str("loopDevice"), Str("mic"), Str("out"), (float)Num("musicVol", 0.8), (float)Num("micVol", 1.0), (int)Num("latency", 30));
                 mix.InitialBass((float)Num("musicBass", 0), (float)Num("micBass", 0));
                 mix.InitialNoise((float)Num("micNoise", 0));
+                mix.InitialFx(Str("voiceFx"), (float)Num("voiceAmount", 0.5), (float)Num("voicePitch", 0));
                 // audio objects must live in a multi-threaded apartment, the browser thread may not be one
                 Exception failure = null;
                 var starter = new Thread(() =>
@@ -136,6 +137,12 @@ namespace VRCX
             _neonMusicMic?.SetNoise((float)amount);
         }
 
+        /// <summary>Aurora voice effects: effect (none, robot, radio, echo, reverb, ghost), amount 0-1, pitch in semitones.</summary>
+        public void NeonMusicMicFx(string effect, double amount, double pitch)
+        {
+            _neonMusicMic?.SetFx(effect, (float)amount, (float)pitch);
+        }
+
         public string NeonMusicMicStatus()
         {
             return JsonSerializer.Serialize(new Dictionary<string, object>
@@ -161,6 +168,9 @@ namespace VRCX
         private VolumeSampleProvider _musicVol, _micVol;
         private BassBoost _musicBass, _micBass;
         private NoiseSuppressor _micNoise;
+        private VoiceFx _micFx;
+        private string _fxStart = "none";
+        private float _fxAmountStart = 0.5f, _fxPitchStart;
         private float _micNoiseStart;
         private float _musicBassStart, _micBassStart;
         private float _musicStart, _micStart;
@@ -227,7 +237,10 @@ namespace VRCX
                 _micCapture.StartRecording();
                 // noise suppression runs first, so the meter and the bass boost only see your voice
                 _micNoise = new NoiseSuppressor(To48kStereo(micBuf.ToSampleProvider())) { Amount = _micNoiseStart };
-                _micBass = new BassBoost(Meter(_micNoise, v => MicPeak = v)) { Amount = _micBassStart };
+                // then the voice effects, so they only process your cleaned up voice
+                _micFx = new VoiceFx(_micNoise);
+                _micFx.Set(_fxStart, _fxAmountStart, _fxPitchStart);
+                _micBass = new BassBoost(Meter(_micFx, v => MicPeak = v)) { Amount = _micBassStart };
                 _micVol = new VolumeSampleProvider(_micBass) { Volume = _micStart };
                 mixer.AddMixerInput(_micVol);
             }
@@ -263,6 +276,21 @@ namespace VRCX
         public void InitialNoise(float amount)
         {
             _micNoiseStart = amount;
+        }
+
+        public void InitialFx(string effect, float amount, float pitch)
+        {
+            _fxStart = string.IsNullOrEmpty(effect) ? "none" : effect;
+            _fxAmountStart = amount;
+            _fxPitchStart = pitch;
+        }
+
+        public void SetFx(string effect, float amount, float pitch)
+        {
+            _fxStart = string.IsNullOrEmpty(effect) ? "none" : effect;
+            _fxAmountStart = amount;
+            _fxPitchStart = pitch;
+            _micFx?.Set(_fxStart, amount, pitch);
         }
 
         public void SetNoise(float amount)

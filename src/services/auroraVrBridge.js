@@ -15,7 +15,8 @@ import {
     refreshAudioLists,
     setMm,
     toggleMicMute,
-    toggleMusicMic
+    toggleMusicMic,
+    VOICE_EFFECTS
 } from './auroraMusicMic';
 import { addTimer, alarms, removeAlarm, stopRinging } from './auroraAlarms';
 import configRepository from './config';
@@ -41,7 +42,7 @@ function hereState() {
 let vrSounds = true;
 let deskTimer = null;
 let deskHotkey = '';
-const MM_KEYS = ['micVol', 'musicVol', 'micNoise', 'micBass', 'musicBass'];
+const MM_KEYS = ['micVol', 'musicVol', 'micNoise', 'micBass', 'musicBass', 'voiceAmount', 'voicePitch'];
 let started = false;
 
 /** Everything the desktop overlay shows. */
@@ -78,6 +79,9 @@ function pushDesk() {
                         micNoise: m.micNoise,
                         micBass: m.micBass,
                         musicBass: m.musicBass,
+                        voiceFx: m.voiceFx || 'none',
+                        voiceAmount: m.voiceAmount ?? 0.5,
+                        voicePitch: m.voicePitch || 0,
                         micPeak: m.micPeak || 0,
                         outPeak: m.outPeak || 0,
                         error: m.error || ''
@@ -155,6 +159,11 @@ export function deskCommand(command, value) {
             }
             break;
         }
+        case 'mmFx':
+            if (VOICE_EFFECTS.includes(v)) {
+                setMm('voiceFx', v);
+            }
+            break;
         case 'mmApp':
             setMm('app', v);
             break;

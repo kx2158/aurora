@@ -10,6 +10,7 @@ namespace VRCX
         public void NeonMusicMicVolume(double music, double mic) { }
         public void NeonMusicMicBass(double music, double mic) { }
         public void NeonMusicMicNoise(double amount) { }
+        public void NeonMusicMicFx(string effect, double amount, double pitch) { }
         public string NeonMusicMicStatus() => "{}";
     }
 }

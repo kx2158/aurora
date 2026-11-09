@@ -123,7 +123,7 @@ const deskState = {
             { id: 'usr_x4', name: 'Kael', since: Date.now() - 75 * 60000, trust: 'User', friend: true, watched: false, flags: [] }
         ]
     },
-    mm: { running: true, micMuted: false, app: 'Spotify', apps: ['Spotify', 'Firefox'], micVol: 1.2, musicVol: 0.6, micNoise: 0.5, micBass: 0.2, musicBass: 0.35, micPeak: 0.45, outPeak: 0.62, error: '' }
+    mm: { running: true, micMuted: false, app: 'Spotify', apps: ['Spotify', 'Firefox'], micVol: 1.2, musicVol: 0.6, micNoise: 0.5, micBass: 0.2, musicBass: 0.35, voiceFx: 'ghost', voiceAmount: 0.6, voicePitch: -2, micPeak: 0.45, outPeak: 0.62, error: '' }
 };
 for (const tab of ['Mic', 'Timers', 'Chatbox', 'Here']) {
     await desk.evaluate((st) => window.deskState(JSON.stringify(st)), deskState);
@@ -216,6 +216,25 @@ await vr
     .catch(() => {});
 await vr.waitForTimeout(500);
 await vr.screenshot({ path: `${out}/vr-wrist-alert.jpg`, type: 'jpeg', quality: 85, clip: { x: 0, y: 0, width: 512, height: 512 } });
+// the closing animation, played 10x slower and captured as it runs
+try {
+    await vr.evaluate(() => document.getAnimations().forEach((a) => a.play()));
+    await vr.evaluate(() => window.$vr.wristShown());
+    await vr.waitForTimeout(2600);
+    const cdp = await vr.context().newCDPSession(vr);
+    await cdp.send('Animation.enable');
+    await cdp.send('Animation.setPlaybackRate', { playbackRate: 0.1 });
+    const t0 = Date.now();
+    await vr.evaluate(() => window.$vr.wristClosing());
+    for (const t of [150, 330, 440, 560]) {
+        const wait = t0 + t * 10 - Date.now();
+        if (wait > 0) await vr.waitForTimeout(wait);
+        await vr.screenshot({ path: `${out}/vr-close-${t}.jpg`, type: 'jpeg', quality: 82, clip: { x: 0, y: 0, width: 512, height: 512 } });
+    }
+    await cdp.send('Animation.setPlaybackRate', { playbackRate: 1 });
+} catch (e) {
+    logs.push('[vr close] ' + e.message);
+}
 
 fs.writeFileSync(`${out}/console.txt`, logs.join('\n'));
 await browser.close();

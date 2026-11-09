@@ -1573,6 +1573,11 @@
         clearTimeout(wristTimer);
         wristPhase.value = 'closed';
     }
+    function wristClosing() {
+        clearTimeout(wristTimer);
+        glitchOn.value = false;
+        wristPhase.value = 'closing';
+    }
     function wristShown() {
         clearTimeout(wristTimer);
         wristPhase.value = 'closed';
@@ -1891,6 +1896,7 @@
         window.$vr.neonState = neonStateUpdate;
         window.$vr.wristShown = wristShown;
         window.$vr.wristHidden = wristHidden;
+        window.$vr.wristClosing = wristClosing;
         window.$vr.wristGlitch = wristGlitch;
         makeNoise();
         scheduleGlitch();

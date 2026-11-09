@@ -327,6 +327,11 @@
         }
     }
     .fx-seg {
-        flex-wrap: wrap;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        border-radius: 14px;
+    }
+    .fx-seg button {
+        justify-content: center;
     }
 </style>

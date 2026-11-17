@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
@@ -28,6 +29,23 @@ namespace VRCX
         public void SendOscTyping(bool typing, int port = 9000)
         {
             SendOsc("/chatbox/typing", typing ? ",T" : ",F", null, port);
+        }
+
+        /// <summary>Sends one float, for example /avatar/eyeheight in meters (VRChat accepts 0.01 to 10000).</summary>
+        public void SendOscFloat(string address, double value, int port = 9000)
+        {
+            if (string.IsNullOrEmpty(address) || double.IsNaN(value) || double.IsInfinity(value))
+                return;
+            var packet = new List<byte>();
+            AddOscString(packet, address);
+            AddOscString(packet, ",f");
+            // OSC numbers are big endian
+            var bytes = BitConverter.GetBytes((float)value);
+            if (BitConverter.IsLittleEndian)
+                Array.Reverse(bytes);
+            packet.AddRange(bytes);
+            using var socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+            socket.SendTo(packet.ToArray(), new IPEndPoint(IPAddress.Loopback, port));
         }
 
         private static void SendOsc(string address, string tags, string text, int port)

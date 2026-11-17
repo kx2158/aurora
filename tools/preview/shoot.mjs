@@ -133,6 +133,7 @@ const deskState = {
         { id: 1, time: '21:40', label: 'Timer 25 min', daily: false, enabled: true },
         { id: 2, time: '23:30', label: 'Bed', daily: true, enabled: true }
     ],
+    height: { m: 250, normal: 1.62 },
     here: {
         place: 'The Great Pug',
         alert: { id: 'usr_x1', name: 'NightOwl_42', text: 'Watch: spammed the mirror last week / Account 6 days old', at: Date.now() },
@@ -145,7 +146,7 @@ const deskState = {
     },
     mm: { running: true, micMuted: false, app: 'Spotify', apps: ['Spotify', 'Firefox'], micVol: 1.2, musicVol: 0.6, micNoise: 0.5, micBass: 0.2, musicBass: 0.35, voiceFx: 'ghost', voiceAmount: 0.6, voicePitch: -2, micPeak: 0.45, outPeak: 0.62, error: '' }
 };
-for (const tab of ['Mic', 'Timers', 'Chatbox', 'Here']) {
+for (const tab of ['Mic', 'Timers', 'Chatbox', 'Size', 'Here']) {
     await desk.evaluate((st) => window.deskState(JSON.stringify(st)), deskState);
     await desk.getByRole('button', { name: tab }).first().click().catch(() => {});
     await desk.waitForTimeout(500);

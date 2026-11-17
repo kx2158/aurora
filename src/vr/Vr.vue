@@ -1564,7 +1564,7 @@
 
 
     // Aurora in the headset: a tiny synth blip for events, alarms and the quick controls.
-    const neonState = reactive({ accent: '#b4b4b4', mm: false, mmMuted: false, mmApp: '', mmVol: 80, song: '', artist: '', playing: false, chatbox: false, sounds: true, afk: false, music: false, preview: '', nextAlarm: '', watchAlert: null });
+    const neonState = reactive({ accent: '#b4b4b4', mm: false, mmMuted: false, mmApp: '', mmVol: 80, song: '', artist: '', playing: false, chatbox: false, sounds: true, afk: false, music: false, preview: '', nextAlarm: '', watchAlert: null, height: 0 });
     // ---- the wrist opening: the overlay host calls wristShown / wristHidden ----
     const wristStage = ref(null);
     const wristPhase = ref('');
@@ -1682,6 +1682,13 @@
         blip([[900, 0.05]]);
     }
     const onOffWord = (v) => (v ? 'On' : 'Off');
+    const vrHeight = computed(() => {
+        const m = Number(neonState.height) || 0;
+        if (!m) return '';
+        if (m < 1) return `${+(m * 100).toFixed(m < 0.1 ? 1 : 0)} cm`;
+        if (m < 1000) return `${+m.toFixed(m < 10 ? 2 : m < 100 ? 1 : 0)} m`;
+        return `${+(m / 1000).toFixed(2)} km`;
+    });
     const dashGroups = computed(() => [
         {
             title: 'Mic',
@@ -1711,6 +1718,14 @@
                 { cmd: 'timer30', icon: 'alarm', label: '30 min' },
                 { cmd: 'timer60', icon: 'alarm', label: '1 hour' },
                 { cmd: 'stopAlarm', icon: 'close', label: 'Stop alarm', warn: true }
+            ]
+        },
+        {
+            title: 'Size',
+            buttons: [
+                { cmd: 'heightDown', icon: 'minus', label: 'Smaller', state: vrHeight.value },
+                { cmd: 'heightUp', icon: 'plus', label: 'Bigger', state: vrHeight.value },
+                { cmd: 'heightNormal', icon: 'refresh', label: 'Normal' }
             ]
         },
         {

@@ -122,23 +122,61 @@ namespace VRCX
             result["musicApp"] = session.SourceAppUserModelId ?? "";
 
             // every media session (Spotify, Chrome, Brave...) so the chatbox can pick between them
+            result["sessions"] = MediaSessions();
+        }
+
+        /// <summary>Only the media sessions, cheap enough to ask for every second (the chatbox song line).</summary>
+        public string GetNeonMedia()
+        {
+            try
+            {
+                _neonMedia ??= GlobalSystemMediaTransportControlsSessionManager.RequestAsync().GetAwaiter().GetResult();
+                return JsonSerializer.Serialize(new Dictionary<string, object> { ["sessions"] = MediaSessions() });
+            }
+            catch
+            {
+                return "{}";
+            }
+        }
+
+        /// <summary>id, title, artist, state (playing, paused, stopped), position and length in seconds.</summary>
+        private static List<Dictionary<string, object>> MediaSessions()
+        {
             var list = new List<Dictionary<string, object>>();
             foreach (var s in _neonMedia.GetSessions())
             {
                 try
                 {
                     var p = s.TryGetMediaPropertiesAsync().GetAwaiter().GetResult();
+                    var status = s.GetPlaybackInfo().PlaybackStatus;
+                    var playing = status == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing;
+                    var state = playing ? "playing" : status == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Paused ? "paused" : "stopped";
+                    double pos = 0, dur = 0;
+                    try
+                    {
+                        var tl = s.GetTimelineProperties();
+                        dur = Math.Max(0, (tl.EndTime - tl.StartTime).TotalSeconds);
+                        pos = (tl.Position - tl.StartTime).TotalSeconds;
+                        // the position is only updated now and then, move it on by the time since
+                        if (playing && tl.LastUpdatedTime.Year > 2000)
+                            pos += (DateTimeOffset.Now - tl.LastUpdatedTime).TotalSeconds;
+                        pos = dur > 0 ? Math.Clamp(pos, 0, dur) : Math.Max(0, pos);
+                    }
+                    catch { }
                     list.Add(new Dictionary<string, object>
                     {
                         ["id"] = s.SourceAppUserModelId ?? "",
                         ["title"] = p.Title ?? "",
                         ["artist"] = p.Artist ?? "",
-                        ["playing"] = s.GetPlaybackInfo().PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing
+                        ["playing"] = playing,
+                        ["state"] = state,
+                        ["pos"] = Math.Round(pos, 1),
+                        ["dur"] = Math.Round(dur, 1)
                     });
                 }
                 catch { }
             }
-            result["sessions"] = list;
+            return list;
         }
 
         private static long _neonNetBytesDown, _neonNetBytesUp, _neonNetTicks;

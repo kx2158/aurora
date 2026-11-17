@@ -23,6 +23,7 @@ import configRepository from './config';
 import { chatboxEnabled, chatboxPreview, sendChatboxNow, setChatboxEnabled } from './auroraChatbox';
 import { setEnabled, state } from './auroraIntegrations';
 import { herePeople, instanceWatch, openProfile, toggleWatched, watchAlert } from './auroraWatch';
+import { backToNormal, height, initHeight, normalHeight, setHeight, setNormalHeight, stepHeight } from './auroraHeight';
 import { useLocationStore } from '../stores/location';
 
 /** The instance you are in, for the overlays: name, people and the latest flagged join. */
@@ -61,6 +62,7 @@ function pushDesk() {
                     accent: accent.value,
                     hotkey: deskHotkey,
                     here: hereState(),
+                    height: { m: height.value, normal: normalHeight.value },
                     chatbox: { enabled: chatboxEnabled.value, preview: String(chatboxPreview.value || '').slice(0, 144) },
                     alarms: alarms.value.map((a) => ({
                         id: a.id,
@@ -184,6 +186,18 @@ export function deskCommand(command, value) {
         case 'dismissAlert':
             watchAlert.value = null;
             break;
+        case 'height':
+            setHeight(Number(v));
+            break;
+        case 'heightStep':
+            stepHeight(Number(v) || 1);
+            break;
+        case 'heightNormal':
+            backToNormal();
+            break;
+        case 'heightSetNormal':
+            setNormalHeight();
+            break;
         case 'open':
             try {
                 AppApi.FocusWindow();
@@ -218,7 +232,8 @@ function pushState() {
                 mmApp: mm.value.app,
                 mmMuted: mm.value.micMuted,
                 mmVol: Math.round(mm.value.musicVol * 100),
-                watchAlert: hereState().alert
+                watchAlert: hereState().alert,
+                height: height.value
             })
         );
     } catch {
@@ -227,6 +242,11 @@ function pushState() {
 }
 
 export function neonCommand(command) {
+    // the dashboard height slider sends "height:<meters>"
+    if (typeof command === 'string' && command.startsWith('height:')) {
+        setHeight(Number(command.slice(7)));
+        return;
+    }
     switch (String(command)) {
         case 'chatbox':
             setChatboxEnabled(!chatboxEnabled.value);
@@ -289,6 +309,15 @@ export function neonCommand(command) {
         case 'quitGame':
             quitVrchat();
             break;
+        case 'heightUp':
+            stepHeight(1);
+            break;
+        case 'heightDown':
+            stepHeight(-1);
+            break;
+        case 'heightNormal':
+            backToNormal();
+            break;
         default:
             break;
     }
@@ -301,7 +330,8 @@ export async function initVrBridge() {
     }
     started = true;
     vrSounds = await configRepository.getBool('Neon_vrSounds', true);
-    watch([accent, mm, chatboxEnabled, chatboxPreview, alarms, audioApps, instanceWatch, watchAlert], pushState, { deep: true });
+    initHeight();
+    watch([accent, mm, chatboxEnabled, chatboxPreview, alarms, audioApps, instanceWatch, watchAlert, height, normalHeight], pushState, { deep: true });
     // people coming and going
     watch(() => useLocationStore().lastLocation.playerList.size, pushDesk);
     // the overlay follows the theme too

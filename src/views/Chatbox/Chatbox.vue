@@ -46,10 +46,22 @@
                         @update:modelValue="(v) => setEnabled(def.id, v)" />
                 </div>
                 <div v-if="open[def.id]" class="nx-int-opts">
-                    <template v-for="opt in def.options || []" :key="opt.key">
+                    <template v-for="(opt, oi) in def.options || []" :key="opt.key || `h${oi}`">
+                        <div v-if="opt.type === 'heading'" class="nx-full nx-opt-head">
+                            <b>{{ opt.label }}</b>
+                            <span v-if="opt.hint" class="nx-meta">{{ opt.hint }}</span>
+                        </div>
+                        <template v-else>
                         <label class="nx-meta">{{ opt.label }}</label>
+                        <select
+                            v-if="opt.type === 'select'"
+                            class="a-select nx-wide"
+                            :value="state[def.id][opt.key]"
+                            @change="(e) => setOption(def.id, opt.key, e.target.value)">
+                            <option v-for="c in opt.choices" :key="c.value" :value="c.value">{{ c.label }}</option>
+                        </select>
                         <Switch
-                            v-if="opt.type === 'bool'"
+                            v-else-if="opt.type === 'bool'"
                             :model-value="!!state[def.id][opt.key]"
                             :ariaLabel="opt.label"
                             @update:modelValue="(v) => setOption(def.id, opt.key, v)" />
@@ -57,8 +69,9 @@
                             v-else
                             :type="opt.type === 'number' ? 'number' : 'text'"
                             :model-value="state[def.id][opt.key]"
-                            class="nx-wide"
-                            @update:modelValue="(v) => setOption(def.id, opt.key, v)" />
+                            :class="opt.small ? 'nx-small' : 'nx-wide'"
+                            @update:modelValue="(v) => setOption(def.id, opt.key, opt.type === 'number' ? Number(v) : v)" />
+                        </template>
                     </template>
                     <p v-if="def.id === 'status'" class="nx-meta nx-full">{{ t('view.chatbox.status_hint') }}</p>
                     <div v-if="def.id === 'medialink'" class="nx-full nx-sessions">
@@ -503,5 +516,25 @@
         .nx-cols {
             grid-template-columns: minmax(0, 1fr);
         }
+    }
+    .nx-opt-head {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid var(--border);
+    }
+    .nx-opt-head:first-child {
+        margin-top: 0;
+        padding-top: 0;
+        border-top: none;
+    }
+    .nx-opt-head b {
+        font-size: 0.86rem;
+        font-weight: 600;
+    }
+    .nx-small {
+        max-width: 140px;
     }
 </style>

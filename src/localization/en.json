@@ -1668,6 +1668,17 @@
             "tile_people": "People seen",
             "tile_people_sub": "{n} friends in your top list"
         },
+        "height": {
+            "title": "Avatar height",
+            "desc": "Sets your avatar's eye height in VRChat over OSC, from 1 cm to 10 km. VRChat supports 0.1 m to 100 m officially, outside that it shows a warning. Some worlds limit scaling or turn it off.",
+            "smaller": "Smaller",
+            "bigger": "Bigger",
+            "exact": "Exact height",
+            "normal": "Back to {h}",
+            "set_normal": "Make this my normal",
+            "extreme": "Outside 0.1 m to 100 m: VRChat will show a warning on your HUD and things can look odd. It still works.",
+            "desk_hint": "Needs OSC on in VRChat. Worlds can block scaling."
+        },
         "desk": {
             "hint": "{key} to hide",
             "close": "Close",
@@ -1675,6 +1686,7 @@
             "tab_timers": "Timers",
             "tab_chatbox": "Chatbox",
             "tab_here": "Here",
+            "tab_size": "Size",
             "here_none": "Not in an instance",
             "here_count": "{n} here",
             "here_empty": "Nobody here yet. People show up as they join.",

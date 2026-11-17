@@ -1339,6 +1339,26 @@
             <div v-for="g in dashGroups" :key="g.title" class="vr-group">
                 <div class="vr-group-title">{{ g.title }}</div>
                 <div class="vr-grid">
+                    <!-- avatar height: a real slider, drag it with the laser -->
+                    <div v-if="g.slider" class="vr-tile vr-slide">
+                        <div class="vr-slide-top">
+                            <span class="vr-tile-label">Avatar height</span>
+                            <span class="vr-slide-value">{{ vrHeight || '-' }}</span>
+                            <button type="button" class="vr-slide-reset" aria-label="Normal size" @click="dashPress('heightNormal')">
+                                <AuroraIcon name="refresh" :size="22" :stroke="1.8" />
+                            </button>
+                        </div>
+                        <input
+                            type="range"
+                            class="vr-range"
+                            min="-2"
+                            max="4"
+                            step="0.005"
+                            :value="Math.log10(Number(neonState.height) || 1.6)"
+                            :style="{ '--fill': `${((Math.log10(Number(neonState.height) || 1.6) + 2) / 6) * 100}%` }"
+                            @input="(e) => slideHeight(e.target.value)" />
+                        <div class="vr-slide-scale"><span>1 cm</span><span>1 m</span><span>100 m</span><span>10 km</span></div>
+                    </div>
                     <button
                         v-for="b in g.buttons"
                         :key="b.cmd"
@@ -1564,7 +1584,7 @@
 
 
     // Aurora in the headset: a tiny synth blip for events, alarms and the quick controls.
-    const neonState = reactive({ accent: '#b4b4b4', mm: false, mmMuted: false, mmApp: '', mmVol: 80, song: '', artist: '', playing: false, chatbox: false, sounds: true, afk: false, music: false, preview: '', nextAlarm: '', watchAlert: null });
+    const neonState = reactive({ accent: '#b4b4b4', mm: false, mmMuted: false, mmApp: '', mmVol: 80, song: '', artist: '', playing: false, chatbox: false, sounds: true, afk: false, music: false, preview: '', nextAlarm: '', watchAlert: null, height: 0 });
     // ---- the wrist opening: the overlay host calls wristShown / wristHidden ----
     const wristStage = ref(null);
     const wristPhase = ref('');
@@ -1682,6 +1702,28 @@
         blip([[900, 0.05]]);
     }
     const onOffWord = (v) => (v ? 'On' : 'Off');
+    const vrHeight = computed(() => {
+        const m = Number(neonState.height) || 0;
+        if (!m) return '';
+        if (m < 1) return `${+(m * 100).toFixed(m < 0.1 ? 1 : 0)} cm`;
+        if (m < 1000) return `${+m.toFixed(m < 10 ? 2 : m < 100 ? 1 : 0)} m`;
+        return `${+(m / 1000).toFixed(2)} km`;
+    });
+    // the height slider: shows where you drag at once, sends at most about 12 times a second
+    let heightSendAt = 0;
+    let heightTimer = null;
+    function slideHeight(v) {
+        const m = Math.min(10000, Math.max(0.01, 10 ** Number(v)));
+        neonState.height = m;
+        clearTimeout(heightTimer);
+        const go = () => {
+            heightSendAt = Date.now();
+            dashPress(`height:${m}`);
+        };
+        const wait = 80 - (Date.now() - heightSendAt);
+        if (wait <= 0) go();
+        else heightTimer = setTimeout(go, wait);
+    }
     const dashGroups = computed(() => [
         {
             title: 'Mic',
@@ -1714,7 +1756,8 @@
             ]
         },
         {
-            title: 'Overlay',
+            title: 'Size / Overlay',
+            slider: true,
             buttons: [
                 { cmd: 'sounds', icon: 'speaker', label: 'Beeps', state: onOffWord(neonState.sounds), on: neonState.sounds },
                 { cmd: 'quitGame', icon: 'power', label: quitArmed.value ? 'Tap again' : 'Crash VRChat', state: quitArmed.value ? 'to crash' : undefined, warn: true }

@@ -11,5 +11,10 @@ namespace VRCX
         {
             return "{}";
         }
+
+        public string GetNeonMedia()
+        {
+            return "{}";
+        }
     }
 }

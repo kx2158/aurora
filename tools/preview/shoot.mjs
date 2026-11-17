@@ -70,6 +70,26 @@ await page.waitForTimeout(1500);
 await page.locator('button:has-text("Turn on")').first().click().catch(() => {});
 await page.waitForTimeout(1500);
 await page.screenshot({ path: `${out}/mic-on.jpg`, type: 'jpeg', quality: 80 });
+// the chatbox page with the MediaLink options open
+try {
+    await page.evaluate(() => (window.location.hash = '#/chatbox'));
+    await page.waitForTimeout(1500);
+    const row = page.locator('.nx-int', { has: page.locator('.nx-int-text b', { hasText: /^MediaLink$/ }) });
+    await row.locator('.nx-custom').click();
+    await page.waitForTimeout(600);
+    await row.getByText('Basic options').scrollIntoViewIfNeeded();
+    await page.waitForTimeout(300);
+    await page.screenshot({ path: `${out}/chatbox-medialink.jpg`, type: 'jpeg', quality: 80 });
+    await page.locator('.nx-bubble').first().scrollIntoViewIfNeeded();
+    await page.waitForTimeout(6000);
+    const bub = await page.locator('.nx-bubble').first().boundingBox();
+    if (bub) await page.screenshot({ path: `${out}/chatbox-bubble.jpg`, type: 'jpeg', quality: 85, clip: { x: bub.x - 10, y: bub.y - 10, width: bub.width + 20, height: bub.height + 40 } });
+    await row.getByText('Media progress bar').scrollIntoViewIfNeeded();
+    await page.waitForTimeout(300);
+    await page.screenshot({ path: `${out}/chatbox-medialink-2.jpg`, type: 'jpeg', quality: 80 });
+} catch (e) {
+    logs.push('[chatbox] ' + e.message);
+}
 // the sidebar folded down to icons
 await page.evaluate(() => (window.location.hash = '#/insights'));
 await page.evaluate(() => window.$pinia?.appearanceSettings?.setNavCollapsed?.(true));
@@ -113,6 +133,7 @@ const deskState = {
         { id: 1, time: '21:40', label: 'Timer 25 min', daily: false, enabled: true },
         { id: 2, time: '23:30', label: 'Bed', daily: true, enabled: true }
     ],
+    height: { m: 250, normal: 1.62 },
     here: {
         place: 'The Great Pug',
         alert: { id: 'usr_x1', name: 'NightOwl_42', text: 'Watch: spammed the mirror last week / Account 6 days old', at: Date.now() },
@@ -125,7 +146,7 @@ const deskState = {
     },
     mm: { running: true, micMuted: false, app: 'Spotify', apps: ['Spotify', 'Firefox'], micVol: 1.2, musicVol: 0.6, micNoise: 0.5, micBass: 0.2, musicBass: 0.35, voiceFx: 'ghost', voiceAmount: 0.6, voicePitch: -2, micPeak: 0.45, outPeak: 0.62, error: '' }
 };
-for (const tab of ['Mic', 'Timers', 'Chatbox', 'Here']) {
+for (const tab of ['Mic', 'Timers', 'Chatbox', 'Size', 'Here']) {
     await desk.evaluate((st) => window.deskState(JSON.stringify(st)), deskState);
     await desk.getByRole('button', { name: tab }).first().click().catch(() => {});
     await desk.waitForTimeout(500);
@@ -148,6 +169,7 @@ await vr
             JSON.stringify({
                 accent: '#b4b4b4',
                 chatbox: true,
+                height: 250,
                 mm: true,
                 mmMuted: false,
                 mmApp: 'Spotify',

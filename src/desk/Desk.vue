@@ -22,8 +22,16 @@
         </div>
 
         <div class="a-seg desk-tabs">
-            <button v-for="tb in tabs" :key="tb.key" type="button" :class="{ on: tab === tb.key }" @click="setTab(tb.key)">
-                <AuroraIcon :name="tb.icon" :size="14" /> {{ tb.label }}
+            <button
+                v-for="tb in tabs"
+                :key="tb.key"
+                type="button"
+                :class="{ on: tab === tb.key }"
+                :title="tb.label"
+                :aria-label="tb.label"
+                @click="setTab(tb.key)">
+                <AuroraIcon :name="tb.icon" :size="14" />
+                <span v-if="tab === tb.key">{{ tb.label }}</span>
             </button>
         </div>
 
@@ -154,6 +162,44 @@
             </div>
         </section>
 
+        <!-- Size: avatar height over OSC -->
+        <section v-else-if="tab === 'size'" class="desk-body">
+            <div class="desk-row">
+                <span class="desk-strong">{{ t('view.height.title') }}</span>
+                <span class="flex-1"></span>
+                <span class="desk-height" :class="{ warn: state.height.m < 0.1 || state.height.m > 100 }">{{ fmtHeight(state.height.m) }}</span>
+            </div>
+            <div class="desk-row">
+                <button type="button" class="a-btn icon" :aria-label="t('view.height.smaller')" @click="send('heightStep', '-1')">
+                    <AuroraIcon name="minus" :size="14" />
+                </button>
+                <input
+                    type="range"
+                    class="desk-hslider"
+                    min="-2"
+                    max="4"
+                    step="0.005"
+                    :value="Math.log10(state.height.m)"
+                    :style="{ '--fill': `${((Math.log10(state.height.m) + 2) / 6) * 100}%` }"
+                    @input="(e) => sendHeight(10 ** Number(e.target.value))" />
+                <button type="button" class="a-btn icon" :aria-label="t('view.height.bigger')" @click="send('heightStep', '1')">
+                    <AuroraIcon name="plus" :size="14" />
+                </button>
+            </div>
+            <div class="desk-fx">
+                <button v-for="p in heightPresets" :key="p.label" type="button" class="desk-chip" @click="sendHeight(p.m)">
+                    {{ p.label }}
+                </button>
+            </div>
+            <div class="desk-row">
+                <button type="button" class="a-btn" @click="send('heightNormal')">
+                    {{ t('view.height.normal', { h: fmtHeight(state.height.normal) }) }}
+                </button>
+                <button type="button" class="a-btn" @click="send('heightSetNormal')">{{ t('view.height.set_normal') }}</button>
+            </div>
+            <p class="desk-muted">{{ t('view.height.desk_hint') }}</p>
+        </section>
+
         <!-- Here: who is in your instance -->
         <section v-else-if="tab === 'here'" class="desk-body">
             <div class="desk-row">
@@ -219,6 +265,7 @@
         chatbox: { enabled: false, preview: '' },
         alarms: [],
         here: { place: '', people: [], alert: null },
+        height: { m: 1.6, normal: 1.6 },
         mm: { running: false, micMuted: false, app: '', apps: [], micVol: 1, musicVol: 0.8, micNoise: 0, micBass: 0, musicBass: 0, micPeak: 0, outPeak: 0, error: '' }
     });
     const mm = computed(() => state.mm);
@@ -282,6 +329,7 @@
             if (Array.isArray(next.alarms)) state.alarms = next.alarms;
             if (next.mm) state.mm = { ...state.mm, ...next.mm };
             if (next.here) state.here = { place: '', people: [], alert: null, ...next.here };
+            if (next.height) state.height = { ...state.height, ...next.height };
         } catch (e) {
             console.error('desk state', e);
         }
@@ -311,8 +359,31 @@
         { key: 'mic', icon: 'mic', label: t('view.desk.tab_mic') },
         { key: 'timers', icon: 'alarm', label: t('view.desk.tab_timers') },
         { key: 'chatbox', icon: 'chat', label: t('view.desk.tab_chatbox') },
+        { key: 'size', icon: 'arrow', label: t('view.desk.tab_size') },
         { key: 'here', icon: 'people', label: t('view.desk.tab_here') }
     ]);
+
+    // ---- size ----
+    const heightPresets = [
+        { label: '1 cm', m: 0.01 },
+        { label: '10 cm', m: 0.1 },
+        { label: '2 m', m: 2 },
+        { label: '10 m', m: 10 },
+        { label: '100 m', m: 100 },
+        { label: '1 km', m: 1000 },
+        { label: '10 km', m: 10000 }
+    ];
+    function fmtHeight(m) {
+        m = Number(m) || 0;
+        if (m < 1) return `${+(m * 100).toFixed(m < 0.1 ? 1 : 0)} cm`;
+        if (m < 1000) return `${+m.toFixed(m < 10 ? 2 : m < 100 ? 1 : 0)} m`;
+        return `${+(m / 1000).toFixed(m < 10000 ? 2 : 1)} km`;
+    }
+    function sendHeight(m) {
+        const v = Math.min(10000, Math.max(0.01, m));
+        state.height = { ...state.height, m: v };
+        send('height', String(v));
+    }
 
     // ---- here ----
     const now = ref(Date.now());
@@ -464,8 +535,13 @@
     .desk-tabs {
         display: flex;
     }
+    /* the open tab shows its name, the others only their icon, so five fit */
+    .desk-tabs button.on {
+        flex: 2.2;
+    }
     .desk-tabs button {
         flex: 1;
+        min-width: 0;
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -505,6 +581,28 @@
     }
     .desk-meters .a-meter {
         flex: none;
+    }
+    .desk-height {
+        font-size: 1.3rem;
+        font-weight: 300;
+        font-variant-numeric: tabular-nums;
+    }
+    .desk-height.warn {
+        color: #ffcf8a;
+    }
+    .desk-hslider {
+        flex: 1;
+        appearance: none;
+        height: 6px;
+        border-radius: 999px;
+        background: linear-gradient(90deg, var(--a-accent, #b4b4b4) var(--fill), var(--a-line, rgba(255, 255, 255, 0.12)) var(--fill));
+    }
+    .desk-hslider::-webkit-slider-thumb {
+        appearance: none;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: var(--a-text, #eee);
     }
     .desk-fx {
         display: flex;

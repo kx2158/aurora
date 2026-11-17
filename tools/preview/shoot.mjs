@@ -169,6 +169,7 @@ await vr
             JSON.stringify({
                 accent: '#b4b4b4',
                 chatbox: true,
+                height: 250,
                 mm: true,
                 mmMuted: false,
                 mmApp: 'Spotify',

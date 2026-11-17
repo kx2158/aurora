@@ -242,6 +242,11 @@ function pushState() {
 }
 
 export function neonCommand(command) {
+    // the dashboard height slider sends "height:<meters>"
+    if (typeof command === 'string' && command.startsWith('height:')) {
+        setHeight(Number(command.slice(7)));
+        return;
+    }
     switch (String(command)) {
         case 'chatbox':
             setChatboxEnabled(!chatboxEnabled.value);

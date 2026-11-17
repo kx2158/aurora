@@ -1721,16 +1721,11 @@
             ]
         },
         {
-            title: 'Size',
+            title: vrHeight.value ? `Size ${vrHeight.value} / Overlay` : 'Size / Overlay',
             buttons: [
-                { cmd: 'heightDown', icon: 'minus', label: 'Smaller', state: vrHeight.value },
-                { cmd: 'heightUp', icon: 'plus', label: 'Bigger', state: vrHeight.value },
-                { cmd: 'heightNormal', icon: 'refresh', label: 'Normal' }
-            ]
-        },
-        {
-            title: 'Overlay',
-            buttons: [
+                { cmd: 'heightDown', icon: 'minus', label: 'Smaller' },
+                { cmd: 'heightUp', icon: 'plus', label: 'Bigger' },
+                { cmd: 'heightNormal', icon: 'refresh', label: 'Normal size' },
                 { cmd: 'sounds', icon: 'speaker', label: 'Beeps', state: onOffWord(neonState.sounds), on: neonState.sounds },
                 { cmd: 'quitGame', icon: 'power', label: quitArmed.value ? 'Tap again' : 'Crash VRChat', state: quitArmed.value ? 'to crash' : undefined, warn: true }
             ]

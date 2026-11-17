@@ -22,8 +22,16 @@
         </div>
 
         <div class="a-seg desk-tabs">
-            <button v-for="tb in tabs" :key="tb.key" type="button" :class="{ on: tab === tb.key }" @click="setTab(tb.key)">
-                <AuroraIcon :name="tb.icon" :size="14" /> {{ tb.label }}
+            <button
+                v-for="tb in tabs"
+                :key="tb.key"
+                type="button"
+                :class="{ on: tab === tb.key }"
+                :title="tb.label"
+                :aria-label="tb.label"
+                @click="setTab(tb.key)">
+                <AuroraIcon :name="tb.icon" :size="14" />
+                <span v-if="tab === tb.key">{{ tb.label }}</span>
             </button>
         </div>
 
@@ -527,8 +535,13 @@
     .desk-tabs {
         display: flex;
     }
+    /* the open tab shows its name, the others only their icon, so five fit */
+    .desk-tabs button.on {
+        flex: 2.2;
+    }
     .desk-tabs button {
         flex: 1;
+        min-width: 0;
         display: inline-flex;
         align-items: center;
         justify-content: center;

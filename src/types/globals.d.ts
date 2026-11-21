@@ -276,6 +276,8 @@ declare global {
 
         // Neon: window, music and system info (Windows build)
         GetNeonSystemInfo(): Promise<string>;
+        GetStandableStatus(): Promise<string>;
+        DisableStandable(): Promise<string>;
         NeonMediaControl(action: string): Promise<void>;
         GetNeonAudioDevices(): Promise<string>;
         GetNeonAudioApps(): Promise<string>;

@@ -1336,7 +1336,38 @@
                 <span>{{ clock.day }}, {{ clock.date }}</span>
                 <span v-if="neonState.nextAlarm">Next alarm {{ neonState.nextAlarm }}</span>
             </div>
-            <div v-for="g in dashGroups" :key="g.title" class="vr-group">
+            <div v-if="neonState.bodyUnlocked" class="vr-tabs">
+                <button type="button" class="vr-tab" :class="{ on: dashTab === 'main' }" @click="dashTab = 'main'">Main</button>
+                <button type="button" class="vr-tab" :class="{ on: dashTab === 'body' }" @click="dashTab = 'body'">Body</button>
+            </div>
+            <div v-if="neonState.bodyUnlocked && dashTab === 'body'" class="vr-group">
+                <div class="vr-group-title">Sitting</div>
+                <div class="vr-grid">
+                    <button
+                        v-for="m in bodySitModes"
+                        :key="m.mode"
+                        type="button"
+                        class="vr-tile"
+                        :class="{ on: neonState.bodySit === m.mode }"
+                        @click="dashPress(`bodySit:${m.mode}`)">
+                        <AuroraIcon :name="m.icon" :size="34" :stroke="1.8" />
+                        <span class="vr-tile-label">{{ m.label }}</span>
+                    </button>
+                </div>
+                <div class="vr-group-title">Standable</div>
+                <div class="vr-grid">
+                    <button type="button" class="vr-tile" :class="{ on: neonState.bodyStandableOff }" @click="dashPress('bodyStandable')">
+                        <AuroraIcon name="power" :size="34" :stroke="1.8" />
+                        <span class="vr-tile-label">Turn it off</span>
+                        <span class="vr-tile-state">{{ onOffWord(neonState.bodyStandableOff) }}</span>
+                    </button>
+                    <div class="vr-tile vr-info">
+                        <span class="vr-tile-label">Status</span>
+                        <span class="vr-tile-state">{{ bodyStandableWord }}</span>
+                    </div>
+                </div>
+            </div>
+            <div v-for="g in dashTab === 'body' && neonState.bodyUnlocked ? [] : dashGroups" :key="g.title" class="vr-group">
                 <div class="vr-group-title">{{ g.title }}</div>
                 <div class="vr-grid">
                     <!-- avatar height: a real slider, drag it with the laser -->
@@ -1584,7 +1615,9 @@
 
 
     // Aurora in the headset: a tiny synth blip for events, alarms and the quick controls.
-    const neonState = reactive({ accent: '#b4b4b4', mm: false, mmMuted: false, mmApp: '', mmVol: 80, song: '', artist: '', playing: false, chatbox: false, sounds: true, afk: false, music: false, preview: '', nextAlarm: '', watchAlert: null, height: 0 });
+    const neonState = reactive({ accent: '#b4b4b4', mm: false, mmMuted: false, mmApp: '', mmVol: 80, song: '', artist: '', playing: false, chatbox: false, sounds: true, afk: false, music: false, preview: '', nextAlarm: '', watchAlert: null, height: 0, bodyUnlocked: false, bodySit: 'auto', bodyStandableOff: true, bodyStandable: 'unknown' });
+    // the dashboard has two pages: the main one and the body estimation one (shown once it is unlocked)
+    const dashTab = ref('main');
     // ---- the wrist opening: the overlay host calls wristShown / wristHidden ----
     const wristStage = ref(null);
     const wristPhase = ref('');
@@ -1764,6 +1797,17 @@
             ]
         }
     ]);
+    const bodySitModes = [
+        { mode: 'auto', icon: 'refresh', label: 'Auto' },
+        { mode: 'sit', icon: 'arrow', label: 'Sit' },
+        { mode: 'stand', icon: 'power', label: 'Stand' }
+    ];
+    const bodyStandableWord = computed(
+        () =>
+            ({ absent: 'Not installed', off: 'Off', on: 'On', restart: 'Restart SteamVR', error: 'Error', unknown: 'Checking' })[
+                neonState.bodyStandable
+            ] || 'Checking'
+    );
     const musicLine = computed(() =>
         neonState.song ? `${neonState.artist ? neonState.artist + ' - ' : ''}${neonState.song}` : 'nothing playing'
     );

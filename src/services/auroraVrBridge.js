@@ -24,6 +24,9 @@ import { chatboxEnabled, chatboxPreview, sendChatboxNow, setChatboxEnabled } fro
 import { setEnabled, state } from './auroraIntegrations';
 import { herePeople, instanceWatch, openProfile, toggleWatched, watchAlert } from './auroraWatch';
 import { backToNormal, height, initHeight, normalHeight, setHeight, setNormalHeight, stepHeight } from './auroraHeight';
+import { initCalibration, sitMode } from './auroraBodyCalibration';
+import { bodyUnlocked, initBodyLock } from './auroraBodyLock';
+import { autoDisable, initStandable, standableState } from './auroraStandable';
 import { useLocationStore } from '../stores/location';
 
 /** The instance you are in, for the overlays: name, people and the latest flagged join. */
@@ -233,7 +236,11 @@ function pushState() {
                 mmMuted: mm.value.micMuted,
                 mmVol: Math.round(mm.value.musicVol * 100),
                 watchAlert: hereState().alert,
-                height: height.value
+                height: height.value,
+                bodyUnlocked: bodyUnlocked.value,
+                bodySit: sitMode.value,
+                bodyStandableOff: autoDisable.value,
+                bodyStandable: standableState.value
             })
         );
     } catch {
@@ -245,6 +252,17 @@ export function neonCommand(command) {
     // the dashboard height slider sends "height:<meters>"
     if (typeof command === 'string' && command.startsWith('height:')) {
         setHeight(Number(command.slice(7)));
+        return;
+    }
+    // body estimation buttons only work once it is unlocked with the password
+    if (typeof command === 'string' && command.startsWith('body') && bodyUnlocked.value) {
+        if (command.startsWith('bodySit:')) {
+            const mode = command.slice(8);
+            if (mode === 'auto' || mode === 'sit' || mode === 'stand') sitMode.value = mode;
+        } else if (command === 'bodyStandable') {
+            autoDisable.value = !autoDisable.value;
+        }
+        pushState();
         return;
     }
     switch (String(command)) {
@@ -331,6 +349,19 @@ export async function initVrBridge() {
     started = true;
     vrSounds = await configRepository.getBool('Neon_vrSounds', true);
     initHeight();
+    initBodyLock();
+    watch([bodyUnlocked, sitMode, autoDisable, standableState], pushState);
+    // once unlocked, the body settings and the Standable check run in the background too
+    watch(
+        bodyUnlocked,
+        (on) => {
+            if (on) {
+                initCalibration();
+                initStandable();
+            }
+        },
+        { immediate: true }
+    );
     watch([accent, mm, chatboxEnabled, chatboxPreview, alarms, audioApps, instanceWatch, watchAlert, height, normalHeight], pushState, { deep: true });
     // people coming and going
     watch(() => useLocationStore().lastLocation.playerList.size, pushDesk);

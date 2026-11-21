@@ -1706,3 +1706,28 @@ i.x-user-status.busy {
     font-size: 13px;
     color: var(--vr-text-muted);
 }
+
+/* dashboard pages: Main / Body */
+.vr-tabs {
+    display: flex;
+    gap: 10px;
+}
+.vr-tab {
+    flex: 1;
+    height: 64px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.045);
+    border: 1px solid var(--vr-border);
+    color: var(--vr-text-secondary);
+    font-size: 24px;
+    cursor: pointer;
+}
+.vr-tab.on {
+    color: var(--vr-text);
+    border-color: var(--vr-accent);
+    background: rgba(255, 255, 255, 0.1);
+}
+.vr-info {
+    grid-column: span 2;
+    cursor: default;
+}

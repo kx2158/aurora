@@ -1,0 +1,30 @@
+{
+  "app_key": "aurora.spacedrag",
+  "bindings": {
+    "/actions/spacedrag": {
+      "sources": [
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/spacedrag/in/drag_left"
+            }
+          },
+          "mode": "button",
+          "path": "/user/hand/left/input/grip"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/spacedrag/in/drag_right"
+            }
+          },
+          "mode": "button",
+          "path": "/user/hand/right/input/grip"
+        }
+      ]
+    }
+  },
+  "controller_type": "hpmotioncontroller",
+  "description": "Hold the grip to drag the play space.",
+  "name": "Aurora Space Drag (hold grip)"
+}

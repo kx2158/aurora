@@ -45,6 +45,10 @@ jobs:
       - name: Build the Windows app (CEF)
         run: dotnet build Dotnet/VRCX-Cef.csproj -p:Configuration=Release -p:WarningLevel=0 -p:Platform=x64 -p:PlatformTarget=x64 -t:"Clean;Build" -maxcpucount --runtime win-x64 --self-contained
 
+      # Space drag helper. It builds into build/Cef/SpaceDrag, after the app build above so Clean does not remove it.
+      - name: Build the space drag helper
+        run: dotnet build SpaceDrag/SpaceDrag.csproj -p:Configuration=Release -p:Platform=x64 -p:PlatformTarget=x64 -p:WarningLevel=0 --runtime win-x64 --self-contained
+
       # Aurora's own SteamVR driver (the body trackers). It goes into the app folder, so the installer ships it.
       - name: Build the SteamVR tracker driver
         run: |

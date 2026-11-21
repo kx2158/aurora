@@ -8,7 +8,12 @@
     --a-line: color-mix(in oklch, var(--foreground) 9%, transparent);
     --a-soft: color-mix(in oklch, var(--foreground) 4%, transparent);
     --a-muted: var(--muted-foreground);
+    --a-text: var(--foreground);
     --a-radius: 16px;
+    /* status colours, mixed with the text colour so they stay readable in light and dark themes */
+    --a-ok: color-mix(in oklch, oklch(0.74 0.15 155) 72%, var(--foreground));
+    --a-warn: color-mix(in oklch, oklch(0.78 0.14 75) 72%, var(--foreground));
+    --a-bad: var(--destructive);
 }
 
 .a-page {
@@ -450,4 +455,110 @@ button.a-row:hover {
 }
 .a-top {
     align-items: start;
+}
+
+/* status pills */
+.a-pill.ok {
+    color: var(--a-ok);
+    border-color: color-mix(in oklch, var(--a-ok) 45%, transparent);
+}
+.a-pill.warn {
+    color: var(--a-warn);
+    border-color: color-mix(in oklch, var(--a-warn) 45%, transparent);
+}
+.a-pill.bad {
+    color: var(--a-bad);
+    border-color: color-mix(in oklch, var(--a-bad) 45%, transparent);
+}
+.a-note.warn,
+.a-note.bad {
+    color: var(--a-warn);
+}
+
+/* full width slider (same look as .a-range) */
+.a-range.full {
+    flex: 1 1 auto;
+    width: 100%;
+    min-width: 0;
+    height: 4px;
+    max-height: 4px;
+    align-self: center;
+}
+/* in a column a growing slider would stretch in height, so it only takes the width there */
+.flex-col > .a-range.full,
+:where(.body-group, .drag-group) > .a-range.full {
+    flex: none;
+    align-self: stretch;
+}
+.a-range:focus-visible::-webkit-slider-thumb {
+    box-shadow: 0 0 0 3px color-mix(in oklch, var(--a-accent) 55%, transparent);
+}
+
+/* chips: small pill buttons for presets */
+.a-chip {
+    font-size: 0.78rem;
+    padding: 4px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--a-line);
+    color: var(--foreground);
+    transition:
+        border-color 0.15s ease,
+        background-color 0.15s ease;
+}
+.a-chip small {
+    margin-left: 4px;
+    color: var(--a-muted);
+}
+.a-chip:hover {
+    background: var(--a-soft);
+}
+.a-chip.on {
+    border-color: color-mix(in oklch, var(--a-accent) 60%, transparent);
+    background: color-mix(in oklch, var(--a-accent) 16%, transparent);
+}
+
+/* labelled switch around a real checkbox: <label class="a-switch"><input type="checkbox"><span class="a-switch-track"><span class="a-switch-knob"></span></span> text</label> */
+.a-switch {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.86rem;
+    cursor: pointer;
+}
+.a-switch input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+.a-switch-track {
+    position: relative;
+    flex: none;
+    width: 38px;
+    height: 22px;
+    border-radius: 999px;
+    background: color-mix(in oklch, var(--foreground) 16%, transparent);
+    transition: background-color 0.18s ease;
+}
+.a-switch-knob {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--background);
+    transition: transform 0.18s ease;
+}
+.a-switch input:checked + .a-switch-track {
+    background: var(--a-accent);
+}
+.a-switch input:checked + .a-switch-track .a-switch-knob {
+    transform: translateX(16px);
+}
+.a-switch input:focus-visible + .a-switch-track {
+    outline: 2px solid color-mix(in oklch, var(--a-accent) 60%, transparent);
+    outline-offset: 2px;
+}
+.a-switch input:disabled + .a-switch-track {
+    opacity: 0.45;
 }

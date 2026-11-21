@@ -1,0 +1,17 @@
+{
+  "source": "builtin",
+  "applications": [
+    {
+      "app_key": "aurora.spacedrag",
+      "launch_type": "binary",
+      "binary_path_windows": "../Aurora.SpaceDrag.exe",
+      "is_dashboard_overlay": true,
+      "strings": {
+        "en_us": {
+          "name": "Aurora Space Drag",
+          "description": "Drag the play space with a controller."
+        }
+      }
+    }
+  ]
+}

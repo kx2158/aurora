@@ -1,8 +1,10 @@
 /**
- * Sends Aurora's body trackers out: to VRChat over OSC, and/or to Aurora's SteamVR driver (see auroraTrackerDriver.js).
- * OSC part: sends them to VRChat (hips, chest, feet, knees, elbows and the head).
- * VRChat reads them as its own OSC trackers on port 9000, so SteamVR does not see them and no driver is needed.
- * In VRChat: Options > OSC > Enabled, then in the action menu press "Auto-center OSC Trackers" once and calibrate.
+ * Sends Aurora's body trackers to SteamVR through Aurora's own driver (see auroraTrackerDriver.js): hips, chest,
+ * feet, knees and elbows show up in SteamVR as real trackers, so every game and app sees them, VRChat included.
+ * This is the main output and it is on by default.
+ *
+ * Sending the same trackers to VRChat over OSC is still possible (setOscOut, used by the SteamVR dashboard), but it
+ * is off by default, is not shown on the body card, and is not needed when the SteamVR trackers are on.
  *
  * It uses the poses from auroraPoses.js and the estimator with your calibration. Thumbstick walking is not
  * known here, so feet follow your head movement only (no walking in place yet).
@@ -20,8 +22,8 @@ import { buildTrackerMessages, encodeOscBundle } from './vrchatTrackers';
 const KEY = 'Aurora_body_osc';
 const DRIVER_KEY = 'Aurora_body_driver';
 export const oscOut = ref(false);
-/** Send the trackers to Aurora's SteamVR driver, so SteamVR lists them as trackers. */
-export const driverOut = ref(false);
+/** Send the trackers to Aurora's SteamVR driver, so SteamVR lists them as trackers. On unless switched off. */
+export const driverOut = ref(true);
 export const oscPort = 9000;
 
 let started = false;
@@ -94,7 +96,7 @@ export async function initBodyOutput() {
     if (started) return;
     started = true;
     oscOut.value = await configRepository.getBool(KEY, false);
-    driverOut.value = await configRepository.getBool(DRIVER_KEY, false);
+    driverOut.value = await configRepository.getBool(DRIVER_KEY, true);
     if (driverOut.value && bodyUnlocked.value) ensureTrackerDriver();
     // a new calibration means a new estimator
     watch(estimatorOptions, () => (estimator = null), { deep: true });

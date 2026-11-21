@@ -11,7 +11,7 @@
             </button>
             <input
                 type="range"
-                class="height-slider"
+                class="a-range full"
                 min="-2"
                 max="4"
                 step="0.005"
@@ -31,7 +31,7 @@
                 v-for="p in HEIGHT_PRESETS"
                 :key="p.label"
                 type="button"
-                class="height-chip"
+                class="a-chip"
                 :class="{ on: Math.abs(height - p.m) < p.m * 0.01 }"
                 @click="setHeight(p.m)">
                 {{ p.label }} <small>{{ formatHeight(p.m) }}</small>
@@ -92,29 +92,12 @@
         letter-spacing: 0.02em;
     }
     .height-value.warn {
-        color: #ffcf8a;
+        color: var(--a-warn);
     }
     .height-row {
         display: flex;
         align-items: center;
         gap: 10px;
-    }
-    .height-slider {
-        flex: 1;
-        appearance: none;
-        height: 6px;
-        border-radius: 999px;
-        background: linear-gradient(90deg, var(--a-accent, #b4b4b4) var(--fill), var(--a-line, rgba(255, 255, 255, 0.12)) var(--fill));
-        outline: none;
-    }
-    .height-slider::-webkit-slider-thumb {
-        appearance: none;
-        width: 18px;
-        height: 18px;
-        border-radius: 50%;
-        background: var(--a-text, #eee);
-        box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.08);
-        cursor: pointer;
     }
     .height-scale {
         display: flex;
@@ -129,27 +112,11 @@
         gap: 6px;
         margin-top: 14px;
     }
-    .height-chip {
-        font-size: 0.78rem;
-        padding: 4px 12px;
-        border-radius: 999px;
-        border: 1px solid var(--a-line);
-        color: var(--a-text);
-    }
-    .height-chip small {
-        color: var(--a-muted);
-        margin-left: 4px;
-    }
-    .height-chip:hover,
-    .height-chip.on {
-        border-color: var(--a-accent, #b4b4b4);
-        background: rgba(255, 255, 255, 0.06);
-    }
     .height-exact {
         width: 110px;
     }
     .height-warn {
         margin-top: 10px;
-        color: #ffcf8a;
+        color: var(--a-warn);
     }
 </style>

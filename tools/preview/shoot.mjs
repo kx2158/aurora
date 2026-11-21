@@ -101,6 +101,25 @@ await page.evaluate(() => (window.location.hash = '#/home'));
 await page.evaluate(() => window.$pinia?.appearanceSettings?.setThemeMode('xray'));
 await page.waitForTimeout(1500);
 await page.screenshot({ path: `${out}/home-light.jpg`, type: 'jpeg', quality: 82 });
+// the Tools page cards (height, space drag, body) in light and dark
+for (const mode of ['xray', 'xraydark']) {
+    try {
+        await page.evaluate((m) => window.$pinia?.appearanceSettings?.setThemeMode(m), mode);
+        await page.evaluate(() => (window.location.hash = '#/tools'));
+        await page.waitForTimeout(1800);
+        const name = mode === 'xray' ? 'light' : 'dark';
+        const cards = page.locator('.a-card');
+        const n = Math.min(await cards.count(), 3);
+        for (let i = 0; i < n; i++) {
+            await cards.nth(i).scrollIntoViewIfNeeded();
+            await page.waitForTimeout(250);
+            await cards.nth(i).screenshot({ path: `${out}/tools-card${i + 1}-${name}.jpg`, type: 'jpeg', quality: 80 });
+        }
+    } catch (e) {
+        logs.push('[tools cards] ' + e.message);
+    }
+}
+await page.evaluate(() => window.$pinia?.appearanceSettings?.setThemeMode('xray'));
 // the friend network last: it needs WebGL, which is shaky in CI
 await page.evaluate(() => window.$pinia?.appearanceSettings?.setThemeMode('xraydark'));
 await page.evaluate(() => (window.location.hash = '#/charts/mutual'));

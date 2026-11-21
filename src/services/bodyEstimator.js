@@ -13,6 +13,7 @@ import {
     DEFAULTS as FOOT_DEFAULTS,
     createFootEstimator,
     forwardOf,
+    neckAnchor,
     quatFromAxisAngle,
     quatMul,
     quatFromYaw,
@@ -33,6 +34,8 @@ export const BODY_DEFAULTS = {
     elbowSwivelSpeed: 10, // radians per second the swivel may change at most
     chestYawShare: 0.5, // how much of the head-to-hips twist the chest takes
     maxChestTwist: 0.7,
+    neckTurnRange: 0.95, // radians the head may turn relative to the chest before the chest starts to follow
+    neckTiltRange: 0.3, // same for tilting the head sideways
     maxLean: 2.6,
     smoothing: 1, // 0 turns joint smoothing off, 2 doubles the time constants
 };
@@ -114,10 +117,101 @@ export function elbowRotation(shoulder, elbow, hand, dir) {
     return quatFromBasis(x, y, fz);
 }
 
+
+// ---------- joint limits and body collision ----------
+
+/** Distance from point p to the segment a-b, and the closest point on it. */
+function nearestOnSegment(p, a, b) {
+    const ab = sub(b, a);
+    const l2 = dot(ab, ab);
+    const t = l2 > 1e-12 ? clamp(dot(sub(p, a), ab) / l2, 0, 1) : 0;
+    const c = add(a, scale(ab, t));
+    return { c, d: len(sub(p, c)) };
+}
+
+/**
+ * How deep the arm is inside the body, in meters (0 means clear). The upper arm may not enter the head
+ * (a sphere around the head) or the torso (a capsule from the hips to the shoulders). The shoulder end of
+ * the upper arm is skipped for the torso because it sits at the capsule's edge by design.
+ */
+export function armPenetration(shoulder, elbow, body) {
+    let pen = 0;
+    for (const t of [0.5, 1]) {
+        const pt = lerp3(shoulder, elbow, t);
+        pen += Math.max(0, body.headRadius - len(sub(pt, body.head)));
+        pen += Math.max(0, body.torsoRadius - nearestOnSegment(pt, body.hips, body.neck).d);
+    }
+    return pen;
+}
+const lerp3 = (a, b, t) => [lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[2], b[2], t)];
+
+/**
+ * Picks the elbow swivel. The natural swivel is 0 (the reference direction). If that would put the upper
+ * arm through the head or torso, the closest swivel that does not is used instead, still inside the normal
+ * limits. This is what keeps an arm raised beside the head or crossed over the chest looking like a real arm.
+ */
+export function chooseSwivel(shoulder, hand, upper, fore, side, bodyYaw, body, options = {}) {
+    const o = { ...BODY_DEFAULTS, ...options };
+    const to = sub(hand, shoulder);
+    const axis = len(to) > 1e-6 ? norm(to) : [0, -1, 0];
+    const ref = elbowReference(axis, bodyYaw, side);
+    let best = 0;
+    let bestCost = Infinity;
+    const steps = 16;
+    for (let i = 0; i <= steps; i++) {
+        const sv = ((i / steps) * 2 - 1) * o.maxElbowSwivel;
+        const e = solveKnee(shoulder, hand, upper, fore, rotateAbout(ref, axis, sv));
+        const cost = armPenetration(shoulder, e, body) * 40 + Math.abs(sv) * 0.25;
+        if (cost < bestCost) {
+            bestCost = cost;
+            best = sv;
+        }
+    }
+    return best;
+}
+
+/**
+ * Where a shoulder sits, given the hand it carries. Real shoulders are not welded to the neck: they rise
+ * when the hand goes overhead, slide forward when it reaches out or across the body, and are pulled toward
+ * a hand that is farther away than the arm is long. All of it is limited (a few centimeters), so the
+ * shoulder stays where a shoulder could be.
+ */
+export function shoulderOffset(restShoulder, hand, chestFwd, chestUp, chestRight, side, reach, eye) {
+    const to = sub(hand, restShoulder);
+    const up = dot(to, chestUp);
+    const fwd = dot(to, chestFwd);
+    const out = dot(to, chestRight) * (side === 'left' ? -1 : 1); // positive: away from the body
+    const k = eye / 1.65;
+    const shrug = clamp((up - 0.1 * k) / (0.45 * k), 0, 1) * 0.05 * k;
+    const protract = clamp((fwd - 0.1 * k) / (0.5 * k), 0, 1) * 0.05 * k + clamp(-out / (0.3 * k), 0, 1) * 0.03 * k;
+    let off = add(scale(chestUp, shrug), scale(chestFwd, protract));
+    // a hand beyond reach drags the shoulder after it, but only so far
+    const d = len(sub(hand, add(restShoulder, off)));
+    if (d > reach) {
+        const pull = Math.min(d - reach, 0.08 * k);
+        off = add(off, scale(norm(sub(hand, add(restShoulder, off))), pull));
+    }
+    return off;
+}
+
 // ---------- joint smoothing ----------
 
-// time constants in seconds: how quickly each joint catches up with where the math says it should be
-const SMOOTH_TC = { hips: 0.05, chest: 0.06, knee: 0.05, elbow: 0.045 };
+// Speed-adaptive smoothing (a low pass whose cutoff rises with how fast the joint moves). Standing still
+// the cutoff is low, so tracker noise and idle wobble are flattened; when the joint really moves the
+// cutoff opens up, so it follows with almost no lag. Per joint: cutoff when still (Hz), how much it opens
+// per m/s (horizontal and vertical), vertical cutoff when still, and the same pair for rotation (per rad/s).
+// Vertical gets a higher floor so crouches and jumps are not compressed or stretched by the smoothing.
+const SMOOTH = {
+    hips: { fc: 1.4, beta: 3, fcY: 3.0, betaY: 10, fcR: 1.8, betaR: 0.8, lead: 0.035 },
+    chest: { fc: 1.5, beta: 3, fcY: 3.0, betaY: 10, fcR: 2.0, betaR: 0.8, lead: 0.035 },
+    knee: { fc: 2.2, beta: 3, fcY: 3.5, betaY: 8, fcR: 2.2, betaR: 0.7, lead: 0.025 },
+    elbow: { fc: 2.6, beta: 4, fcY: 4.0, betaY: 8, fcR: 2.6, betaR: 0.8, lead: 0.03 }
+};
+
+const alphaFor = (fc, dt) => {
+    const tau = 1 / (2 * Math.PI * fc);
+    return 1 / (1 + tau / dt);
+};
 
 function nlerp(a, b, k) {
     const sign = a[0] * b[0] + a[1] * b[1] + a[2] * b[2] + a[3] * b[3] < 0 ? -1 : 1;
@@ -126,30 +220,59 @@ function nlerp(a, b, k) {
     return q.map((x) => x / l);
 }
 
+const angleBetween = (a, b) => {
+    const d = Math.abs(a[0] * b[0] + a[1] * b[1] + a[2] * b[2] + a[3] * b[3]);
+    return 2 * Math.acos(Math.min(1, d));
+};
+
 /**
- * Takes the sharp edges off the estimator's output so nothing snaps: each joint eases toward its new
- * pose. A jump bigger than a meter (teleport, tracking restart) is taken at once.
+ * Takes the noise and sharp edges off the estimator's output. Each joint keeps its own filtered speed
+ * (itself smoothed, so one noisy frame cannot open the filter). scaleOf() is the user's smoothing
+ * setting: 0 is off, 2 doubles how long it takes to catch up. A jump bigger than a meter (teleport,
+ * tracking restart) is taken at once.
  */
 function createJointSmoother(scaleOf) {
     const state = new Map();
-    function pose(key, tc, next, dt) {
+    function pose(key, cfg, next, dt) {
         if (!next) {
             state.delete(key);
             return next;
         }
         const prev = state.get(key);
-        const t = tc * scaleOf();
-        if (!prev || t <= 0 || len(sub(next.pos, prev.pos)) > 1) {
-            state.set(key, next);
+        const sc = scaleOf();
+        if (!prev || !(sc > 0) || len(sub(next.pos, prev.pos)) > 1) {
+            state.set(key, { ...next, raw: next.pos, vel: [0, 0, 0], vr: 0 });
             return next;
         }
-        const k = 1 - Math.exp(-dt / t);
+        // velocity of the raw target from successive raw samples (not from the lagging filter state), low
+        // passed as a vector so noise cancels instead of piling up
+        const vk = alphaFor(8, dt);
+        const vel = [
+            lerp(prev.vel[0], (next.pos[0] - prev.raw[0]) / dt, vk),
+            lerp(prev.vel[1], (next.pos[1] - prev.raw[1]) / dt, vk),
+            lerp(prev.vel[2], (next.pos[2] - prev.raw[2]) / dt, vk)
+        ];
+        const vh = Math.hypot(vel[0], vel[2]);
+        const vy = Math.abs(vel[1]);
+        const vr = lerp(prev.vr, angleBetween(prev.rot, next.rot) / dt, vk);
+        const kh = alphaFor((cfg.fc + cfg.beta * vh) / sc, dt);
+        const ky = alphaFor((cfg.fcY + cfg.betaY * vy) / sc, dt);
+        const kr = alphaFor((cfg.fcR + cfg.betaR * vr) / sc, dt);
+        // Any filter trails the target while it moves. Add back a little of the velocity (only when the joint
+        // really moves, so rest noise is not amplified, and never more than 3 cm) so the pose does not feel late.
+        const gate = Math.min(1, Math.max(0, (Math.hypot(vel[0], vel[1], vel[2]) - 0.25) / 0.4));
+        const L = (cfg.lead || 0) * gate / sc;
+        const cap = (v) => Math.max(-0.03, Math.min(0.03, v));
         const out = {
             ...next,
-            pos: [lerp(prev.pos[0], next.pos[0], k), lerp(prev.pos[1], next.pos[1], k), lerp(prev.pos[2], next.pos[2], k)],
-            rot: nlerp(prev.rot, next.rot, k)
+            pos: [
+                lerp(prev.pos[0], next.pos[0], kh) + cap(vel[0] * L),
+                lerp(prev.pos[1], next.pos[1], ky) + cap(vel[1] * L),
+                lerp(prev.pos[2], next.pos[2], kh) + cap(vel[2] * L)
+            ],
+            rot: nlerp(prev.rot, next.rot, kr)
         };
-        state.set(key, out);
+        state.set(key, { ...out, pos: [lerp(prev.pos[0], next.pos[0], kh), lerp(prev.pos[1], next.pos[1], ky), lerp(prev.pos[2], next.pos[2], kh)], raw: next.pos, vel, vr });
         return out;
     }
     return { pose, reset: () => state.clear() };
@@ -170,29 +293,67 @@ function createBodyCore(options = {}) {
 
     function update(input, dt) {
         dt = clamp(dt || 0.011, 0.001, 0.1);
-        const lower = feet.update({ head: input.head, virtualVelocity: input.virtualVelocity, sitting: input.sitting }, dt);
+        // Do the arms turn with the head? Hands held out in front stay in front of the face when the whole
+        // body turns, but stay behind when only the head looks around. Only used when both hands are tracked
+        // and held out in front of the body; otherwise the head alone decides.
+        let turning = 0;
+        if (input.leftHand && input.rightHand) {
+            const mid = [(input.leftHand.pos[0] + input.rightHand.pos[0]) / 2 - input.head.pos[0], (input.leftHand.pos[2] + input.rightHand.pos[2]) / 2 - input.head.pos[2]];
+            if (Math.hypot(mid[0], mid[1]) > 0.2) {
+                const handsYaw = Math.atan2(-mid[0], -mid[1]);
+                const agree = 1 - clamp(Math.abs(wrap(handsYaw - yawOfRotation(input.head.rot))) / 0.5, 0, 1);
+                turning = agree;
+            }
+        }
+        const lower = feet.update({ head: input.head, virtualVelocity: input.virtualVelocity, sitting: input.sitting, turning }, dt);
         const yaw = lower.bodyYaw;
         const headYaw = yawOfRotation(input.head.rot);
+        const anchor = neckAnchor(input.head, yaw); // head position without the swing around the neck
 
         // spine: the chest takes part of the head's turn and the lean
         const hips = lower.hipsBase; // the spine follows the head, not the hips' own walking motion
-        const twist = clamp(wrap(headYaw - yaw) * o.chestYawShare, -o.maxChestTwist, o.maxChestTwist);
+        // the neck turns first: the chest only follows once the head is turned past the neck's comfortable range
+        const rel = wrap(headYaw - yaw);
+        const beyond = Math.sign(rel) * Math.max(0, Math.abs(rel) - o.neckTurnRange);
+        const twist = clamp(beyond * o.chestYawShare, -o.maxChestTwist, o.maxChestTwist);
         const chestYaw = yaw + twist + lower.gait.counterYaw;
         const fwdC = forwardOf(chestYaw);
         const rgtC = rightOf(chestYaw);
-        const toHead = sub(input.head.pos, hips);
+        const toHead = sub(anchor, hips);
         const lean = clamp(Math.atan2(dot(toHead, forwardOf(yaw)), toHead[1]), -o.maxLean, o.maxLean);
+        // head tilt: sideways tilt of the head bends the spine a little toward the same side. Looking up or
+        // down does not lean the chest by itself, only the head moving away from the hips does.
+        const hr = rotate(input.head.rot, [1, 0, 0]);
+        const headRoll = Math.atan2(hr[1], Math.hypot(hr[0], hr[2]));
+        const rollBeyond = Math.sign(headRoll) * Math.max(0, Math.abs(headRoll) - o.neckTiltRange); // the neck takes the first part of a tilt
+        const spineRoll = clamp(-rollBeyond * 0.5, -0.25, 0.25);
         const upC = [Math.sin(lean) * fwdC[0], Math.cos(lean), Math.sin(lean) * fwdC[2]];
-        const shoulderCenter = add(sub(input.head.pos, scale(norm(upC), 0.12 * eye)), scale(fwdC, -0.05));
+        const upN = norm(upC);
+        const rgtT = rotateAbout(rgtC, fwdC, spineRoll);
+        const upT = rotateAbout(upN, fwdC, spineRoll);
+        const shoulderCenter = add(sub(anchor, scale(upT, 0.12 * eye)), scale(fwdC, -0.05));
         const chestPos = add(hips, scale(sub(shoulderCenter, hips), 0.7));
-        const chestRot = quatMul(quatFromYaw(chestYaw), quatFromAxisAngle(rgtC, lean));
+        const chestRot = quatMul(quatMul(quatFromYaw(chestYaw), quatFromAxisAngle(rgtC, lean)), quatFromAxisAngle([0, 0, -1], spineRoll));
         const hipsRot = quatMul(quatFromYaw(lower.hips.yaw), quatFromAxisAngle(rightOf(lower.hips.yaw), lean * 0.6));
+
+        // body volumes the arms must stay out of
+        const k = eye / 1.65;
+        const bodyVol = {
+            head: input.head.pos,
+            headRadius: 0.1 * k,
+            hips,
+            neck: sub(shoulderCenter, scale(upT, 0.04 * k)),
+            torsoRadius: 0.13 * k
+        };
+        const reachMax = arm.upper + arm.fore;
 
         const makeArm = (side, hand) => {
             if (!hand) return null;
             const sign = side === 'left' ? -1 : 1;
-            const shoulder = add(shoulderCenter, scale(rgtC, sign * arm.shoulderHalf));
-            const r = solveArm(shoulder, hand.pos, arm.upper, arm.fore, side, chestYaw, swivels[side], dt, 0, o);
+            const rest = add(shoulderCenter, scale(rgtT, sign * arm.shoulderHalf));
+            const shoulder = add(rest, shoulderOffset(rest, hand.pos, fwdC, upT, rgtT, side, reachMax * 0.97, eye));
+            const want = chooseSwivel(shoulder, hand.pos, arm.upper, arm.fore, side, chestYaw, bodyVol, o);
+            const r = solveArm(shoulder, hand.pos, arm.upper, arm.fore, side, chestYaw, swivels[side], dt, want, o);
             swivels[side] = r.swivel;
             return {
                 shoulder,
@@ -212,16 +373,16 @@ function createBodyCore(options = {}) {
         const hipR = lower.hipJoints.right;
 
         const sm = smoother.pose;
-        const outElbow = (side, e) => (e ? { ...sm(side + 'Elbow', SMOOTH_TC.elbow, e, dt), shoulder: e.shoulder, swivel: e.swivel } : (sm(side + 'Elbow', 0, null, dt), null));
+        const outElbow = (side, e) => (e ? { ...sm(side + 'Elbow', SMOOTH.elbow, e, dt), shoulder: e.shoulder, swivel: e.swivel } : (sm(side + 'Elbow', SMOOTH.elbow, null, dt), null));
         return {
             bodyYaw: yaw,
-            hips: sm('hips', SMOOTH_TC.hips, { pos: lower.hips.pos, rot: hipsRot }, dt),
+            hips: sm('hips', SMOOTH.hips, { pos: lower.hips.pos, rot: hipsRot }, dt),
             hipsBase: lower.hipsBase,
-            chest: sm('chest', SMOOTH_TC.chest, { pos: chestPos, rot: chestRot }, dt),
+            chest: sm('chest', SMOOTH.chest, { pos: chestPos, rot: chestRot }, dt),
             leftFoot: { pos: lower.left.pos, rot: lower.left.rot },
             rightFoot: { pos: lower.right.pos, rot: lower.right.rot },
-            leftKnee: sm('leftKnee', SMOOTH_TC.knee, { pos: lower.leftKnee, rot: kneeRot(hipL, lower.leftKnee, lower.left) }, dt),
-            rightKnee: sm('rightKnee', SMOOTH_TC.knee, { pos: lower.rightKnee, rot: kneeRot(hipR, lower.rightKnee, lower.right) }, dt),
+            leftKnee: sm('leftKnee', SMOOTH.knee, { pos: lower.leftKnee, rot: kneeRot(hipL, lower.leftKnee, lower.left) }, dt),
+            rightKnee: sm('rightKnee', SMOOTH.knee, { pos: lower.rightKnee, rot: kneeRot(hipR, lower.rightKnee, lower.right) }, dt),
             leftElbow: outElbow('left', makeArm('left', input.leftHand)),
             rightElbow: outElbow('right', makeArm('right', input.rightHand)),
             gait: lower.gait,

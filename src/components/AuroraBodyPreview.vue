@@ -183,7 +183,7 @@
         color: var(--a-muted);
     }
     .prev-segment button.on {
-        background: color-mix(in oklch, var(--a-accent, #b4b4b4) 22%, transparent);
+        background: color-mix(in oklch, var(--a-accent) 22%, transparent);
         color: var(--a-text);
     }
     .prev-select {
@@ -196,7 +196,7 @@
         height: 420px;
         border-radius: 14px;
         border: 1px solid var(--a-line, rgba(255, 255, 255, 0.08));
-        background: #07060d;
+        background: var(--a-soft);
         display: block;
     }
     .prev-note {

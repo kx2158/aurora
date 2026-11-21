@@ -1799,7 +1799,8 @@
             "feel_counterbalance": "Hips shift away from a leaning head",
             "feel_smoothing": "Smoothing (higher is smoother)",
             "feel_neckRange": "How far the head turns before the body follows",
-            "feel_legFreedom": "How far the legs may swing at the hips"
+            "feel_legFreedom": "How far the legs may swing at the hips",
+            "feel_idleMotion": "Leg movement while lying down"
         },
         "desk": {
             "hint": "{key} to hide",

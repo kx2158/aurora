@@ -47,6 +47,7 @@ export const estimatorOptions = computed(() => ({
     yawDeadband: 1.05 * calibration.value.neckRange,
     neckTurnRange: 0.95 * calibration.value.neckRange,
     // how far the legs may swing at the hips
+    idleMotion: calibration.value.idleMotion,
     maxHipAbduction: 0.75 * calibration.value.legFreedom,
     maxHipAdduction: 0.42 * calibration.value.legFreedom,
     maxHipExtension: 0.55 * calibration.value.legFreedom,

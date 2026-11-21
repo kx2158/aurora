@@ -327,10 +327,10 @@ describe('calibration settings', async () => {
     const { CAL_LIMITS, defaults, sanitize } = await import('../bodyCalibrationCore.js');
     test('the new feel settings default to 1 and are kept inside their limits', () => {
         const d = defaults();
-        for (const k of ['counterbalance', 'smoothing', 'neckRange', 'legFreedom']) expect(d[k]).toBe(1);
-        const hi = sanitize({ counterbalance: 99, smoothing: 99, neckRange: 99, legFreedom: 99 });
-        const lo = sanitize({ counterbalance: -5, smoothing: -5, neckRange: -5, legFreedom: -5 });
-        for (const k of ['counterbalance', 'smoothing', 'neckRange', 'legFreedom']) {
+        for (const k of ['counterbalance', 'smoothing', 'neckRange', 'legFreedom', 'idleMotion']) expect(d[k]).toBe(1);
+        const hi = sanitize({ counterbalance: 99, smoothing: 99, neckRange: 99, legFreedom: 99, idleMotion: 99 });
+        const lo = sanitize({ counterbalance: -5, smoothing: -5, neckRange: -5, legFreedom: -5, idleMotion: -5 });
+        for (const k of ['counterbalance', 'smoothing', 'neckRange', 'legFreedom', 'idleMotion']) {
             expect(hi[k]).toBe(CAL_LIMITS[k][1]);
             expect(lo[k]).toBe(CAL_LIMITS[k][0]);
         }
@@ -384,5 +384,46 @@ describe('sitting down', () => {
     test('feet never dip into the floor and are smoothed', () => {
         const rows = drive(sitHead, 10);
         for (const r of rows) expect(r.leftFoot.pos[1]).toBeGreaterThan(-1e-6);
+    });
+});
+
+describe('natural life', () => {
+    const s = Math.SQRT1_2;
+    const lying = (opts, secs) => {
+        const body = createBodyEstimator(opts);
+        const rows = [];
+        for (let i = 0; i < secs / D; i++) rows.push(body.update({ head: { pos: [0, 0.22, 0], rot: [-s, 0, 0, s] } }, D));
+        return rows;
+    };
+    const range = (rows, pick) => {
+        const v = rows.map(pick);
+        return Math.max(...v) - Math.min(...v);
+    };
+
+    test('lying still, the legs drift and shift slowly instead of freezing', () => {
+        const rows = lying({}, 40).slice(Math.floor(4 / D));
+        expect(range(rows, (r) => r.rightFoot.pos[1]) + range(rows, (r) => r.rightFoot.pos[2])).toBeGreaterThan(0.08);
+        let top = 0;
+        for (let i = 1; i < rows.length; i++) top = Math.max(top, Math.hypot(...rows[i].rightFoot.pos.map((v, a) => v - rows[i - 1].rightFoot.pos[a])) / D);
+        expect(top).toBeLessThan(0.7);
+        for (const r of rows) for (const v of [...r.rightFoot.pos, ...r.rightKnee.pos]) expect(Number.isFinite(v)).toBe(true);
+    });
+
+    test('the leg motion can be turned off', () => {
+        const rows = lying({ idleMotion: 0 }, 30).slice(Math.floor(4 / D));
+        expect(range(rows, (r) => r.rightFoot.pos[1]) + range(rows, (r) => r.rightFoot.pos[2])).toBeLessThan(0.005);
+    });
+
+    test('standing still, nothing moves for no reason', () => {
+        const rows = drive((t) => [0.002 * Math.sin(t * 0.7), 1.65 + 0.002 * Math.sin(t * 1.1), 0.002 * Math.cos(t * 0.6)], 20).slice(Math.floor(2 / D));
+        expect(range(rows, (r) => r.leftFoot.pos[2])).toBeLessThan(0.002);
+        expect(range(rows, (r) => r.rightFoot.pos[0])).toBeLessThan(0.002);
+        expect(range(rows, (r) => r.hips.rot[1])).toBeLessThan(0.002);
+    });
+
+    test('hips do not wobble left and right with the sway of the head while walking straight', () => {
+        const yawOf = (q) => Math.atan2(2 * (q[3] * q[1] + q[0] * q[2]), 1 - 2 * (q[1] * q[1] + q[0] * q[0]));
+        const rows = drive((t) => [0.02 * Math.sin(t * 5.65), 1.65 - 0.012 * Math.abs(Math.sin(t * 5.65)), -1.2 * Math.max(0, t - 1)], 9).slice(Math.floor(3 / D));
+        for (const r of rows) expect(Math.abs(yawOf(r.hips.rot))).toBeLessThan(0.11); // under 6.5 degrees: only the natural pelvis twist
     });
 });

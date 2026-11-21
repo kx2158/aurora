@@ -43,6 +43,7 @@ export const DEFAULTS = {
     layHeight: 0.75, // the head must be lower than this (meters) to count as lying down; a deep bend stays above it
     layDepth: 1, // how far the legs stretch out while lying, 1 is nearly straight
     laySpread: 1, // how far apart the feet lie, 1 is about hip width
+    idleMotion: 1, // 0 to 2: how much the legs move on their own while lying (never while standing)
     seatSensitivity: 1, // above 1 sits down sooner and from a little higher, below 1 needs a clearer sit
     swayAmount: 1, // how much the hips sway side to side while walking, 0 is none
     counterbalance: 1, // how far the hips shift away from a leaning head while standing, 0 is off
@@ -439,6 +440,56 @@ export function createFootEstimator(options = {}) {
     let layTimer = 0;
     let layAxis = null; // horizontal direction from the hips toward the head while lying
     let layBlend = 0;
+    // Lying still, nobody holds their legs frozen: feet sway a little, a knee comes up now and then, a leg slides
+    // across. This is a slow, deterministic motion (no random jumps), only while lying, and it calms down when
+    // the head moves a lot. Standing never gets it.
+    let layClock = 0;
+    let layRest = 1;
+    let layLast = null;
+    const layLegs = [
+        { next: 3.5, t0: -1, dur: 2.4, amp: 0, phase: 0.0 },
+        { next: 8.0, t0: -1, dur: 2.8, amp: 0, phase: 2.1 }
+    ];
+    let layRng = 12345;
+    const layRand = () => {
+        layRng = (layRng * 1664525 + 1013904223) >>> 0;
+        return layRng / 4294967296;
+    };
+    const resetLife = () => {
+        layClock = 0;
+        layRest = 1;
+        layLast = null;
+        layLegs[0].next = 3.5;
+        layLegs[1].next = 8.0;
+        for (const l of layLegs) l.t0 = -1;
+    };
+    // pull (m toward the hips), lift (m up), sway (m sideways) and a foot twist (rad) for one leg
+    function lifeOf(index, dt) {
+        const l = layLegs[index];
+        const k = clamp(o.idleMotion, 0, 2) * layRest;
+        const t = layClock;
+        if (l.t0 < 0 && t >= l.next) {
+            l.t0 = t;
+            l.dur = 1.8 + 1.6 * layRand();
+            l.amp = 0.06 + 0.12 * layRand();
+        }
+        let ev = 0;
+        if (l.t0 >= 0) {
+            const x = (t - l.t0) / l.dur;
+            if (x >= 1) {
+                l.t0 = -1;
+                l.next = t + 5 + 9 * layRand();
+            } else ev = 0.5 - 0.5 * Math.cos(2 * Math.PI * x); // out and back, no jumps
+        }
+        const w = Math.sin(0.9 * t + l.phase) * 0.6 + Math.sin(0.37 * t + 2 * l.phase) * 0.4;
+        const w2 = Math.sin(0.55 * t + 3 * l.phase);
+        return {
+            pull: k * (ev * l.amp + 0.012 * (w + 1)),
+            lift: k * (ev * l.amp * 1.1),
+            sway: k * (0.014 * w2 + ev * 0.03 * (index ? 1 : -1)),
+            twist: k * 0.07 * w
+        };
+    }
     let stopTimer = 0;
     let releaseOff = { left: [0, 0], right: [0, 0] };
     let plant = { left: null, right: null }; // world spot a planted foot is held at so it does not creep
@@ -450,6 +501,9 @@ export function createFootEstimator(options = {}) {
     let sitAnchor = null;
     let lastHeadPos = null;
     let lastHeadGround = null;
+    let headTurnRate = 0; // how fast the head turns, rad/s, smoothed
+    let lastHeadYaw = null;
+    let headingVel = [0, 0, 0]; // travel velocity averaged over a few tenths of a second
     let sitFeet = { left: null, right: null }; // where the feet rest while sitting
     let vyAvg = 0; // smoothed vertical head speed, m/s
     let balance = [0, 0]; // smoothed world x/z shift of the hips that counters the head leaning off the feet
@@ -465,6 +519,12 @@ export function createFootEstimator(options = {}) {
     // The lying pose. Face up, face down and on the side differ only in which way the toes and knees point.
     function layOut(head, headUp, headFwdV, dt) {
         layBlend = Math.min(1, layBlend + dt / 0.5);
+        layClock += dt;
+        const lyHeadSpeed = layLast ? Math.hypot(head.pos[0] - layLast[0], head.pos[1] - layLast[1], head.pos[2] - layLast[2]) / dt : 0;
+        layLast = [...head.pos];
+        // a restless body moves its legs less on its own, and the motion fades in so lying down starts still
+        layRest = lerp(layRest, lyHeadSpeed > 0.35 ? 0.3 : 1, 1 - Math.exp(-2 * dt));
+        const fadeIn = Math.min(1, Math.max(0, (layClock - 1.5) / 2));
         const flat = [headUp[0], 0, headUp[2]];
         if (len(flat) > 0.25) {
             const a = norm(flat);
@@ -488,17 +548,24 @@ export function createFootEstimator(options = {}) {
         const footY = Math.max(floorY, hipsY - 0.07);
         const sideSign = pose === 'side' ? 0 : 1;
         // on the side the legs stack: both feet sit nearly together, one in front of the other
-        const feetAt = (sign) => [
-            hips[0] + legDir[0] * (dist - (pose === 'side' ? 0.06 * sign : 0)) + side[0] * sign * halfSpread * sideSign,
-            footY + (pose === 'side' && sign > 0 ? 0.1 : 0),
-            hips[2] + legDir[2] * (dist - (pose === 'side' ? 0.06 * sign : 0)) + side[2] * sign * halfSpread * sideSign
-        ];
+        const lives = [lifeOf(0, dt), lifeOf(1, dt)];
+        const feetAt = (sign) => {
+            const lf = lives[sign < 0 ? 0 : 1];
+            const reach = dist - (pose === 'side' ? 0.06 * sign : 0) - lf.pull * fadeIn;
+            const across = sign * halfSpread * sideSign + lf.sway * fadeIn;
+            return [
+                hips[0] + legDir[0] * reach + side[0] * across,
+                footY + (pose === 'side' && sign > 0 ? 0.1 : 0) + lf.lift * fadeIn,
+                hips[2] + legDir[2] * reach + side[2] * across
+            ];
+        };
         // toes point up when lying on the back, down on the front, and sideways on the side
         const pitch = pose === 'back' ? 1.2 : pose === 'front' ? -0.9 : 0;
         const footYaw = Math.atan2(-legDir[0], -legDir[2]) + (pose === 'front' ? Math.PI : 0);
         const mk = (sign) => {
             const pos = feetAt(sign);
-            return { pos, yaw: footYaw, pitch, rot: quatMul(quatFromYaw(footYaw), quatFromAxisAngle([1, 0, 0], pitch)) };
+            const yaw = footYaw + lives[sign < 0 ? 0 : 1].twist * fadeIn;
+            return { pos, yaw, pitch, rot: quatMul(quatFromYaw(yaw), quatFromAxisAngle([1, 0, 0], pitch)) };
         };
         const left = mk(-1);
         const right = mk(1);
@@ -511,7 +578,7 @@ export function createFootEstimator(options = {}) {
         const kneeR = solveKnee(hipR, add(right.pos, [0, p.ankleHeight, 0]), p.thigh, p.shin, kneePole);
         lastHipsGround = [hips[0], 0, hips[2]];
         lastHeadGround = null;
-        feet = { left: { pos: [...left.pos], yaw: footYaw }, right: { pos: [...right.pos], yaw: footYaw } };
+        feet = { left: { pos: [...left.pos], yaw: left.yaw }, right: { pos: [...right.pos], yaw: right.yaw } };
         return {
             bodyYaw: hipsYaw,
             hips: { pos: hips, yaw: hipsYaw },
@@ -531,6 +598,8 @@ export function createFootEstimator(options = {}) {
         dt = clamp(dt || 0.011, 0.001, 0.1);
         const head = input.head;
         const headYaw = yawOfRotation(head.rot);
+        headTurnRate = lastHeadYaw === null ? 0 : lerp(headTurnRate, wrap(headYaw - lastHeadYaw) / dt, 1 - Math.exp(-6 * dt));
+        lastHeadYaw = headYaw;
 
         // lying down: the head is low and tipped over, so its up direction is level instead of vertical. The body
         // then lies along that direction: hips back from the head, legs stretched out the other way.
@@ -543,6 +612,7 @@ export function createFootEstimator(options = {}) {
                 laying = true;
                 layBlend = 0;
                 layAxis = null;
+                resetLife();
                 step = null;
                 walking = false;
                 sitting = false;
@@ -550,6 +620,9 @@ export function createFootEstimator(options = {}) {
                 laying = false;
                 // stand up fresh: the body direction and feet are worked out again from the head
                 bodyYaw = null;
+                headingVel = [0, 0, 0];
+                lastHeadYaw = null;
+                headTurnRate = 0;
                 feet = null;
                 stanceYaw = null;
                 lastHipsGround = null;
@@ -571,11 +644,15 @@ export function createFootEstimator(options = {}) {
 
         // someone walking forward faces where they are going, so on a curve the body turns with the path
         // instead of lagging behind the head (which would make a curve look like sideways steps)
-        const travelSpeed = Math.hypot(travelVel[0], travelVel[2]);
+        // The direction comes from the travel averaged over about a third of a second: the head sways side to side
+        // with every step, and following that raw would wobble the hips left and right.
+        headingVel = [lerp(headingVel[0], travelVel[0], 1 - Math.exp(-2.5 * dt)), 0, lerp(headingVel[2], travelVel[2], 1 - Math.exp(-2.5 * dt))];
+        const travelSpeed = Math.hypot(headingVel[0], headingVel[2]);
         if (travelSpeed > 0.4 && !input.virtualVelocity) {
-            const heading = Math.atan2(-travelVel[0], -travelVel[2]);
+            // the averaging above lags a curve, so the heading is pushed on by how fast the head is turning
+            const heading = wrap(Math.atan2(-headingVel[0], -headingVel[2]) + clamp(headTurnRate, -2.5, 2.5) / 3.5);
             if (Math.abs(wrap(heading - headYaw)) < 1.1) {
-                bodyYaw = wrap(bodyYaw + wrap(heading - bodyYaw) * (1 - Math.exp(-14 * dt)));
+                bodyYaw = wrap(bodyYaw + wrap(heading - bodyYaw) * (1 - Math.exp(-8 * dt)));
             }
         }
 
@@ -924,6 +1001,9 @@ export function createFootEstimator(options = {}) {
 
     function reset() {
         bodyYaw = null;
+        headingVel = [0, 0, 0];
+        lastHeadYaw = null;
+        headTurnRate = 0;
         feet = null;
         bendSmooth = 0;
         sitting = false;
@@ -947,6 +1027,7 @@ export function createFootEstimator(options = {}) {
         layTimer = 0;
         layAxis = null;
         layBlend = 0;
+        resetLife();
         stanceYaw = null;
         pivoting = false;
         balance = [0, 0];

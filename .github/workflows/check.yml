@@ -41,6 +41,13 @@ jobs:
         shell: bash
         run: dotnet build SpaceDrag/SpaceDrag.csproj -p:Configuration=Release -p:Platform=x64 -p:PlatformTarget=x64 -p:WarningLevel=0 --runtime win-x64 --self-contained
 
+      - name: Build the Quest body tracking helper
+        shell: bash
+        run: |
+          cmake -S BodyXr -B BodyXr/build -A x64
+          cmake --build BodyXr/build --config Release
+          test -n "$(find BodyXr/build -name Aurora.BodyXr.exe | head -n 1)"
+
   screenshots:
     runs-on: ubuntu-24.04
     steps:

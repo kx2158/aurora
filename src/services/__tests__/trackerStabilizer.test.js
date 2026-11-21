@@ -111,3 +111,25 @@ describe('estimator with the guards', () => {
         for (const k of ['hips', 'chest', 'leftFoot', 'rightFoot', 'leftKnee', 'rightKnee']) expect(Number.isFinite(out[k].pos[0] + out[k].pos[1] + out[k].pos[2])).toBe(true);
     });
 });
+
+describe('elbow never pops', () => {
+    it('hands behind a turning body: the elbow turns at a limited speed, no jump to the other side', () => {
+        const e = createBodyEstimator();
+        let prev = null;
+        let worst = 0;
+        let t = 0;
+        for (let i = 0; i < 3600; i++) {
+            t += 1 / 60;
+            const a = (t * 1.1) / 1.6;
+            const hx = Math.cos(a) * 1.6;
+            const hz = Math.sin(a) * 1.6;
+            const yaw = Math.PI - a;
+            const rot = [0, Math.sin(yaw / 2), 0, Math.cos(yaw / 2)];
+            const o = e.update({ head: pose(hx, 1.65, hz, rot), leftHand: pose(hx - 0.28, 1.1, hz - 0.3, rot), rightHand: pose(hx + 0.28, 1.1, hz - 0.3, rot) }, 1 / 60);
+            const rel = o.rightElbow.pos.map((v, j) => v - o.rightElbow.shoulder[j]);
+            if (prev && i > 60) worst = Math.max(worst, Math.hypot(...rel.map((v, j) => v - prev[j])));
+            prev = rel;
+        }
+        expect(worst).toBeLessThan(0.07);
+    });
+});

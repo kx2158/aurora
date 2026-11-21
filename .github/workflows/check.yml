@@ -24,6 +24,8 @@ jobs:
         run: npx vite build src
       - name: Lint (report only)
         run: npx oxlint src --quiet || true
+      - name: Body tracking and space drag tests
+        run: npx vitest run src/services/__tests__/body src/services/__tests__/foot src/services/__tests__/trackerStabilizer src/services/__tests__/spaceDrag
 
   windows:
     runs-on: windows-latest

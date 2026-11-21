@@ -183,13 +183,20 @@ namespace VRCX
                 _isLegacy
             );
 
+            var nextHeavy = DateTime.MinValue;
             while (_thread != null)
             {
-                if (_isLegacy && (_wristOverlayActive || _hmdOverlayActive))
+                // The overlays and the dashboard only need about 30 updates a second. While body trackers are being sent
+                // the loop turns faster (about 100 times a second), only for the poses: stepping trackers at 30 Hz
+                // looks choppy, and the faster loop feeds the tracker driver a pose every few milliseconds.
+                var heavy = DateTime.UtcNow.CompareTo(nextHeavy) >= 0;
+                if (heavy)
+                    nextHeavy = DateTime.UtcNow.AddMilliseconds(30);
+                if (heavy && _isLegacy && (_wristOverlayActive || _hmdOverlayActive))
                     _sharedOverlay.RenderToTexture(_deviceContext, _sharedTexture);
                 try
                 {
-                    Thread.Sleep(32);
+                    Thread.Sleep(Environment.TickCount64 - Interlocked.Read(ref _lastTrackerWrite) < 2000 ? 8 : 32);
                 }
                 catch (ThreadInterruptedException)
                 {
@@ -248,11 +255,11 @@ namespace VRCX
                             nextDeviceUpdate = DateTime.UtcNow.AddSeconds(0.1);
                         }
 
-                        SendPoses(system); // every loop, about 30 times a second
+                        SendPoses(system); // every loop: about 30 times a second, about 100 while body trackers are being sent
                         _trackerFeed.UpdateTransform(system);
 
                         var overlay = OpenVR.Overlay;
-                        if (overlay != null)
+                        if (overlay != null && heavy)
                         {
                             var dashboardVisible = overlay.IsDashboardVisible();
                             var dashErr = ProcessDashboard(overlay, ref dashboardHandle, dashboardVisible);
@@ -324,8 +331,11 @@ namespace VRCX
             _d3d11?.Dispose();
         }
 
+        private long _lastTrackerWrite = long.MinValue / 2;
+
         public override void SetTrackerPoses(string json)
         {
+            Interlocked.Exchange(ref _lastTrackerWrite, Environment.TickCount64);
             _trackerFeed.Write(json);
         }
 

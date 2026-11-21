@@ -12,6 +12,7 @@
 #include <chrono>
 #include <cstdint>
 #include <cmath>
+#include <algorithm>
 #include <cstring>
 #include <memory>
 #include <string>
@@ -21,6 +22,8 @@
 #if defined( _WIN32 )
 #define NOMINMAX
 #include <windows.h>
+#include <mmsystem.h>
+#pragma comment( lib, "winmm.lib" )
 #define HMD_DLL_EXPORT extern "C" __declspec( dllexport )
 #else
 #define HMD_DLL_EXPORT extern "C" __attribute__( ( visibility( "default" ) ) )
@@ -31,6 +34,7 @@ namespace
 constexpr int kTrackerCount = 8;
 constexpr uint32_t kMagic = 0x41555231; // "AUR1"
 constexpr int kStaleMs = 500;
+constexpr double kFollowSeconds = 0.02; // how long the shown pose takes to glide to where the tracker is heading
 
 // The order is the same as Aurora's TRACKER_ORDER.
 const char *const kRoles[ kTrackerCount ] = { "TrackerRole_Waist", "TrackerRole_Chest", "TrackerRole_LeftFoot",
@@ -98,6 +102,12 @@ uint64_t NowMs()
 #else
 	return std::chrono::duration_cast< std::chrono::milliseconds >( std::chrono::steady_clock::now().time_since_epoch() ).count();
 #endif
+}
+
+// A clock with sub-millisecond resolution (GetTickCount64 only moves every 15 ms).
+double NowSec()
+{
+	return std::chrono::duration< double >( std::chrono::steady_clock::now().time_since_epoch() ).count();
 }
 
 void Log( const std::string &text )
@@ -171,11 +181,23 @@ private:
 		{
 			pose.poseIsValid = false;
 			pose.result = vr::TrackingResult_Running_OutOfRange;
-			hasLast_ = false;
+			have_ = false;
 			return pose;
 		}
 
-		const Slot &slot = s->slots[ index_ ];
+		// Aurora can be writing while this reads. Read the slot twice and only trust it when both reads agree,
+		// otherwise keep the last good pose for this round (a torn read would show as a one-frame spike).
+		Slot slot;
+		{
+			Slot again;
+			std::memcpy( &slot, &s->slots[ index_ ], sizeof( Slot ) );
+			std::memcpy( &again, &s->slots[ index_ ], sizeof( Slot ) );
+			if ( std::memcmp( &slot, &again, sizeof( Slot ) ) != 0 && have_ )
+			{
+				std::memcpy( slot.pos, samplePos_, sizeof( samplePos_ ) );
+				std::memcpy( slot.rot, sampleRot_, sizeof( sampleRot_ ) );
+			}
+		}
 		const double len = std::sqrt( slot.rot[ 0 ] * slot.rot[ 0 ] + slot.rot[ 1 ] * slot.rot[ 1 ] +
 			slot.rot[ 2 ] * slot.rot[ 2 ] + slot.rot[ 3 ] * slot.rot[ 3 ] );
 		if ( len < 1e-6 )
@@ -184,26 +206,85 @@ private:
 			pose.result = vr::TrackingResult_Running_OutOfRange;
 			return pose;
 		}
-		pose.qRotation.x = slot.rot[ 0 ] / len;
-		pose.qRotation.y = slot.rot[ 1 ] / len;
-		pose.qRotation.z = slot.rot[ 2 ] / len;
-		pose.qRotation.w = slot.rot[ 3 ] / len;
-		for ( int i = 0; i < 3; i++ )
-			pose.vecPosition[ i ] = slot.pos[ i ];
-
-		// a velocity helps SteamVR predict between our updates
-		const uint64_t now = NowMs();
-		if ( hasLast_ && now > lastMs_ )
+		// Aurora hands over a new pose about 30 to 90 times a second, SteamVR asks for one far more often. Showing
+		// the latest pose until the next one arrives would look like stepping, so this builds a continuous motion:
+		// it learns how fast the tracker moves from consecutive poses (timed with a fine clock), aims a little ahead
+		// along that motion (never past the next pose, so a stop does not overshoot) and glides to that aim with a
+		// short smoothing. The velocity SteamVR gets is the one of the gliding pose, so its own prediction agrees.
+		const double now = NowSec();
+		const bool changed = !have_ || std::memcmp( slot.pos, samplePos_, sizeof( samplePos_ ) ) != 0 ||
+			std::memcmp( slot.rot, sampleRot_, sizeof( sampleRot_ ) ) != 0;
+		if ( changed )
 		{
-			const double dt = static_cast< double >( now - lastMs_ ) / 1000.0;
-			if ( dt < 0.2 )
+			const double since = now - sampleT_;
+			double jump = 0;
+			if ( have_ )
 				for ( int i = 0; i < 3; i++ )
-					pose.vecVelocity[ i ] = ( slot.pos[ i ] - lastPos_[ i ] ) / dt;
+					jump += ( slot.pos[ i ] - samplePos_[ i ] ) * ( slot.pos[ i ] - samplePos_[ i ] );
+			jump = std::sqrt( jump );
+			if ( !have_ || jump > 1.0 || since > 0.5 )
+			{
+				// first pose, a teleport or a long gap: take it as it is
+				for ( int i = 0; i < 3; i++ )
+				{
+					outPos_[ i ] = slot.pos[ i ];
+					vel_[ i ] = 0;
+					outVel_[ i ] = 0;
+				}
+				for ( int i = 0; i < 4; i++ )
+					outRot_[ i ] = slot.rot[ i ] / len;
+				outT_ = now;
+				sampleT_ = now;
+			}
+			else if ( since > 0.002 )
+			{
+				interval_ += ( std::min( std::max( since, 0.004 ), 0.1 ) - interval_ ) * 0.2;
+				for ( int i = 0; i < 3; i++ )
+				{
+					const double raw = ( slot.pos[ i ] - samplePos_[ i ] ) / since;
+					vel_[ i ] += ( std::min( std::max( raw, -8.0 ), 8.0 ) - vel_[ i ] ) * 0.6;
+				}
+				sampleT_ = now;
+			}
+			std::memcpy( samplePos_, slot.pos, sizeof( samplePos_ ) );
+			std::memcpy( sampleRot_, slot.rot, sizeof( sampleRot_ ) );
+			have_ = true;
 		}
+
+		const double ahead = std::min( now - sampleT_, interval_ * 0.8 );
+		double dt = now - outT_;
+		outT_ = now;
+		dt = std::min( std::max( dt, 0.0005 ), 0.05 );
+		const double k = 1.0 - std::exp( -dt / kFollowSeconds );
 		for ( int i = 0; i < 3; i++ )
-			lastPos_[ i ] = slot.pos[ i ];
-		lastMs_ = now;
-		hasLast_ = true;
+		{
+			const double aim = samplePos_[ i ] + vel_[ i ] * ahead;
+			const double before = outPos_[ i ];
+			outPos_[ i ] += ( aim - outPos_[ i ] ) * k;
+			outVel_[ i ] += ( ( outPos_[ i ] - before ) / dt - outVel_[ i ] ) * 0.25;
+			pose.vecPosition[ i ] = outPos_[ i ];
+			pose.vecVelocity[ i ] = outVel_[ i ];
+		}
+		{
+			// the same glide for the rotation (a normalised blend, shortest way round)
+			const double sign = ( outRot_[ 0 ] * slot.rot[ 0 ] + outRot_[ 1 ] * slot.rot[ 1 ] + outRot_[ 2 ] * slot.rot[ 2 ] +
+				outRot_[ 3 ] * slot.rot[ 3 ] ) < 0 ? -1.0 : 1.0;
+			double q[ 4 ], n = 0;
+			for ( int i = 0; i < 4; i++ )
+			{
+				q[ i ] = outRot_[ i ] + ( sign * slot.rot[ i ] / len - outRot_[ i ] ) * k;
+				n += q[ i ] * q[ i ];
+			}
+			n = std::sqrt( n );
+			if ( n < 1e-9 )
+				n = 1;
+			for ( int i = 0; i < 4; i++ )
+				outRot_[ i ] = q[ i ] / n;
+			pose.qRotation.x = outRot_[ 0 ];
+			pose.qRotation.y = outRot_[ 1 ];
+			pose.qRotation.z = outRot_[ 2 ];
+			pose.qRotation.w = outRot_[ 3 ];
+		}
 
 		pose.poseIsValid = true;
 		pose.result = vr::TrackingResult_Running_OK;
@@ -226,9 +307,17 @@ private:
 	std::atomic< bool > active_{ false };
 	std::thread thread_;
 	vr::VRInputComponentHandle_t systemClick_ = vr::k_ulInvalidInputComponentHandle;
-	double lastPos_[ 3 ] = { 0, 0, 0 };
-	uint64_t lastMs_ = 0;
-	bool hasLast_ = false;
+	// the last pose Aurora wrote, how fast it is moving, and the pose that is shown (see MakePose)
+	bool have_ = false;
+	double samplePos_[ 3 ] = { 0, 0, 0 };
+	double sampleRot_[ 4 ] = { 0, 0, 0, 1 };
+	double sampleT_ = 0;
+	double interval_ = 0.033; // seconds between poses from Aurora
+	double vel_[ 3 ] = { 0, 0, 0 };
+	double outPos_[ 3 ] = { 0, 0, 0 };
+	double outRot_[ 4 ] = { 0, 0, 0, 1 };
+	double outVel_[ 3 ] = { 0, 0, 0 };
+	double outT_ = 0;
 };
 
 // ---------- the provider ----------
@@ -238,6 +327,9 @@ public:
 	vr::EVRInitError Init( vr::IVRDriverContext *context ) override
 	{
 		VR_INIT_SERVER_DRIVER_CONTEXT( context );
+#if defined( _WIN32 )
+		timeBeginPeriod( 1 ); // without this the pose loop below only runs about 64 times a second
+#endif
 		OpenShared();
 		for ( int i = 0; i < kTrackerCount; i++ )
 		{
@@ -257,6 +349,9 @@ public:
 	{
 		trackers_.clear();
 		CloseShared();
+#if defined( _WIN32 )
+		timeEndPeriod( 1 );
+#endif
 	}
 
 	const char *const *GetInterfaceVersions() override { return vr::k_InterfaceVersions; }

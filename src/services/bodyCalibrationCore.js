@@ -11,7 +11,7 @@ export const CAL_LIMITS = {
     feetSeparation: [0.6, 2],
     seatSensitivity: [0.5, 2],
     counterbalance: [0, 3], // how far the hips shift away from a leaning head
-    smoothing: [0.4, 2], // higher is smoother and a little slower, lower is quicker and a little livelier
+    smoothing: [0.4, 3], // higher is smoother and a little slower, lower is quicker and a little livelier
     neckRange: [0.5, 1.5], // how far the head can turn on the neck before the body follows
     legFreedom: [0.7, 1.3], // how far the legs may swing at the hips
     legScale: [0.88, 1.05] // legs longer than the hips are high would not fit, so the top is kept low

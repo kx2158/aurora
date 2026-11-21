@@ -449,6 +449,9 @@ export function createFootEstimator(options = {}) {
     let sitBlend = 0;
     let sitAnchor = null;
     let lastHeadPos = null;
+    let lastHeadGround = null;
+    let sitFeet = { left: null, right: null }; // where the feet rest while sitting
+    let vyAvg = 0; // smoothed vertical head speed, m/s
     let balance = [0, 0]; // smoothed world x/z shift of the hips that counters the head leaning off the feet
     let travelVel = [0, 0, 0]; // smoothed world velocity of the hips, used to point the body where it walks
 
@@ -507,6 +510,7 @@ export function createFootEstimator(options = {}) {
         const kneeL = solveKnee(hipL, add(left.pos, [0, p.ankleHeight, 0]), p.thigh, p.shin, kneePole);
         const kneeR = solveKnee(hipR, add(right.pos, [0, p.ankleHeight, 0]), p.thigh, p.shin, kneePole);
         lastHipsGround = [hips[0], 0, hips[2]];
+        lastHeadGround = null;
         feet = { left: { pos: [...left.pos], yaw: footYaw }, right: { pos: [...right.pos], yaw: footYaw } };
         return {
             bodyYaw: hipsYaw,
@@ -549,6 +553,7 @@ export function createFootEstimator(options = {}) {
                 feet = null;
                 stanceYaw = null;
                 lastHipsGround = null;
+                lastHeadGround = null;
             }
         }
         if (laying) return layOut(head, headUp, headFwdV, dt);
@@ -589,6 +594,10 @@ export function createFootEstimator(options = {}) {
         // sitting: with a seat height set, hips that settle at seat height and stay there mean sitting.
         // input.sitting can force it on (true) or off (false); leave it out for automatic.
         const headSpeed = lastHeadPos ? Math.hypot(hp[0] - lastHeadPos[0], hp[2] - lastHeadPos[2]) / dt : 0;
+        // smoothed vertical head speed (negative while going down) and how far the head is below standing height
+        const headVy = lastHeadPos ? (hp[1] - lastHeadPos[1]) / dt : 0;
+        vyAvg = lerp(vyAvg, headVy, 1 - Math.exp(-10 * dt));
+        const lowered = o.eyeHeight - hp[1];
         lastHeadPos = [...hp];
         const seatHips = o.seatHeight + 0.05; // hips centre when seated
         if (o.seatHeight > 0 || input.sitting === true) {
@@ -598,15 +607,21 @@ export function createFootEstimator(options = {}) {
             else if (input.sitting === false) want = false;
             else if (!sitting) {
                 // a bend looks like sitting by height alone, but then the head is well ahead of the feet
-                const overFeet = !feet || Math.hypot(hp[0] - (feet.left.pos[0] + feet.right.pos[0]) / 2, hp[2] - (feet.left.pos[2] + feet.right.pos[2]) / 2) < 0.2;
-                const near = Math.abs(hipEst - seatHips) < 0.09 * o.seatSensitivity && headSpeed < 0.15 && !walking && overFeet;
+                // (sitting back onto a seat puts the head behind the feet, leaning forward over them does not count)
+                const aheadOfFeet = feet
+                    ? (hp[0] - (feet.left.pos[0] + feet.right.pos[0]) / 2) * fwd[0] + (hp[2] - (feet.left.pos[2] + feet.right.pos[2]) / 2) * fwd[2]
+                    : 0;
+                const overFeet = !feet || (aheadOfFeet < 0.18 && aheadOfFeet > -0.6);
+                // a slouch or a low chair puts the hips lower than the seat setting says, so the window reaches further down
+                const near = hipEst < seatHips + 0.09 * o.seatSensitivity && hipEst > seatHips - 0.2 * o.seatSensitivity && headSpeed < 0.15 && !walking && overFeet;
                 sitTimer = near ? sitTimer + dt : 0;
-                want = sitTimer > 0.6 / o.seatSensitivity;
+                want = sitTimer > 0.4 / o.seatSensitivity;
             } else {
                 want = hipEst < seatHips + 0.14 * o.seatSensitivity;
             }
             if (want && !sitting) {
                 sitting = true;
+                sitFeet = { left: null, right: null };
                 sitAnchor = [baseHips[0], baseHips[2]];
                 sitBlend = 0;
                 step = null;
@@ -629,6 +644,7 @@ export function createFootEstimator(options = {}) {
         // stay over the feet and the spine hinges, so the hips height comes from the torso length. A squat
         // (head straight down) is left alone, there the hips really do go down with the head. In a full
         // bend the head ends up below the hips: the hips stay at standing height and slide back instead.
+        const rawHips = baseHips;
         let bend = 0;
         if (feet && !sitting) {
             const cx = (feet.left.pos[0] + feet.right.pos[0]) / 2;
@@ -661,7 +677,11 @@ export function createFootEstimator(options = {}) {
             baseHips = [lerp(baseHips[0], hx, bendSmooth), lerp(baseHips[1], hy, bendSmooth), lerp(baseHips[2], hz, bendSmooth)];
         }
         const hipsGround = [baseHips[0], 0, baseHips[2]];
-        const worldVel = lastHipsGround ? scale(sub(hipsGround, lastHipsGround), 1 / dt) : [0, 0, 0];
+        // speed comes from the head (the hips before the bend model moves them): the bend model keeps the hips
+        // over the feet, so measuring them would make the feet chase their own hips and walk away
+        const headGround = [rawHips[0], 0, rawHips[2]];
+        const worldVel = lastHeadGround ? scale(sub(headGround, lastHeadGround), 1 / dt) : [0, 0, 0];
+        lastHeadGround = headGround;
         lastHipsGround = hipsGround;
         travelVel = add(scale(travelVel, Math.exp(-12 * dt)), scale(worldVel, 1 - Math.exp(-12 * dt)));
 
@@ -691,7 +711,10 @@ export function createFootEstimator(options = {}) {
             hipsGround[2] + rgt[2] * u + fwd[2] * v
         ];
 
-        if (!sitting && !walking && speed > o.walkStart && bendSmooth < 0.2) {
+        // lowering the body (sitting down, a squat, getting up from a chair) moves the head sideways a little but
+        // is not walking: no walk cycle starts while the head is going down fast or is well below standing height
+        const goingDown = vyAvg < -0.18 || lowered > 0.22;
+        if (!sitting && !walking && speed > o.walkStart && bendSmooth < 0.2 && !goingDown) {
             walking = true;
             plant = { left: null, right: null };
             releaseOff = { left: [0, 0], right: [0, 0] };
@@ -703,7 +726,7 @@ export function createFootEstimator(options = {}) {
             // start with the foot that is further back in the air coming forward, the other one planted
             phase = entry.left[1] >= entry.right[1] ? 0.3 : 0.8;
         } else if (walking) {
-            stopTimer = speed < o.walkStop ? stopTimer + dt : 0;
+            stopTimer = speed < o.walkStop || lowered > 0.32 || vyAvg < -0.35 ? stopTimer + dt : 0;
             if (stopTimer > 0.15) {
                 walking = false;
                 pitches = { left: 0, right: 0 };
@@ -805,13 +828,17 @@ export function createFootEstimator(options = {}) {
             reachFactor = 0.995;
         } else if (sitting) {
             // feet flat on the floor in front of the knees, a little apart
-            const kf = 1 - Math.exp(-8 * dt);
+            const kf = 1 - Math.exp(-5 * dt);
             const reachF = Math.min(p.thigh * 0.95, 0.5);
             for (const side of ['left', 'right']) {
                 const sign = side === 'left' ? -1 : 1;
-                const target = add(add(hipsGround, scale(rgt, sign * 0.1)), scale(fwd, reachF));
+                const want = add(add(hipsGround, scale(rgt, sign * 0.1)), scale(fwd, reachF));
+                // feet stay where they are while you lean and shift on the seat, and only shuffle over when
+                // the hips have moved well away from them (people do not drag their feet with every lean)
+                let hold = sitFeet[side];
+                if (!hold || Math.hypot(want[0] - hold[0], want[2] - hold[2]) > 0.14) hold = sitFeet[side] = [want[0], 0, want[2]];
                 feet[side] = {
-                    pos: [lerp(feet[side].pos[0], target[0], kf), lerp(feet[side].pos[1], 0, kf), lerp(feet[side].pos[2], target[2], kf)],
+                    pos: [lerp(feet[side].pos[0], hold[0], kf), lerp(feet[side].pos[1], 0, kf), lerp(feet[side].pos[2], hold[2], kf)],
                     yaw: bodyYaw - sign * 0.08
                 };
             }
@@ -904,8 +931,10 @@ export function createFootEstimator(options = {}) {
         sitBlend = 0;
         sitAnchor = null;
         lastHeadPos = null;
+        vyAvg = 0;
         step = null;
         lastHipsGround = null;
+        lastHeadGround = null;
         swingPitch = null;
         pitches = { left: 0, right: 0 };
         walking = false;

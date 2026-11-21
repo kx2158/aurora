@@ -337,3 +337,52 @@ describe('calibration settings', async () => {
         expect(sanitize({ counterbalance: 'x' }).counterbalance).toBe(1);
     });
 });
+
+describe('sitting down', () => {
+    const ease = (x) => {
+        x = Math.min(1, Math.max(0, x));
+        return x * x * (3 - 2 * x);
+    };
+    // stand, then sit down over 1.5 s: the head goes down 50 cm and back 25 cm, then leans around on the seat
+    const sitHead = (t) => {
+        const s = ease((t - 2) / 1.5);
+        const lean = t > 6 ? 0.15 * Math.sin((t - 6) * 1.3) : 0;
+        return [0, 1.65 - 0.5 * s, 0.25 * s + lean];
+    };
+
+    test('the feet stay with the body: sitting down is not walking', () => {
+        const rows = drive(sitHead, 10);
+        for (const r of rows) {
+            expect(Math.hypot(r.leftFoot.pos[0] - r.hips.pos[0], r.leftFoot.pos[2] - r.hips.pos[2])).toBeLessThan(1.0);
+            expect(Math.hypot(r.rightFoot.pos[0] - r.hips.pos[0], r.rightFoot.pos[2] - r.hips.pos[2])).toBeLessThan(1.0);
+        }
+        const last = rows[rows.length - 1];
+        expect(Math.abs(last.hips.pos[2])).toBeLessThan(0.8);
+    });
+
+    test('a low seat or a slouch is still recognised as sitting, and the legs keep their length', () => {
+        const rows = drive(sitHead, 10);
+        const last = rows[rows.length - 1];
+        expect(last.gait.sitting).toBe(true);
+        for (const r of rows.slice(Math.floor(5 / D))) {
+            for (const f of [r.leftFoot, r.rightFoot]) {
+                const d = Math.hypot(f.pos[0] - r.hips.pos[0], f.pos[1] - r.hips.pos[1], f.pos[2] - r.hips.pos[2]);
+                expect(d).toBeLessThan(1.0);
+                expect(d).toBeGreaterThan(0.3);
+            }
+        }
+    });
+
+    test('leaning on the seat does not drag the feet along', () => {
+        const rows = drive(sitHead, 14);
+        const from = Math.floor(7 / D);
+        let move = 0;
+        for (let i = from + 1; i < rows.length; i++) move = Math.max(move, Math.abs(rows[i].leftFoot.pos[2] - rows[from].leftFoot.pos[2]));
+        expect(move).toBeLessThan(0.2);
+    });
+
+    test('feet never dip into the floor and are smoothed', () => {
+        const rows = drive(sitHead, 10);
+        for (const r of rows) expect(r.leftFoot.pos[1]).toBeGreaterThan(-1e-6);
+    });
+});

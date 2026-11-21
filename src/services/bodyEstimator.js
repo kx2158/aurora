@@ -202,10 +202,11 @@ export function shoulderOffset(restShoulder, hand, chestFwd, chestUp, chestRight
 // per m/s (horizontal and vertical), vertical cutoff when still, and the same pair for rotation (per rad/s).
 // Vertical gets a higher floor so crouches and jumps are not compressed or stretched by the smoothing.
 const SMOOTH = {
-    hips: { fc: 1.4, beta: 3, fcY: 3.0, betaY: 10, fcR: 1.8, betaR: 0.8, lead: 0.035 },
-    chest: { fc: 1.5, beta: 3, fcY: 3.0, betaY: 10, fcR: 2.0, betaR: 0.8, lead: 0.035 },
-    knee: { fc: 2.2, beta: 3, fcY: 3.5, betaY: 8, fcR: 2.2, betaR: 0.7, lead: 0.025 },
-    elbow: { fc: 2.6, beta: 4, fcY: 4.0, betaY: 8, fcR: 2.6, betaR: 0.8, lead: 0.03 }
+    hips: { fc: 0.5, beta: 4, fcY: 1.6, betaY: 10, fcR: 0.7, betaR: 1.0, lead: 0.04 },
+    chest: { fc: 0.5, beta: 4, fcY: 1.6, betaY: 10, fcR: 0.8, betaR: 1.0, lead: 0.04 },
+    knee: { fc: 0.8, beta: 4, fcY: 2.0, betaY: 8, fcR: 0.9, betaR: 0.9, lead: 0.03 },
+    elbow: { fc: 0.9, beta: 5, fcY: 2.2, betaY: 8, fcR: 1.0, betaR: 1.0, lead: 0.035 },
+    foot: { fc: 0.8, beta: 6, fcY: 2.5, betaY: 9, fcR: 1.0, betaR: 1.2, lead: 0.02 }
 };
 
 const alphaFor = (fc, dt) => {
@@ -373,14 +374,30 @@ function createBodyCore(options = {}) {
         const hipR = lower.hipJoints.right;
 
         const sm = smoother.pose;
-        const outElbow = (side, e) => (e ? { ...sm(side + 'Elbow', SMOOTH.elbow, e, dt), shoulder: e.shoulder, swivel: e.swivel } : (sm(side + 'Elbow', SMOOTH.elbow, null, dt), null));
+        // a smoothed foot never dips into the floor
+        const smFoot = (key, pose) => {
+            const f = sm(key, SMOOTH.foot, pose, dt);
+            return f.pos[1] < 0 ? { ...f, pos: [f.pos[0], 0, f.pos[2]] } : f;
+        };
+        const outElbow = (side, e) => {
+            if (!e) {
+                sm(side + 'Elbow', SMOOTH.elbow, null, dt);
+                return null;
+            }
+            const out = sm(side + 'Elbow', SMOOTH.elbow, e, dt);
+            // smoothing moves the elbow on its own, so put it back at arm length from the shoulder (a bone does not stretch)
+            const d = sub(out.pos, e.shoulder);
+            const l = len(d);
+            const pos = l > 1e-6 ? add(e.shoulder, scale(d, arm.upper / l)) : out.pos;
+            return { ...out, pos, shoulder: e.shoulder, swivel: e.swivel };
+        };
         return {
             bodyYaw: yaw,
             hips: sm('hips', SMOOTH.hips, { pos: lower.hips.pos, rot: hipsRot }, dt),
             hipsBase: lower.hipsBase,
             chest: sm('chest', SMOOTH.chest, { pos: chestPos, rot: chestRot }, dt),
-            leftFoot: { pos: lower.left.pos, rot: lower.left.rot },
-            rightFoot: { pos: lower.right.pos, rot: lower.right.rot },
+            leftFoot: smFoot('leftFoot', { pos: lower.left.pos, rot: lower.left.rot }),
+            rightFoot: smFoot('rightFoot', { pos: lower.right.pos, rot: lower.right.rot }),
             leftKnee: sm('leftKnee', SMOOTH.knee, { pos: lower.leftKnee, rot: kneeRot(hipL, lower.leftKnee, lower.left) }, dt),
             rightKnee: sm('rightKnee', SMOOTH.knee, { pos: lower.rightKnee, rot: kneeRot(hipR, lower.rightKnee, lower.right) }, dt),
             leftElbow: outElbow('left', makeArm('left', input.leftHand)),

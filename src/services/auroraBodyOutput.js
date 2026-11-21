@@ -48,7 +48,7 @@ function onPoses(poses, at) {
         { head: poses.head, leftHand: poses.leftHand, rightHand: poses.rightHand, sitting: sittingInput() },
         dt
     );
-    if (driverOut.value && at - driverSentAt >= 15) {
+    if (driverOut.value && at - driverSentAt >= 7) {
         driverSentAt = at;
         try {
             // standing space, the app converts it for the driver

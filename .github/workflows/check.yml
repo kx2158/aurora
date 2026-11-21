@@ -35,6 +35,9 @@ jobs:
       - name: Build the Windows app (CEF)
         shell: bash
         run: dotnet build Dotnet/VRCX-Cef.csproj -p:Configuration=Release -p:WarningLevel=0 -p:Platform=x64 -p:PlatformTarget=x64 -maxcpucount --runtime win-x64 --self-contained
+      - name: Build the space drag helper
+        shell: bash
+        run: dotnet build SpaceDrag/SpaceDrag.csproj -p:Configuration=Release -p:Platform=x64 -p:PlatformTarget=x64 -p:WarningLevel=0 --runtime win-x64 --self-contained
 
   screenshots:
     runs-on: ubuntu-24.04

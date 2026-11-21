@@ -33,13 +33,75 @@ export const PALETTES = {
     }
 };
 
-/** A palette from Aurora's theme colours (CSS custom properties), falling back to the neon one. */
+// ---------- colours ----------
+
+const hexCache = new Map();
+/** Any CSS colour (hex, rgb, oklch, named) as #rrggbb, so the gradients below can add transparency to it. */
+export function toHex(color, fallback = '#888888') {
+    const key = String(color || '').trim();
+    if (!key) return fallback;
+    if (/^#[0-9a-f]{6}$/i.test(key)) return key;
+    if (/^#[0-9a-f]{3}$/i.test(key)) return '#' + key.slice(1).replace(/./g, '$&$&');
+    if (hexCache.has(key)) return hexCache.get(key);
+    let out = fallback;
+    try {
+        const cv = typeof OffscreenCanvas !== 'undefined' ? new OffscreenCanvas(1, 1) : document.createElement('canvas');
+        cv.width = cv.height = 1;
+        const g = cv.getContext('2d');
+        g.fillStyle = '#000';
+        g.fillStyle = key;
+        g.fillRect(0, 0, 1, 1);
+        const [r, gg, bb] = g.getImageData(0, 0, 1, 1).data;
+        out = '#' + [r, gg, bb].map((n) => n.toString(16).padStart(2, '0')).join('');
+    } catch {
+        // no canvas here (tests): keep the fallback
+    }
+    hexCache.set(key, out);
+    return out;
+}
+const channels = (hex) => {
+    const n = parseInt(toHex(hex).slice(1), 16);
+    return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+};
+/** a mixed with b, t = how much of b (0..1) */
+export function mixHex(a, b, t) {
+    const x = channels(a);
+    const y = channels(b);
+    return '#' + x.map((v, i) => Math.round(v + (y[i] - v) * t).toString(16).padStart(2, '0')).join('');
+}
+const luminance = (hex) => {
+    const [r, g, b] = channels(hex);
+    return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+};
+
+/**
+ * A palette from Aurora's theme colours (CSS custom properties): the theme's background, text and accent.
+ * Light themes get a light stage with a dark head and hands so the figure stays readable.
+ */
 export function paletteFromTheme(read, base = PALETTES.neon) {
     const v = (name, fallback) => {
         const x = read(name);
-        return x && String(x).trim() ? String(x).trim() : fallback;
+        return x && String(x).trim() ? toHex(String(x).trim(), fallback) : fallback;
     };
-    return { ...base, core: v('--a-accent', base.core), floor: v('--a-accent', base.floor), text: v('--a-muted', base.text) };
+    const accent = v('--a-accent', base.core);
+    const text = v('--a-muted', base.text);
+    const back = v('--background', base.bg);
+    const fore = v('--foreground', '#ffffff');
+    if (luminance(back) > 0.55) {
+        return {
+            ...base,
+            bg: mixHex(back, fore, 0.07),
+            bgInner: back,
+            grid: mixHex(back, fore, 0.12),
+            floor: accent,
+            core: accent,
+            head: mixHex(fore, back, 0.15),
+            hand: mixHex(fore, back, 0.15),
+            text,
+            light: true
+        };
+    }
+    return { ...base, core: accent, floor: accent, text, bg: mixHex(back, '#000000', 0.35), bgInner: mixHex(back, fore, 0.04), grid: mixHex(back, fore, 0.1) };
 }
 
 // ---------- small vector helpers ----------
@@ -57,10 +119,9 @@ function rotate(q, v) {
     return [v[0] + w * tx + (y * tz - z * ty), v[1] + w * ty + (z * tx - x * tz), v[2] + w * tz + (x * ty - y * tx)];
 }
 
-function rgba(hex, a) {
-    const h = hex.replace('#', '');
-    const n = parseInt(h.length === 3 ? h.replace(/./g, '$&$&') : h, 16);
-    return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${a})`;
+function rgba(color, a) {
+    const [r, g, b] = channels(color);
+    return `rgba(${r}, ${g}, ${b}, ${a})`;
 }
 
 // ---------- the body as a list of parts ----------
@@ -163,7 +224,7 @@ export function drawAvatar(c, o) {
     c.clearRect(0, 0, w, h);
     // background
     const bg = c.createRadialGradient(w / 2, h * 0.55, 10, w / 2, h * 0.55, Math.max(w, h) * 0.75);
-    bg.addColorStop(0, neon ? '#120d22' : '#10121a');
+    bg.addColorStop(0, pal.bgInner || (neon ? '#120d22' : '#10121a'));
     bg.addColorStop(1, pal.bg);
     c.fillStyle = bg;
     c.fillRect(0, 0, w, h);
@@ -214,7 +275,7 @@ export function drawAvatar(c, o) {
         c.shadowBlur = 0;
         // soft contact shadow under the body
         const sh = c.createRadialGradient(w / 2, floorY, 2, w / 2, floorY, ppm * 0.45);
-        sh.addColorStop(0, 'rgba(0,0,0,0.45)');
+        sh.addColorStop(0, pal.light ? 'rgba(0,0,0,0.18)' : 'rgba(0,0,0,0.45)');
         sh.addColorStop(1, 'rgba(0,0,0,0)');
         c.fillStyle = sh;
         c.fillRect(0, floorY - 8, w, 16);

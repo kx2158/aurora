@@ -54,6 +54,13 @@
             </button>
             <button type="button" class="a-btn" @click="setNormalHeight()">{{ t('view.height.set_normal') }}</button>
         </div>
+        <div class="height-row mt-3">
+            <button type="button" class="a-btn" :disabled="importState === 'waiting'" @click="importHeightFromVrchat">
+                {{ t(importState === 'waiting' ? 'view.height.import_waiting' : 'view.height.import') }}
+            </button>
+            <span v-if="importState === 'found'" class="a-note">{{ t('view.height.import_found') }}</span>
+            <span v-else-if="importState === 'none'" class="a-note height-warn">{{ t('view.height.import_none') }}</span>
+        </div>
         <p v-if="isExtreme(height)" class="a-note height-warn">{{ t('view.height.extreme') }}</p>
     </section>
 </template>
@@ -69,6 +76,8 @@
         fromSlider,
         height,
         HEIGHT_PRESETS,
+        importHeightFromVrchat,
+        importState,
         initHeight,
         isExtreme,
         MAX_HEIGHT,

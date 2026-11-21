@@ -7,7 +7,7 @@
 import { ref, watch } from 'vue';
 
 import configRepository from './config';
-import { defaultDragSettings, dragState, sanitizeDragSettings } from './spaceDragCore';
+import { defaultDragSettings, dragState, enabledFromStatus, sanitizeDragSettings } from './spaceDragCore';
 
 const KEY = 'Aurora_spacedrag';
 
@@ -18,6 +18,7 @@ export const dragUiState = ref('off');
 let loaded = false;
 let timer = null;
 let applying = false;
+let lastLocalChange = 0;
 
 const api = (name) => (typeof AppApi !== 'undefined' && typeof AppApi[name] === 'function' ? AppApi[name].bind(AppApi) : null);
 
@@ -33,19 +34,21 @@ export async function refreshDragStatus() {
     const get = api('GetSpaceDragStatus');
     if (!get) return dragUiState.value;
     dragStatus.value = parse(await get());
+    // the switch in the SteamVR dashboard may have flipped it
+    const adopt = enabledFromStatus(dragStatus.value, dragSettings.value, Date.now() - lastLocalChange);
+    if (adopt !== null) dragSettings.value = sanitizeDragSettings({ ...dragSettings.value, enabled: adopt });
     dragUiState.value = dragState(dragStatus.value, dragSettings.value);
     return dragUiState.value;
 }
 
-/** Saves the settings for the helper and starts or stops it to match "enabled". */
+/** Saves the settings for the helper. The helper always runs (so the SteamVR switch can turn it back on); "enabled" only gates the grab. */
 async function apply() {
     if (applying) return;
     applying = true;
     try {
         const set = api('SetSpaceDragSettings');
         if (set) await set(JSON.stringify(dragSettings.value));
-        if (dragSettings.value.enabled) await api('StartSpaceDrag')?.();
-        else await api('StopSpaceDrag')?.();
+        await api('StartSpaceDrag')?.();
     } finally {
         applying = false;
     }
@@ -61,6 +64,7 @@ export async function openSteamVrBindings() {
 }
 
 export function updateDragSettings(patch) {
+    lastLocalChange = Date.now();
     dragSettings.value = sanitizeDragSettings({ ...dragSettings.value, ...patch });
 }
 
@@ -84,7 +88,7 @@ export async function initSpaceDrag() {
     await apply();
     timer = setInterval(async () => {
         await refreshDragStatus();
-        if (dragSettings.value.enabled && dragUiState.value === 'starting') await api('StartSpaceDrag')?.();
+        if (dragUiState.value === 'starting') await api('StartSpaceDrag')?.();
     }, 2000);
 }
 

@@ -241,7 +241,8 @@
         { key: 'counterbalance' },
         { key: 'smoothing' },
         { key: 'neckRange' },
-        { key: 'legFreedom' }
+        { key: 'legFreedom' },
+        { key: 'idleMotion' }
     ];
 
     onMounted(() => {

@@ -14,7 +14,7 @@ public sealed class DragSettings
 {
     [JsonPropertyName("enabled")] public bool Enabled { get; set; } = true;
     /// <summary>"left", "right" or "both" (both: the hand that grabbed first holds the drag, the other can take over when it lets go).</summary>
-    [JsonPropertyName("hand")] public string Hand { get; set; } = "both";
+    [JsonPropertyName("hand")] public string Hand { get; set; } = "left";
     /// <summary>How far the world moves for one unit of hand movement. 1 is 1:1.</summary>
     [JsonPropertyName("multiplier")] public double Multiplier { get; set; } = 1.0;
     /// <summary>When false, dragging only moves you along the floor.</summary>
@@ -29,16 +29,31 @@ public sealed class DragSettings
 
     public DragSettings Clamped()
     {
-        var hand = (Hand ?? "both").ToLowerInvariant();
+        var hand = (Hand ?? "left").ToLowerInvariant();
         return new DragSettings
         {
             Enabled = Enabled,
-            Hand = hand is "left" or "right" ? hand : "both",
+            Hand = hand is "left" or "right" or "both" ? hand : "left",
             Multiplier = double.IsFinite(Multiplier) ? Math.Clamp(Multiplier, MinMultiplier, MaxMultiplier) : 1.0,
             AllowVertical = AllowVertical,
             Comfort = Comfort,
             ResetCounter = ResetCounter
         };
+    }
+
+    /// <summary>Writes the file the way Aurora does (whole file, then rename), used when the SteamVR switch flips "enabled".</summary>
+    public void Save(string path)
+    {
+        try
+        {
+            var tmp = path + ".tmp";
+            File.WriteAllText(tmp, JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = true }));
+            File.Move(tmp, path, true);
+        }
+        catch
+        {
+            // Aurora may be reading it right now; the switch still works for this session
+        }
     }
 
     public static DragSettings Load(string path)

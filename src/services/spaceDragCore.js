@@ -6,8 +6,8 @@ export const DRAG_LIMITS = { multiplier: [0.25, 6] };
 export const HANDS = ['left', 'right', 'both'];
 
 export const defaultDragSettings = () => ({
-    enabled: false,
-    hand: 'both',
+    enabled: true,
+    hand: 'left',
     multiplier: 1,
     allowVertical: true,
     comfort: false
@@ -23,7 +23,7 @@ export function sanitizeDragSettings(input) {
     const s = input && typeof input === 'object' ? input : {};
     const [lo, hi] = DRAG_LIMITS.multiplier;
     return {
-        enabled: s.enabled === true,
+        enabled: s.enabled === undefined ? d.enabled : s.enabled === true,
         hand: HANDS.includes(s.hand) ? s.hand : d.hand,
         multiplier: Math.min(hi, Math.max(lo, num(s.multiplier, d.multiplier))),
         allowVertical: s.allowVertical === undefined ? d.allowVertical : s.allowVertical === true,
@@ -39,11 +39,22 @@ export function sanitizeDragSettings(input) {
 export function dragState(status, settings) {
     if (!status) return 'off';
     if (!status.installed) return 'missing';
-    if (!settings?.enabled) return 'off';
     if (!status.running) return 'starting';
+    if (!settings?.enabled || status.enabled === false) return 'off';
     if (status.error) return 'error';
     if (!status.steamVr) return 'no-steamvr';
     if (status.dragging) return 'dragging';
     if (!status.bound) return 'unbound';
     return 'ready';
+}
+
+/**
+ * The SteamVR dashboard switch flips "enabled" inside the helper. Returns the value Aurora should adopt, or null
+ * when there is nothing to adopt: no live status, same value, or Aurora changed it itself a moment ago (the helper's
+ * status lags the settings file by about a second).
+ */
+export function enabledFromStatus(status, settings, msSinceLocalChange) {
+    if (!status || !status.running || typeof status.enabled !== 'boolean') return null;
+    if (msSinceLocalChange < 3000) return null;
+    return status.enabled === settings?.enabled ? null : status.enabled;
 }

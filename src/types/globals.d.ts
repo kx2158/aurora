@@ -278,7 +278,7 @@ declare global {
         GetNeonSystemInfo(): Promise<string>;
         GetStandableStatus(): Promise<string>;
         DisableStandable(): Promise<string>;
-        SendOsc(base64: string, port: number): Promise<boolean>;
+        ReadVrchatEyeHeight(timeoutMs: number): Promise<number>;
         EnsureAuroraTrackerDriver(): Promise<string>;
         SendTrackerPoses(json: string): Promise<void>;
         NeonMediaControl(action: string): Promise<void>;

@@ -16,6 +16,31 @@ const KEY = 'Aurora_height';
 export const height = ref(1.6);
 export const normalHeight = ref(1.6);
 
+/** 'idle', 'waiting' (listening to VRChat), 'found' or 'none' (nothing arrived) */
+export const importState = ref('idle');
+
+/**
+ * Reads the eye height VRChat reports for your avatar and shows it here, without sending anything back.
+ * VRChat sends it when an avatar loads and when the height changes, so change it once (or reload your avatar)
+ * while this waits. Needs OSC switched on in VRChat (receive only: nothing else goes over OSC).
+ */
+export async function importHeightFromVrchat() {
+    if (importState.value === 'waiting' || typeof AppApi === 'undefined' || !AppApi.ReadVrchatEyeHeight) return false;
+    importState.value = 'waiting';
+    try {
+        const m = Number(await AppApi.ReadVrchatEyeHeight(10000));
+        if (m > 0) {
+            height.value = tidy(clamp(m));
+            importState.value = 'found';
+            return true;
+        }
+    } catch {
+        // older Windows app
+    }
+    importState.value = 'none';
+    return false;
+}
+
 export const HEIGHT_PRESETS = [
     { label: 'Ant', m: 0.01 },
     { label: 'Mouse', m: 0.1 },

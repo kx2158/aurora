@@ -96,7 +96,7 @@ export function elbowReference(axis, bodyYaw, side) {
  * bias (radians) is an optional extra swivel request, for example from a hand twist; it is clamped
  * like everything else, and the swivel can only change so fast, which is what stops flips.
  */
-export function solveArm(shoulder, hand, upper, fore, side, bodyYaw, prevSwivel = 0, dt = 1 / 90, bias = 0, options = {}) {
+export function solveArm(shoulder, hand, upper, fore, side, bodyYaw, prevSwivel = 0, dt = 1 / 90, bias = 0, options = {}, prevDir = null) {
     const o = { ...BODY_DEFAULTS, ...options };
     const to = sub(hand, shoulder);
     const axis = len(to) > 1e-6 ? norm(to) : [0, -1, 0];
@@ -105,7 +105,17 @@ export function solveArm(shoulder, hand, upper, fore, side, bodyYaw, prevSwivel 
     const target = clamp(bias, -lim, lim);
     const maxStep = o.elbowSwivelSpeed * dt;
     const swivel = clamp(prevSwivel + clamp(target - prevSwivel, -maxStep, maxStep), -lim, lim);
-    const dir = rotateAbout(ref, axis, swivel);
+    let dir = rotateAbout(ref, axis, swivel);
+    // The reference itself can swing around when the hand goes behind the body. Whatever the cause, the elbow
+    // direction may only turn so fast around the arm line, so it can never pop to the other side in one frame.
+    if (prevDir) {
+        const pd = perp(prevDir, axis);
+        if (len(pd) > 1e-4) {
+            const p0 = norm(pd);
+            const ang = Math.atan2(dot(cross(p0, dir), axis), dot(p0, dir));
+            dir = rotateAbout(p0, axis, clamp(ang, -maxStep, maxStep));
+        }
+    }
     const elbow = solveKnee(shoulder, hand, upper, fore, dir);
     return { elbow, swivel, dir };
 }
@@ -326,6 +336,7 @@ function createBodyCore(options = {}) {
         shoulderHalf: 0.1 * eye
     };
     const swivels = { left: 0, right: 0 };
+    const dirs = { left: null, right: null };
     const smoother = createJointSmoother(() => o.smoothing);
 
     function update(input, dt) {
@@ -394,9 +405,28 @@ function createBodyCore(options = {}) {
             const sign = side === 'left' ? -1 : 1;
             const rest = add(shoulderCenter, scale(rgtT, sign * arm.shoulderHalf));
             const shoulder = add(rest, shoulderOffset(rest, hand.pos, fwdC, upT, rgtT, side, reachMax * 0.97, eye));
-            const want = chooseSwivel(shoulder, hand.pos, arm.upper, arm.fore, side, chestYaw, bodyVol, o, swivels[side]);
-            const r = solveArm(shoulder, hand.pos, arm.upper, arm.fore, side, chestYaw, swivels[side], dt, want, o);
+            let want = chooseSwivel(shoulder, hand.pos, arm.upper, arm.fore, side, chestYaw, bodyVol, o, swivels[side]);
+            // optional hint from the headset's own body tracking: which way the real elbow points (see bodyXrCore.js)
+            const xrOff = input.xr && input.xr[side + 'Elbow'];
+            if (xrOff) {
+                const ax = sub(hand.pos, shoulder);
+                if (len(ax) > 1e-6) {
+                    const axis = norm(ax);
+                    const h = perp(xrOff, axis);
+                    const hl = len(h);
+                    if (hl > 0.02) {
+                        const hn = norm(h);
+                        const ref = elbowReference(axis, chestYaw, side);
+                        const lim = Math.max(o.maxElbowSwivel, o.elbowSwivelLimit || 0);
+                        const ang = clamp(Math.atan2(dot(cross(ref, hn), axis), dot(ref, hn)), -lim, lim);
+                        const w = clamp(input.xr.weight, 0, 1) * clamp(hl / 0.06, 0, 1);
+                        want = want * (1 - w) + ang * w;
+                    }
+                }
+            }
+            const r = solveArm(shoulder, hand.pos, arm.upper, arm.fore, side, chestYaw, swivels[side], dt, want, o, dirs[side]);
             swivels[side] = r.swivel;
+            dirs[side] = r.dir;
             return {
                 shoulder,
                 pos: r.elbow,
@@ -452,6 +482,8 @@ function createBodyCore(options = {}) {
         feet.reset();
         swivels.left = 0;
         swivels.right = 0;
+        dirs.left = null;
+        dirs.right = null;
         smoother.reset();
     }
 

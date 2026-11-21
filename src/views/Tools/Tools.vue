@@ -6,6 +6,7 @@
             <div class="mt-5 px-5">
                 <AuroraHeight class="mb-6" />
                 <AuroraSpaceDrag class="mb-6" />
+                <AuroraBodyXr class="mb-6" />
                 <AuroraBodyGate class="mb-6">
                     <AuroraBodyCalibration />
                 </AuroraBodyGate>
@@ -94,6 +95,7 @@
     import AuroraBodyCalibration from '../../components/AuroraBodyCalibration.vue';
     import AuroraBodyGate from '../../components/AuroraBodyGate.vue';
     import AuroraHeight from '../../components/AuroraHeight.vue';
+    import AuroraBodyXr from '../../components/AuroraBodyXr.vue';
     import AuroraSpaceDrag from '../../components/AuroraSpaceDrag.vue';
     import { useToolActions } from '../../composables/useToolActions';
     import { useToolNavPinning } from '../../composables/useToolNavPinning';

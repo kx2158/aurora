@@ -281,6 +281,9 @@ declare global {
         ReadVrchatEyeHeight(timeoutMs: number): Promise<number>;
         EnsureAuroraTrackerDriver(): Promise<string>;
         SendTrackerPoses(json: string): Promise<void>;
+        StartBodyXr(): Promise<boolean>;
+        StopBodyXr(): Promise<boolean>;
+        ReadBodyXr(): Promise<string>;
         NeonMediaControl(action: string): Promise<void>;
         GetNeonAudioDevices(): Promise<string>;
         GetNeonAudioApps(): Promise<string>;

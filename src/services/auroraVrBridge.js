@@ -382,6 +382,7 @@ export async function initVrBridge() {
     initHeight();
     initBodyLock();
     initBodyOutput();
+    initBodyXr();
     watch([bodyUnlocked, sitMode, autoDisable, standableState, trackerOn, measure, driverOut], pushState, { deep: true });
     // once unlocked, the body settings and the Standable check run in the background too
     watch(

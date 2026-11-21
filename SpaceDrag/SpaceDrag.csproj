@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Aurora's own space drag: a tiny SteamVR overlay-type app. Built into build\Cef\SpaceDrag so the installer ships it. -->
+  <PropertyGroup>
+    <OutputPath>..\build\Cef\SpaceDrag\</OutputPath>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <Platforms>x64</Platforms>
+    <PlatformTarget>x64</PlatformTarget>
+    <AssemblyName>Aurora.SpaceDrag</AssemblyName>
+    <RootNamespace>AuroraSpaceDrag</RootNamespace>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+    <CETCompat>false</CETCompat>
+    <WarningLevel>0</WarningLevel>
+    <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == ''">win-x64</RuntimeIdentifier>
+    <SelfContained Condition="'$(SelfContained)' == ''">false</SelfContained>
+    <BaseIntermediateOutputPath>obj\SpaceDrag\</BaseIntermediateOutputPath>
+    <BaseOutputPath>bin\SpaceDrag\</BaseOutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- the same OpenVR bindings Aurora's overlay already uses -->
+    <Compile Include="..\Dotnet\Overlay\OpenVR\openvr_api.cs" Link="openvr_api.cs" />
+    <None Include="..\Dotnet\libs\openvr_api.dll" Link="openvr_api.dll" CopyToOutputDirectory="PreserveNewest" TargetPath="openvr_api.dll" />
+    <!-- the action manifest and default bindings SteamVR reads, kept in a folder next to the exe -->
+    <None Include="openvr\**" CopyToOutputDirectory="PreserveNewest" TargetPath="openvr\%(RecursiveDir)%(Filename)%(Extension)" />
+  </ItemGroup>
+</Project>

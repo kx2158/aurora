@@ -20,6 +20,10 @@ import configRepository from './config';
 const DRIVER_KEY = 'Aurora_body_driver';
 /** Send the trackers to Aurora's SteamVR driver, so SteamVR lists them as trackers. On unless switched off. */
 export const driverOut = ref(true);
+/** Holds the calibration pose (for VRChat's Calibrate FBT) until switched off; normally it comes on by itself in a T-pose. */
+export const calibrateHold = ref(false);
+/** True while the trackers are showing the calibration pose. */
+export const calibratingNow = ref(false);
 
 let started = false;
 let estimator = null;
@@ -33,9 +37,11 @@ function onPoses(poses, at) {
     const dt = lastAt ? Math.min(0.1, Math.max(0.001, (at - lastAt) / 1000)) : 1 / 30;
     lastAt = at;
     const body = estimator.update(
-        { head: poses.head, leftHand: poses.leftHand, rightHand: poses.rightHand, sitting: sittingInput() },
+        { head: poses.head, leftHand: poses.leftHand, rightHand: poses.rightHand, sitting: sittingInput(), calibrate: calibrateHold.value ? true : undefined },
         dt
     );
+    const cal = Boolean(body.gait.calibrating);
+    if (cal !== calibratingNow.value) calibratingNow.value = cal;
     if (driverOut.value && at - driverSentAt >= 7) {
         driverSentAt = at;
         try {

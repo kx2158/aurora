@@ -26,7 +26,8 @@ import { herePeople, instanceWatch, openProfile, toggleWatched, watchAlert } fro
 import { backToNormal, height, initHeight, normalHeight, setHeight, setNormalHeight, stepHeight } from './auroraHeight';
 import { initCalibration, sitMode, toggleTracker, trackerOn } from './auroraBodyCalibration';
 import { bodyUnlocked, initBodyLock } from './auroraBodyLock';
-import { driverOut, initBodyOutput, setDriverOut } from './auroraBodyOutput';
+import { calibrateHold, calibratingNow, driverOut, initBodyOutput, setDriverOut } from './auroraBodyOutput';
+import { dragSettings, dragToast, initSpaceDrag, toggleSpaceDrag } from './auroraSpaceDrag';
 import { applyMeasure, measure, measureFloor, measurePoint, setMeasureHand } from './auroraMeasure';
 import { autoDisable, initStandable, standableState } from './auroraStandable';
 import { useLocationStore } from '../stores/location';
@@ -68,6 +69,7 @@ function pushDesk() {
                     hotkey: deskHotkey,
                     here: hereState(),
                     height: { m: height.value, normal: normalHeight.value },
+                    spaceDrag: !!dragSettings.value.enabled,
                     chatbox: { enabled: chatboxEnabled.value, preview: String(chatboxPreview.value || '').slice(0, 144) },
                     alarms: alarms.value.map((a) => ({
                         id: a.id,
@@ -203,6 +205,9 @@ export function deskCommand(command, value) {
         case 'heightSetNormal':
             setNormalHeight();
             break;
+        case 'spaceDrag':
+            toggleSpaceDrag();
+            break;
         case 'open':
             try {
                 AppApi.FocusWindow();
@@ -245,6 +250,10 @@ function pushState() {
                 bodyStandable: standableState.value,
                 bodyTrackers: trackerOn.value,
                 bodyDriver: driverOut.value,
+                bodyCalibrating: calibratingNow.value,
+                bodyCalibrateHold: calibrateHold.value,
+                spaceDrag: !!dragSettings.value.enabled,
+                dragToast: dragToast.value && Date.now() - dragToast.value.at < 3500 ? dragToast.value : null,
                 bodyMeasure: { hand: measure.hand, status: measure.status, step: measure.step, floor: measure.floorY !== null, meters: measure.meters, message: measure.message }
             })
         );
@@ -278,6 +287,8 @@ export function neonCommand(command) {
             setDriverOut(!driverOut.value);
         } else if (command === 'bodyStandable') {
             autoDisable.value = !autoDisable.value;
+        } else if (command === 'bodyCalibrate') {
+            calibrateHold.value = !calibrateHold.value;
         }
         pushState();
         return;
@@ -347,6 +358,9 @@ export function neonCommand(command) {
         case 'heightUp':
             stepHeight(1);
             break;
+        case 'spaceDrag':
+            toggleSpaceDrag();
+            break;
         case 'heightDown':
             stepHeight(-1);
             break;
@@ -380,6 +394,8 @@ export async function initVrBridge() {
         },
         { immediate: true }
     );
+    initSpaceDrag();
+    watch([dragSettings, dragToast, calibratingNow, calibrateHold], pushState, { deep: true });
     watch([accent, mm, chatboxEnabled, chatboxPreview, alarms, audioApps, instanceWatch, watchAlert, height, normalHeight], pushState, { deep: true });
     // people coming and going
     watch(() => useLocationStore().lastLocation.playerList.size, pushDesk);

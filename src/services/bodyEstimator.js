@@ -458,6 +458,74 @@ function createBodyCore(options = {}) {
     return { update, reset, arm, proportions: p };
 }
 
+// ---------- calibration pose (for VRChat's Calibrate FBT) ----------
+
+/**
+ * Is this a T-pose? Both hands out to the sides at about shoulder height, far apart, level, across the way the head
+ * faces, and held still. VRChat's full body calibration shows the avatar in a T-pose, so this is when to hand VRChat a
+ * clean, straight body to match its trackers to (the same idea as Standable's calibration mode, without the flick).
+ * Works at the reference size (eye height 1.65 m).
+ */
+export function isTPose(head, left, right, eye = 1.65) {
+    if (!head || !left || !right) return false;
+    const k = eye / 1.65;
+    const span = Math.hypot(left.pos[0] - right.pos[0], left.pos[2] - right.pos[2]);
+    if (span < 1.05 * k) return false;
+    for (const h of [left, right]) {
+        const dy = h.pos[1] - head.pos[1];
+        if (dy < -0.5 * k || dy > 0.12 * k) return false;
+    }
+    if (Math.abs(left.pos[1] - right.pos[1]) > 0.22 * k) return false;
+    // the middle of the hands is near the body
+    const mid = [(left.pos[0] + right.pos[0]) / 2 - head.pos[0], (left.pos[2] + right.pos[2]) / 2 - head.pos[2]];
+    if (Math.hypot(mid[0], mid[1]) > 0.3 * k) return false;
+    // the line between the hands runs across the way the head faces, with the left hand on the left
+    const r = rightOf(yawOfRotation(head.rot));
+    const across = ((right.pos[0] - left.pos[0]) * r[0] + (right.pos[2] - left.pos[2]) * r[2]) / span;
+    return across > 0.8;
+}
+
+/** A clean standing pose under the head with straight arms out to the hands: what VRChat should calibrate against. */
+export function calibrationPose(head, left, right, proportions, arm, eye = 1.65) {
+    const yaw = yawOfRotation(head.rot);
+    const fwd = forwardOf(yaw);
+    const rgt = rightOf(yaw);
+    const up = [0, 1, 0];
+    const anchor = neckAnchor(head, yaw);
+    const rot = quatFromYaw(yaw);
+    const hips = add(sub(anchor, [0, proportions.headToHips, 0]), scale(fwd, -0.02));
+    const shoulderCenter = add(sub(anchor, scale(up, 0.12 * eye)), scale(fwd, -0.05));
+    const chest = add(hips, scale(sub(shoulderCenter, hips), 0.7));
+    const ground = [hips[0], 0, hips[2]];
+    const leg = (sign) => {
+        const hipJoint = add(hips, scale(rgt, (sign * proportions.hipWidth) / 2));
+        const foot = add(ground, scale(rgt, (sign * proportions.hipWidth) / 2));
+        const ankle = add(foot, [0, proportions.ankleHeight, 0]);
+        const knee = add(scale(add(hipJoint, ankle), 0.5), scale(fwd, 0.03));
+        return { foot: { pos: foot, rot, yaw, pitch: 0 }, knee: { pos: knee, rot } };
+    };
+    const L = leg(-1);
+    const R = leg(1);
+    const armOf = (sign, hand) => {
+        if (!hand) return null;
+        const shoulder = add(shoulderCenter, scale(rgt, sign * arm.shoulderHalf));
+        const dir = norm(sub(hand.pos, shoulder));
+        const elbow = add(shoulder, scale(dir, arm.upper));
+        // elbows face back with the palms down, like the avatar's T-pose
+        return { pos: elbow, rot: elbowRotation(shoulder, elbow, hand.pos, scale(fwd, -1)), shoulder, swivel: 0 };
+    };
+    return {
+        hips: { pos: hips, rot },
+        chest: { pos: chest, rot },
+        leftFoot: L.foot,
+        rightFoot: R.foot,
+        leftKnee: L.knee,
+        rightKnee: R.knee,
+        leftElbow: armOf(-1, left),
+        rightElbow: armOf(1, right)
+    };
+}
+
 const REFERENCE_EYE = 1.65;
 
 const scalePos = (p, k) => [p[0] * k, p[1] * k, p[2] * k];
@@ -493,6 +561,8 @@ export function createBodyEstimator(options = {}) {
     const stabilizer = createTrackerStabilizer();
     // springs on the skeleton: switches and jumps blend instead of snapping (see bodyInertia.js)
     const inertia = createInertia();
+    let tTimer = 0; // how long the T-pose has been held (or, while calibrating, how long it has been let go)
+    let calibrating = false;
     const JOINTS = ['hips', 'chest', 'leftFoot', 'rightFoot', 'leftKnee', 'rightKnee', 'leftElbow', 'rightElbow'];
 
     function reset() {
@@ -520,7 +590,31 @@ export function createBodyEstimator(options = {}) {
             rightHand: scalePose(rightHand.pose, inv),
             virtualVelocity: input.virtualVelocity ? [input.virtualVelocity[0] * inv, input.virtualVelocity[1] * inv] : input.virtualVelocity
         };
-        const raw = core.update(inp, dt);
+        let raw = core.update(inp, dt);
+        // VRChat calibration: input.calibrate true forces the calibration pose, false never shows it, and left out it
+        // comes on by itself while you hold a T-pose (half a second) and goes off when you let go
+        if (input.calibrate === true) calibrating = true;
+        else if (input.calibrate === false) calibrating = false;
+        else {
+            const t = isTPose(inp.head, inp.leftHand, inp.rightHand);
+            if (!calibrating) {
+                tTimer = t ? tTimer + frame : 0;
+                if (tTimer > 0.5) {
+                    calibrating = true;
+                    tTimer = 0;
+                }
+            } else {
+                tTimer = t ? 0 : tTimer + frame;
+                if (tTimer > 0.35) {
+                    calibrating = false;
+                    tTimer = 0;
+                }
+            }
+        }
+        if (calibrating) {
+            const pose = calibrationPose(inp.head, inp.leftHand, inp.rightHand, core.proportions, core.arm);
+            raw = { ...raw, ...pose, gait: { ...raw.gait, mode: 'calibrate', calibrating: true } };
+        }
         // the shoulders ride on springs too, so an elbow kept at arm length from its shoulder cannot jump either
         const withShoulders = {
             ...raw,

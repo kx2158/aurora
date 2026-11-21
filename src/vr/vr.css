@@ -1648,7 +1648,7 @@ i.x-user-status.busy {
 
 /* dashboard height slider: three tiles wide */
 .vr-tile.vr-slide {
-    grid-column: span 3;
+    grid-column: span 2;
     align-items: stretch;
     justify-content: center;
     gap: 10px;
@@ -1730,4 +1730,21 @@ i.x-user-status.busy {
 .vr-info {
     grid-column: span 2;
     cursor: default;
+}
+
+/* space drag switched / calibration pose, on the wrist */
+.vr-alarm.vr-dragtoast {
+    border: 1px solid color-mix(in srgb, var(--vr-accent) 55%, transparent);
+    background: color-mix(in srgb, var(--vr-accent) 14%, transparent);
+    color: var(--vr-text);
+    animation: none;
+    text-transform: lowercase;
+    letter-spacing: 0.08em;
+}
+.vr-alarm.vr-dragtoast.off {
+    border-color: rgba(255, 120, 100, 0.45);
+    background: rgba(255, 120, 100, 0.1);
+}
+.vr-tile.vr-wide2 {
+    grid-column: span 3;
 }

@@ -7,7 +7,8 @@
 import { ref, watch } from 'vue';
 
 import configRepository from './config';
-import { defaultDragSettings, dragState, enabledFromStatus, sanitizeDragSettings } from './spaceDragCore';
+import { subscribePoses, wantPoses } from './auroraPoses';
+import { armsCrossed, defaultDragSettings, dragState, enabledFromStatus, sanitizeDragSettings } from './spaceDragCore';
 
 const KEY = 'Aurora_spacedrag';
 
@@ -68,9 +69,63 @@ export function updateDragSettings(patch) {
     dragSettings.value = sanitizeDragSettings({ ...dragSettings.value, ...patch });
 }
 
+/** Turns space drag on or off, from anywhere (the card, the overlays, the gesture). */
+export function toggleSpaceDrag() {
+    updateDragSettings({ enabled: !dragSettings.value.enabled });
+    dragToast.value = { on: dragSettings.value.enabled, at: Date.now() };
+}
+
+// ---------- the crossed arms gesture ----------
+// Cross your arms over your chest (each hand on the other side, close to the body) for about a second and space drag
+// switches on or off. No menu needed, and it works with hand tracking. You have to uncross before it can switch again.
+
+/** Shown on the VR wrist for a few seconds after the gesture or a button switched space drag: { on, at }. */
+export const dragToast = ref(null);
+/** The gesture can be switched off on the card. */
+export const dragGesture = ref(true);
+const GESTURE_KEY = 'Aurora_spaceDragGesture';
+let crossTimer = 0;
+let crossArmed = true;
+let lastPoseAt = 0;
+let unsubscribeGesture = null;
+
+function onGesturePoses(poses, at) {
+    const dt = lastPoseAt ? Math.min(0.2, (at - lastPoseAt) / 1000) : 0;
+    lastPoseAt = at;
+    const crossed = armsCrossed(poses?.head, poses?.leftHand, poses?.rightHand);
+    if (!crossed) {
+        crossTimer = Math.max(0, crossTimer - dt * 2);
+        if (crossTimer === 0) crossArmed = true;
+        return;
+    }
+    crossTimer += dt;
+    if (crossArmed && crossTimer > 0.9) {
+        crossArmed = false;
+        toggleSpaceDrag();
+    }
+}
+
+function applyGesture() {
+    const on = dragGesture.value;
+    wantPoses('spaceDragGesture', on);
+    if (on && !unsubscribeGesture) unsubscribeGesture = subscribePoses(onGesturePoses);
+    else if (!on && unsubscribeGesture) {
+        unsubscribeGesture();
+        unsubscribeGesture = null;
+    }
+}
+
+export function setDragGesture(on) {
+    dragGesture.value = Boolean(on);
+    configRepository.setBool(GESTURE_KEY, dragGesture.value);
+    applyGesture();
+}
+
 export async function initSpaceDrag() {
     if (loaded) return;
     loaded = true;
+    dragGesture.value = await configRepository.getBool(GESTURE_KEY, true);
+    applyGesture();
     try {
         dragSettings.value = sanitizeDragSettings(JSON.parse(await configRepository.getString(KEY, '{}')));
     } catch {

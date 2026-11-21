@@ -158,3 +158,39 @@ describe('arms', () => {
         expect(closest).toBeGreaterThan(0.12);
     });
 });
+
+describe('VRChat calibration pose', () => {
+    test('holding a T-pose lines the trackers up straight under the head, and letting go returns to tracking', async () => {
+        const { isTPose } = await import('../bodyEstimator.js');
+        const modes = [];
+        const { rows, worst } = drive(8, (t) => {
+            const k = ease((t - 2) / 0.6) - ease((t - 5.5) / 0.6);
+            const h = [0, 1.65, 0];
+            return {
+                head: { pos: h, rot: Q },
+                leftHand: { pos: [-0.25 - 0.55 * k, 1.05 + 0.4 * k, -0.1 + 0.1 * k], rot: Q },
+                rightHand: { pos: [0.25 + 0.55 * k, 1.05 + 0.4 * k, -0.1 + 0.1 * k], rot: Q }
+            };
+        });
+        for (const r of rows) if (modes[modes.length - 1] !== r.gait.mode) modes.push(r.gait.mode);
+        expect(modes).toContain('calibrate');
+        expect(rows[rows.length - 1].gait.mode).not.toBe('calibrate');
+        const c = rows[Math.round(4 / D)];
+        // feet level and side by side under the hips, legs straight
+        expect(Math.abs(c.leftFoot.pos[2] - c.rightFoot.pos[2])).toBeLessThan(0.01);
+        expect(Math.abs(c.hips.pos[2] - c.leftFoot.pos[2])).toBeLessThan(0.03);
+        expect(worst).toBeLessThan(4);
+        // arms down is not a T-pose
+        expect(isTPose({ pos: [0, 1.65, 0], rot: Q }, { pos: [-0.25, 1.05, -0.1], rot: Q }, { pos: [0.25, 1.05, -0.1], rot: Q })).toBe(false);
+    });
+});
+
+describe('space drag gesture', () => {
+    test('arms crossed over the chest is the switch, hands at the sides or in front are not', async () => {
+        const { armsCrossed } = await import('../spaceDragCore.js');
+        const head = { pos: [0, 1.65, 0], rot: Q };
+        expect(armsCrossed(head, { pos: [0.15, 1.3, -0.15], rot: Q }, { pos: [-0.15, 1.3, -0.15], rot: Q })).toBe(true);
+        expect(armsCrossed(head, { pos: [-0.25, 1.05, -0.1], rot: Q }, { pos: [0.25, 1.05, -0.1], rot: Q })).toBe(false);
+        expect(armsCrossed(head, { pos: [0.1, 1.3, -0.6], rot: Q }, { pos: [-0.1, 1.3, -0.6], rot: Q })).toBe(false);
+    });
+});

@@ -55,6 +55,12 @@
                 <span class="a-switch-track"><span class="a-switch-knob"></span></span>
                 <span class="flex-1">{{ t('view.space_drag.comfort') }}</span>
             </label>
+            <label class="a-switch">
+                <input type="checkbox" :checked="dragGesture" @change="(e) => setDragGesture(e.target.checked)" />
+                <span class="a-switch-track"><span class="a-switch-knob"></span></span>
+                <span class="flex-1">{{ t('view.space_drag.gesture') }}</span>
+            </label>
+            <p class="a-note drag-hint">{{ t('view.space_drag.gesture_hint') }}</p>
 
             <p v-if="help" class="a-note drag-hint" :class="{ bad: state === 'error' }">{{ help }}</p>
 
@@ -70,17 +76,18 @@
 </template>
 
 <script setup>
-    import { computed, onBeforeUnmount, onMounted } from 'vue';
+    import { computed, onMounted } from 'vue';
     import { useI18n } from 'vue-i18n';
 
     import AuroraIcon from './AuroraIcon.vue';
     import {
+        dragGesture,
         dragSettings,
         dragUiState,
+        setDragGesture,
         initSpaceDrag,
         openSteamVrBindings,
         resetDragSpace,
-        stopSpaceDrag,
         updateDragSettings
     } from '../services/auroraSpaceDrag';
     import { DRAG_LIMITS, HANDS } from '../services/spaceDragCore';
@@ -112,7 +119,7 @@
     });
 
     onMounted(initSpaceDrag);
-    onBeforeUnmount(stopSpaceDrag);
+    // space drag runs app-wide now (the overlays and the gesture use it), so the card does not stop it when it closes
 </script>
 
 <style scoped>

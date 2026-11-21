@@ -179,6 +179,13 @@
                 </label>
                 <p v-if="status" class="a-note" :class="{ bad: calStatus === 'failed' }" aria-live="polite">{{ status }}</p>
                 <p v-else class="a-note">{{ t('view.body_cal.no_source') }}</p>
+                <div class="body-row">
+                    <button type="button" class="a-btn" :class="{ on: calibrateHold }" @click="calibrateHold = !calibrateHold">
+                        {{ calibrateHold ? t('view.body_cal.vrc_release') : t('view.body_cal.vrc_hold') }}
+                    </button>
+                    <span v-if="calibratingNow" class="a-pill ok">{{ t('view.body_cal.vrc_active') }}</span>
+                </div>
+                <p class="a-note">{{ t('view.body_cal.vrc_note') }}</p>
             </div>
 
             <div class="body-preview">
@@ -194,7 +201,7 @@
 
     import AuroraBodyPreview from './AuroraBodyPreview.vue';
     import AuroraIcon from './AuroraIcon.vue';
-    import { driverOut, setDriverOut } from '../services/auroraBodyOutput';
+    import { calibrateHold, calibratingNow, driverOut, setDriverOut } from '../services/auroraBodyOutput';
     import { driverState } from '../services/auroraTrackerDriver';
     import { applyMeasure, calibrateNow, measure, measureFloor, measurePoint, setMeasureHand } from '../services/auroraMeasure';
     import { formatHeight } from '../services/auroraHeight';

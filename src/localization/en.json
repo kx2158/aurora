@@ -1680,6 +1680,8 @@
             "multiplier_hint": "1x keeps your hand fixed in the world, like pulling a rope. Higher goes further per pull.",
             "vertical": "Allow dragging up and down",
             "comfort": "Comfort mode (move in small steps)",
+            "gesture": "Cross your arms to switch it on or off",
+            "gesture_hint": "In VR, cross your arms over your chest for about a second and space drag switches on or off. Your wrist shows which, with a short tick. It works with hand tracking too.",
             "reset": "Reset play space",
             "bindings": "Open SteamVR controller bindings",
             "how": "Hold the grip on your left controller and pull. Put your hand where you want to start, grab, then pull towards you. Let go to stop. There is also an on/off switch in the SteamVR dashboard (Space Drag), so you can turn it off without taking the headset off.",
@@ -1729,6 +1731,10 @@
             "look_clean": "Clean"
         },
         "body_cal": {
+            "vrc_hold": "Hold the calibration pose",
+            "vrc_release": "Let go of the calibration pose",
+            "vrc_active": "Calibration pose",
+            "vrc_note": "For Calibrate FBT in VRChat: hold a T-pose for half a second and the trackers line up with you in a clean standing pose (like Standable's calibration). Pull the triggers in VRChat, then drop your arms and tracking carries on. If VRChat does not want a T-pose, hold the pose with this button or the tile on the SteamVR dashboard instead.",
             "title": "Body calibration",
             "desc": "Sets up the full body estimation for your size, from a 1 cm avatar to a giant. It is a rough fit, not a measurement, but it helps. Calibrate by standing still and holding your arms out, or set it by hand.",
             "eye_height": "Eye height",

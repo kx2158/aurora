@@ -198,6 +198,18 @@
                 <button type="button" class="a-btn" @click="send('heightSetNormal')">{{ t('view.height.set_normal') }}</button>
             </div>
             <p class="desk-muted">{{ t('view.height.desk_hint') }}</p>
+            <div class="desk-row">
+                <span class="desk-strong">{{ t('view.space_drag.title') }}</span>
+                <span class="flex-1"></span>
+                <button
+                    type="button"
+                    class="a-toggle"
+                    :class="{ on: state.spaceDrag }"
+                    :aria-pressed="state.spaceDrag"
+                    :aria-label="t('view.space_drag.title')"
+                    @click="send('spaceDrag')"></button>
+            </div>
+            <p class="desk-muted">{{ t('view.space_drag.gesture_hint') }}</p>
         </section>
 
         <!-- Here: who is in your instance -->
@@ -266,6 +278,7 @@
         alarms: [],
         here: { place: '', people: [], alert: null },
         height: { m: 1.6, normal: 1.6 },
+        spaceDrag: true,
         mm: { running: false, micMuted: false, app: '', apps: [], micVol: 1, musicVol: 0.8, micNoise: 0, micBass: 0, musicBass: 0, micPeak: 0, outPeak: 0, error: '' }
     });
     const mm = computed(() => state.mm);
@@ -330,6 +343,7 @@
             if (next.mm) state.mm = { ...state.mm, ...next.mm };
             if (next.here) state.here = { place: '', people: [], alert: null, ...next.here };
             if (next.height) state.height = { ...state.height, ...next.height };
+            if (typeof next.spaceDrag === 'boolean') state.spaceDrag = next.spaceDrag;
         } catch (e) {
             console.error('desk state', e);
         }

@@ -112,7 +112,15 @@
                     <div v-if="alarmBanner" class="vr-alarm">
                         <AuroraIcon name="alarm" :size="14" /> {{ alarmBanner.time }} {{ alarmBanner.label }}
                     </div>
-                    <div v-else-if="neonState.watchAlert" class="vr-alarm vr-watch">
+                    <div v-else-if="neonState.dragToast" class="vr-alarm vr-dragtoast" :class="{ off: !neonState.dragToast.on }">
+                    <AuroraIcon name="arrow" :size="14" />
+                    <span>space drag {{ neonState.dragToast.on ? 'on' : 'off' }}</span>
+                </div>
+                <div v-else-if="neonState.bodyCalibrating" class="vr-alarm vr-dragtoast">
+                    <AuroraIcon name="people" :size="14" />
+                    <span>calibration pose</span>
+                </div>
+                <div v-else-if="neonState.watchAlert" class="vr-alarm vr-watch">
                         <AuroraIcon name="shield" :size="14" />
                         <span class="vr-watch-text">{{ neonState.watchAlert.name }} / {{ neonState.watchAlert.text }}</span>
                     </div>
@@ -1407,6 +1415,14 @@
                         <span class="vr-tile-label">To SteamVR</span>
                         <span class="vr-tile-state">{{ onOffWord(neonState.bodyDriver) }}</span>
                     </button>
+                    <button type="button" class="vr-tile" :class="{ on: neonState.bodyCalibrateHold }" @click="dashPress('bodyCalibrate')">
+                        <AuroraIcon name="people" :size="34" :stroke="1.8" />
+                        <span class="vr-tile-label">Calibration pose</span>
+                        <span class="vr-tile-state">{{ neonState.bodyCalibrateHold ? 'Held' : neonState.bodyCalibrating ? 'T-pose' : 'Auto' }}</span>
+                    </button>
+                    <div class="vr-tile vr-info vr-wide2">
+                        <span class="vr-tile-label">Calibrate FBT in VRChat: hold a T-pose, the trackers line up with you, then pull the triggers.</span>
+                    </div>
                 </div>
                 <div class="vr-group-title">Standable</div>
                 <div class="vr-grid">
@@ -1669,7 +1685,7 @@
 
 
     // Aurora in the headset: a tiny synth blip for events, alarms and the quick controls.
-    const neonState = reactive({ accent: '#b4b4b4', mm: false, mmMuted: false, mmApp: '', mmVol: 80, song: '', artist: '', playing: false, chatbox: false, sounds: true, afk: false, music: false, preview: '', nextAlarm: '', watchAlert: null, height: 0, bodyUnlocked: false, bodySit: 'auto', bodyStandableOff: true, bodyStandable: 'unknown', bodyTrackers: {}, bodyDriver: true, bodyMeasure: { hand: 'right', status: 'idle', step: '', floor: false, meters: null, message: '' } });
+    const neonState = reactive({ accent: '#b4b4b4', mm: false, mmMuted: false, mmApp: '', mmVol: 80, song: '', artist: '', playing: false, chatbox: false, sounds: true, afk: false, music: false, preview: '', nextAlarm: '', watchAlert: null, height: 0, dragToast: null, spaceDrag: true, bodyCalibrating: false, bodyCalibrateHold: false, bodyUnlocked: false, bodySit: 'auto', bodyStandableOff: true, bodyStandable: 'unknown', bodyTrackers: {}, bodyDriver: true, bodyMeasure: { hand: 'right', status: 'idle', step: '', floor: false, meters: null, message: '' } });
     // the dashboard has two pages: the main one and the body estimation one (shown once it is unlocked)
     const dashTab = ref('main');
     // ---- the wrist opening: the overlay host calls wristShown / wristHidden ----
@@ -1751,8 +1767,15 @@
     }
 
     let lastWatchAt = 0;
+    let lastDragAt = 0;
     function neonStateUpdate(json) {
-        Object.assign(neonState, { watchAlert: null }, JSON.parse(json));
+        Object.assign(neonState, { watchAlert: null, dragToast: null }, JSON.parse(json));
+        // space drag switched (gesture or button): a short glitch and a tick so you know without looking
+        if (neonState.dragToast && neonState.dragToast.at !== lastDragAt) {
+            lastDragAt = neonState.dragToast.at;
+            wristGlitch(0.8);
+            if (neonState.sounds) blip(neonState.dragToast.on ? [[520, 0.06], [780, 0.08]] : [[780, 0.06], [440, 0.1]]);
+        }
         // a soft double tick when someone flagged joins
         if (neonState.watchAlert && neonState.watchAlert.at !== lastWatchAt) {
             lastWatchAt = neonState.watchAlert.at;
@@ -1847,6 +1870,7 @@
             slider: true,
             buttons: [
                 { cmd: 'sounds', icon: 'speaker', label: 'Beeps', state: onOffWord(neonState.sounds), on: neonState.sounds },
+                { cmd: 'spaceDrag', icon: 'arrow', label: 'Space drag', state: onOffWord(neonState.spaceDrag), on: neonState.spaceDrag },
                 { cmd: 'quitGame', icon: 'power', label: quitArmed.value ? 'Tap again' : 'Crash VRChat', state: quitArmed.value ? 'to crash' : undefined, warn: true }
             ]
         }

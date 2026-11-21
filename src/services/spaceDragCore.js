@@ -2,6 +2,8 @@
  * Pure logic for the space drag card: settings limits and the status-to-badge decision.
  * Mirrors DragSettings.Clamped() in SpaceDrag/Settings.cs, so what the card shows is what the helper uses.
  */
+import { forwardOf, rightOf, yawOfRotation } from './footEstimator.js';
+
 export const DRAG_LIMITS = { multiplier: [0.25, 6] };
 export const HANDS = ['left', 'right', 'both'];
 
@@ -59,3 +61,23 @@ export function enabledFromStatus(status, settings, msSinceLocalChange) {
     if (msSinceLocalChange < 3000) return null;
     return status.enabled === settings?.enabled ? null : status.enabled;
 }
+
+/** Arms crossed over the chest: each hand on the other side of the body, at chest height, close in front. */
+export function armsCrossed(head, left, right) {
+    if (!head || !left || !right) return false;
+    const yaw = yawOfRotation(head.rot);
+    const r = rightOf(yaw);
+    const f = forwardOf(yaw);
+    const rel = (h) => [h.pos[0] - head.pos[0], h.pos[1] - head.pos[1], h.pos[2] - head.pos[2]];
+    const L = rel(left);
+    const R = rel(right);
+    const side = (v) => v[0] * r[0] + v[2] * r[2];
+    const ahead = (v) => v[0] * f[0] + v[2] * f[2];
+    if (!(side(L) > 0.04 && side(R) < -0.04)) return false;
+    for (const v of [L, R]) {
+        if (v[1] < -0.7 || v[1] > -0.12) return false;
+        if (ahead(v) > 0.42 || ahead(v) < -0.15) return false;
+    }
+    return true;
+}
+

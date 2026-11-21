@@ -1735,11 +1735,11 @@
             "height_only": "Height only",
             "cancel": "Cancel",
             "reset": "Reset",
-            "no_source": "Waiting for VR poses. Start SteamVR with the Aurora VR overlay turned on (it needs the newest Aurora build), or type the numbers in.",
+            "no_source": "Start SteamVR first. Aurora turns its VR overlay on by itself to read your headset and controllers when you press a button here.",
             "state_stand": "Stand still and look straight ahead...",
             "state_tpose": "Now hold both arms straight out to the sides...",
             "state_done": "Calibrated. Eye height {h}, arms {a}.",
-            "fail_no_source": "No VR poses yet. Start SteamVR with the Aurora VR overlay on, or type the numbers in.",
+            "fail_no_source": "No VR poses. Is SteamVR running? Start it and try again, or type the numbers in.",
             "fail_unsteady": "You moved too much. Stand still and try again.",
             "fail_no_tpose": "Could not see a T pose. Hold both arms level and straight out.",
             "from_default": "Using average proportions.",
@@ -1756,7 +1756,9 @@
             "measure_moving": "The controller moved. Hold it still and try again.",
             "measure_no_controller": "No controller found. Is SteamVR running?",
             "measure_no_floor": "Do the floor first.",
-            "measure_too_low": "That is the same height as the floor."
+            "measure_too_low": "That is the same height as the floor.",
+            "osc_send": "Send the trackers to VRChat",
+            "osc_note": "VRChat needs OSC on (Options > OSC > Enabled). Then press Auto-center OSC Trackers once in its action menu. Steam VR does not list these trackers, only VRChat sees them."
         },
         "desk": {
             "hint": "{key} to hide",

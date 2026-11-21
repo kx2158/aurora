@@ -6,26 +6,8 @@
  */
 import { reactive } from 'vue';
 
-import { setManual, setPoseSource } from './auroraBodyCalibration';
-
-let latest = null;
-let latestAt = 0;
-let sourceSet = false;
-
-/** The overlay calls this (through window.$bridge.vrPoses) with { head, leftHand, rightHand }. */
-export function onVrPoses(json) {
-    try {
-        latest = typeof json === 'string' ? JSON.parse(json) : json;
-        latestAt = Date.now();
-    } catch {
-        return;
-    }
-    if (!sourceSet) {
-        sourceSet = true;
-        // the calibration card's Calibrate button can use these poses too
-        setPoseSource(() => (Date.now() - latestAt < 1000 ? latest : null));
-    }
-}
+import { runCalibration, setManual } from './auroraBodyCalibration';
+import { freshPoses, wantPoses, waitForPoses } from './auroraPoses';
 
 export const measure = reactive({
     hand: 'right',
@@ -43,12 +25,14 @@ let busy = false;
 /** Counts down so you can get the controller in place, then averages half a second of its height. */
 async function capture(seconds = 3) {
     measure.status = 'wait';
+    // Aurora switches the VR overlay on for this, which can take a few seconds
+    if (!(await waitForPoses())) return null;
     await new Promise((r) => setTimeout(r, seconds * 1000));
     const ys = [];
     const end = Date.now() + 500;
     while (Date.now() < end) {
-        const pose = latest?.[handKey()];
-        if (pose?.pos && Date.now() - latestAt < 1000) ys.push(pose.pos[1]);
+        const pose = freshPoses()?.[handKey()];
+        if (pose?.pos) ys.push(pose.pos[1]);
         await new Promise((r) => setTimeout(r, 50));
     }
     if (ys.length < 3) return null;
@@ -61,6 +45,7 @@ async function capture(seconds = 3) {
 async function run(step) {
     if (busy) return;
     busy = true;
+    wantPoses('measure', true);
     measure.step = step;
     measure.message = '';
     try {
@@ -87,6 +72,7 @@ async function run(step) {
         }
     } finally {
         busy = false;
+        wantPoses('measure', false);
     }
 }
 
@@ -102,4 +88,15 @@ export function applyMeasure(target) {
     if (measure.meters === null) return false;
     setManual(target === 'eye' ? { eyeHeight: measure.meters } : { seatHeight: measure.meters });
     return true;
+}
+
+/** Calibrate button: switches the overlay on, waits for poses, then runs the calibration. */
+export async function calibrateNow(options) {
+    wantPoses('calibrate', true);
+    try {
+        await waitForPoses();
+        return await runCalibration(options);
+    } finally {
+        wantPoses('calibrate', false);
+    }
 }

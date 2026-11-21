@@ -144,19 +144,24 @@
                     <button
                         type="button"
                         class="a-btn primary"
-                        :disabled="running || !hasPoseSource"
-                        @click="runCalibration({ withArms: true })">
+                        :disabled="running"
+                        @click="calibrateNow({ withArms: true })">
                         {{ t('view.body_cal.calibrate') }}
                     </button>
-                    <button type="button" class="a-btn" :disabled="running || !hasPoseSource" @click="runCalibration({ withArms: false })">
+                    <button type="button" class="a-btn" :disabled="running" @click="calibrateNow({ withArms: false })">
                         {{ t('view.body_cal.height_only') }}
                     </button>
                     <button v-if="running" type="button" class="a-btn" @click="cancelCalibration">
                         {{ t('view.body_cal.cancel') }}
                     </button>
                 </div>
+                <label class="flex items-center gap-3">
+                    <input type="checkbox" :checked="oscOut" @change="(e) => setOscOut(e.target.checked)" />
+                    <span class="flex-1">{{ t('view.body_cal.osc_send') }}</span>
+                </label>
+                <p class="a-note">{{ t('view.body_cal.osc_note') }}</p>
                 <p v-if="status" class="a-note" :class="{ bad: calStatus === 'failed' }" aria-live="polite">{{ status }}</p>
-                <p v-else-if="!hasPoseSource" class="a-note">{{ t('view.body_cal.no_source') }}</p>
+                <p v-else class="a-note">{{ t('view.body_cal.no_source') }}</p>
             </div>
 
             <div class="body-preview">
@@ -172,7 +177,8 @@
 
     import AuroraBodyPreview from './AuroraBodyPreview.vue';
     import AuroraIcon from './AuroraIcon.vue';
-    import { applyMeasure, measure, measureFloor, measurePoint, setMeasureHand } from '../services/auroraMeasure';
+    import { oscOut, setOscOut } from '../services/auroraBodyOutput';
+    import { applyMeasure, calibrateNow, measure, measureFloor, measurePoint, setMeasureHand } from '../services/auroraMeasure';
     import { formatHeight } from '../services/auroraHeight';
     import { autoDisable, initStandable, standableError, standableState } from '../services/auroraStandable';
     import {
@@ -181,10 +187,8 @@
         calStatus,
         calibration,
         cancelCalibration,
-        hasPoseSource,
         initCalibration,
         resetCalibration,
-        runCalibration,
         setManual,
         sitMode
     } from '../services/auroraBodyCalibration';

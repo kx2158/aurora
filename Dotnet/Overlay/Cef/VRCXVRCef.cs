@@ -239,7 +239,6 @@ namespace VRCX
                         {
                             overlayIndex = OpenVR.k_unTrackedDeviceIndexInvalid;
                             UpdateDevices(system, ref overlayIndex);
-                            SendPoses(system);
                             if (overlayIndex != OpenVR.k_unTrackedDeviceIndexInvalid)
                             {
                                 _nextOverlayUpdate = DateTime.UtcNow.AddSeconds(10);
@@ -247,6 +246,8 @@ namespace VRCX
 
                             nextDeviceUpdate = DateTime.UtcNow.AddSeconds(0.1);
                         }
+
+                        SendPoses(system); // every loop, about 30 times a second
 
                         var overlay = OpenVR.Overlay;
                         if (overlay != null)

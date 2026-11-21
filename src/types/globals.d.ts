@@ -278,6 +278,7 @@ declare global {
         GetNeonSystemInfo(): Promise<string>;
         GetStandableStatus(): Promise<string>;
         DisableStandable(): Promise<string>;
+        SendOsc(base64: string, port: number): Promise<boolean>;
         NeonMediaControl(action: string): Promise<void>;
         GetNeonAudioDevices(): Promise<string>;
         GetNeonAudioApps(): Promise<string>;

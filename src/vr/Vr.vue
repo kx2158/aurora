@@ -1400,6 +1400,14 @@
                         <span class="vr-tile-label">Use as eyes</span>
                     </button>
                 </div>
+                <div class="vr-group-title">VRChat</div>
+                <div class="vr-grid">
+                    <button type="button" class="vr-tile" :class="{ on: neonState.bodyOsc }" @click="dashPress('bodyOsc')">
+                        <AuroraIcon name="power" :size="34" :stroke="1.8" />
+                        <span class="vr-tile-label">Send trackers</span>
+                        <span class="vr-tile-state">{{ onOffWord(neonState.bodyOsc) }}</span>
+                    </button>
+                </div>
                 <div class="vr-group-title">Standable</div>
                 <div class="vr-grid">
                     <button type="button" class="vr-tile" :class="{ on: neonState.bodyStandableOff }" @click="dashPress('bodyStandable')">
@@ -1661,7 +1669,7 @@
 
 
     // Aurora in the headset: a tiny synth blip for events, alarms and the quick controls.
-    const neonState = reactive({ accent: '#b4b4b4', mm: false, mmMuted: false, mmApp: '', mmVol: 80, song: '', artist: '', playing: false, chatbox: false, sounds: true, afk: false, music: false, preview: '', nextAlarm: '', watchAlert: null, height: 0, bodyUnlocked: false, bodySit: 'auto', bodyStandableOff: true, bodyStandable: 'unknown', bodyTrackers: {}, bodyMeasure: { hand: 'right', status: 'idle', step: '', floor: false, meters: null, message: '' } });
+    const neonState = reactive({ accent: '#b4b4b4', mm: false, mmMuted: false, mmApp: '', mmVol: 80, song: '', artist: '', playing: false, chatbox: false, sounds: true, afk: false, music: false, preview: '', nextAlarm: '', watchAlert: null, height: 0, bodyUnlocked: false, bodySit: 'auto', bodyStandableOff: true, bodyStandable: 'unknown', bodyTrackers: {}, bodyOsc: false, bodyMeasure: { hand: 'right', status: 'idle', step: '', floor: false, meters: null, message: '' } });
     // the dashboard has two pages: the main one and the body estimation one (shown once it is unlocked)
     const dashTab = ref('main');
     // ---- the wrist opening: the overlay host calls wristShown / wristHidden ----

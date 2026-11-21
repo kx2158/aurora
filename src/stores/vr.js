@@ -13,6 +13,7 @@ import { usePhotonStore } from './photon';
 import { useSharedFeedStore } from './sharedFeed';
 import { useUserStore } from './user';
 import { useWristOverlaySettingsStore } from './settings/wristOverlay';
+import { posesWanted } from '../services/auroraPoses';
 import { watchState } from '../services/watchState';
 
 export const useVrStore = defineStore('Vr', () => {
@@ -27,6 +28,9 @@ export const useVrStore = defineStore('Vr', () => {
     const gameLogStore = useGameLogStore();
     const userStore = useUserStore();
     const sharedFeedStore = useSharedFeedStore();
+
+    // body tools that need headset and controller positions switch the overlay on
+    watch(posesWanted, () => updateOpenVR());
 
     watch(
         () => watchState.isFriendsLoaded,
@@ -143,9 +147,10 @@ export const useVrStore = defineStore('Vr', () => {
             overlayHand: 0
         };
         if (
-            notificationsSettingsStore.openVR &&
             gameStore.isSteamVRRunning &&
-            ((gameStore.isGameRunning && !gameStore.isGameNoVR) || wristOverlaySettingsStore.openVRAlways)
+            (posesWanted.value ||
+                (notificationsSettingsStore.openVR &&
+                    ((gameStore.isGameRunning && !gameStore.isGameNoVR) || wristOverlaySettingsStore.openVRAlways)))
         ) {
             let hmdOverlay = false;
             if (

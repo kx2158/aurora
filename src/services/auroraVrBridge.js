@@ -26,6 +26,7 @@ import { herePeople, instanceWatch, openProfile, toggleWatched, watchAlert } fro
 import { backToNormal, height, initHeight, normalHeight, setHeight, setNormalHeight, stepHeight } from './auroraHeight';
 import { initCalibration, sitMode, toggleTracker, trackerOn } from './auroraBodyCalibration';
 import { bodyUnlocked, initBodyLock } from './auroraBodyLock';
+import { initBodyOutput, oscOut, setOscOut } from './auroraBodyOutput';
 import { applyMeasure, measure, measureFloor, measurePoint, setMeasureHand } from './auroraMeasure';
 import { autoDisable, initStandable, standableState } from './auroraStandable';
 import { useLocationStore } from '../stores/location';
@@ -243,6 +244,7 @@ function pushState() {
                 bodyStandableOff: autoDisable.value,
                 bodyStandable: standableState.value,
                 bodyTrackers: trackerOn.value,
+                bodyOsc: oscOut.value,
                 bodyMeasure: { hand: measure.hand, status: measure.status, step: measure.step, floor: measure.floorY !== null, meters: measure.meters, message: measure.message }
             })
         );
@@ -272,6 +274,8 @@ export function neonCommand(command) {
             setMeasureHand(command.slice(16));
         } else if (command === 'bodyApplySeat' || command === 'bodyApplyEye') {
             applyMeasure(command === 'bodyApplyEye' ? 'eye' : 'seat');
+        } else if (command === 'bodyOsc') {
+            setOscOut(!oscOut.value);
         } else if (command === 'bodyStandable') {
             autoDisable.value = !autoDisable.value;
         }
@@ -363,7 +367,8 @@ export async function initVrBridge() {
     vrSounds = await configRepository.getBool('Neon_vrSounds', true);
     initHeight();
     initBodyLock();
-    watch([bodyUnlocked, sitMode, autoDisable, standableState, trackerOn, measure], pushState, { deep: true });
+    initBodyOutput();
+    watch([bodyUnlocked, sitMode, autoDisable, standableState, trackerOn, measure, oscOut], pushState, { deep: true });
     // once unlocked, the body settings and the Standable check run in the background too
     watch(
         bodyUnlocked,

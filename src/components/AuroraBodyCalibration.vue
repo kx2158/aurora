@@ -2,7 +2,7 @@
     <section class="a-card body-card">
         <div class="flex items-center gap-3">
             <h2 class="a-h2 flex-1"><AuroraIcon name="arrow" :size="15" /> {{ t('view.body_cal.title') }}</h2>
-            <span class="body-pill">{{ sourceText }}</span>
+            <span class="a-pill">{{ sourceText }}</span>
             <button type="button" class="a-btn" :disabled="running" @click="resetCalibration">{{ t('view.body_cal.reset') }}</button>
         </div>
         <p class="a-note mb-4">{{ t('view.body_cal.desc') }}</p>
@@ -21,7 +21,7 @@
                         </button>
                         <input
                             type="range"
-                            class="body-slider"
+                            class="a-range full"
                             :min="EYE_RANGE[0]"
                             :max="EYE_RANGE[1]"
                             step="0.005"
@@ -38,7 +38,7 @@
                             v-for="p in SIZE_PRESETS"
                             :key="p.label"
                             type="button"
-                            class="body-chip"
+                            class="a-chip"
                             :class="{ on: Math.abs(calibration.eyeHeight - p.eye) < p.eye * 0.02 }"
                             @click="setManual({ eyeHeight: p.eye })">
                             {{ t(`view.body_cal.size_${p.label}`) }}
@@ -54,7 +54,7 @@
                         </div>
                         <input
                             type="range"
-                            class="body-slider"
+                            class="a-range full"
                             :min="CAL_LIMITS.armScale[0]"
                             :max="CAL_LIMITS.armScale[1]"
                             step="0.01"
@@ -70,7 +70,7 @@
                         </div>
                         <input
                             type="range"
-                            class="body-slider"
+                            class="a-range full"
                             :min="CAL_LIMITS.legScale[0]"
                             :max="CAL_LIMITS.legScale[1]"
                             step="0.01"
@@ -90,7 +90,7 @@
                     </div>
                     <input
                         type="range"
-                        class="body-slider"
+                        class="a-range full"
                         :min="CAL_LIMITS[f.key][0]"
                         :max="CAL_LIMITS[f.key][1]"
                         step="0.05"
@@ -107,7 +107,7 @@
                     </div>
                     <input
                         type="range"
-                        class="body-slider"
+                        class="a-range full"
                         :min="CAL_LIMITS.seatHeight[0]"
                         :max="CAL_LIMITS.seatHeight[1]"
                         step="0.01"
@@ -119,13 +119,13 @@
                             v-for="p in SEAT_PRESETS"
                             :key="p.label"
                             type="button"
-                            class="body-chip"
+                            class="a-chip"
                             :class="{ on: Math.abs(calibration.seatHeight - p.h) < 0.015 }"
                             @click="setManual({ seatHeight: p.h })">
                             {{ t(`view.body_cal.seat_${p.label}`) }} <small>{{ Math.round(p.h * 100) }}</small>
                         </button>
                     </div>
-                    <div class="body-segment" role="group" :aria-label="t('view.body_cal.sit_mode')">
+                    <div class="a-seg" role="group" :aria-label="t('view.body_cal.sit_mode')">
                         <button
                             v-for="m in SIT_MODES"
                             :key="m"
@@ -148,11 +148,11 @@
                 </div>
 
                 <!-- standable -->
-                <label class="body-switch">
+                <label class="a-switch">
                     <input v-model="autoDisable" type="checkbox" />
-                    <span class="body-track"><span class="body-knob"></span></span>
+                    <span class="a-switch-track"><span class="a-switch-knob"></span></span>
                     <span class="flex-1">{{ t('view.body_cal.standable_auto') }}</span>
-                    <span v-if="standableBadge" class="body-pill" :class="standableBadge.tone">{{ standableBadge.text }}</span>
+                    <span v-if="standableBadge" class="a-pill" :class="standableBadge.tone">{{ standableBadge.text }}</span>
                 </label>
                 <p v-if="standableDetail" class="a-note body-hint" :class="{ bad: standableState === 'error' }">{{ standableDetail }}</p>
 
@@ -362,141 +362,12 @@
     .body-hint {
         margin: 0;
     }
-    .body-slider {
-        flex: 1;
-        width: 100%;
-        appearance: none;
-        height: 6px;
-        border-radius: 999px;
-        background: linear-gradient(90deg, var(--a-accent, #b4b4b4) var(--fill, 50%), var(--a-line, rgba(255, 255, 255, 0.12)) var(--fill, 50%));
-        outline: none;
-        cursor: pointer;
-    }
-    .body-slider::-webkit-slider-thumb {
-        appearance: none;
-        width: 18px;
-        height: 18px;
-        border-radius: 50%;
-        background: var(--a-text, #eee);
-        box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.08);
-    }
-    .body-slider:focus-visible::-webkit-slider-thumb {
-        box-shadow: 0 0 0 4px color-mix(in oklch, var(--a-accent, #b4b4b4) 55%, transparent);
-    }
     .body-chips {
         display: flex;
         flex-wrap: wrap;
         gap: 6px;
     }
-    .body-chip {
-        font-size: 0.78rem;
-        padding: 4px 12px;
-        border-radius: 999px;
-        border: 1px solid var(--a-line);
-        color: var(--a-text);
-        transition:
-            border-color 0.15s,
-            background 0.15s;
-    }
-    .body-chip small {
-        color: var(--a-muted);
-        margin-left: 2px;
-    }
-    .body-chip:hover,
-    .body-chip.on {
-        border-color: var(--a-accent, #b4b4b4);
-        background: color-mix(in oklch, var(--a-accent, #b4b4b4) 12%, transparent);
-    }
-    .body-segment {
-        display: inline-flex;
+    .a-seg {
         align-self: flex-start;
-        border: 1px solid var(--a-line);
-        border-radius: 999px;
-        padding: 3px;
-        gap: 2px;
-    }
-    .body-segment button {
-        font-size: 0.78rem;
-        padding: 4px 14px;
-        border-radius: 999px;
-        color: var(--a-muted);
-        transition:
-            background 0.15s,
-            color 0.15s;
-    }
-    .body-segment button.on {
-        background: color-mix(in oklch, var(--a-accent, #b4b4b4) 22%, transparent);
-        color: var(--a-text);
-    }
-    .body-pill {
-        font-size: 0.72rem;
-        padding: 2px 10px;
-        border-radius: 999px;
-        border: 1px solid var(--a-line);
-        color: var(--a-muted);
-        white-space: nowrap;
-    }
-    .body-pill.ok {
-        color: #8fe3b0;
-        border-color: color-mix(in oklch, #8fe3b0 45%, transparent);
-    }
-    .body-pill.warn {
-        color: #ffcf8a;
-        border-color: color-mix(in oklch, #ffcf8a 45%, transparent);
-    }
-    .body-pill.bad {
-        color: #ff9a9a;
-        border-color: color-mix(in oklch, #ff9a9a 45%, transparent);
-    }
-    .body-switch {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        font-size: 0.85rem;
-        cursor: pointer;
-    }
-    .body-switch input {
-        position: absolute;
-        opacity: 0;
-        pointer-events: none;
-    }
-    .body-track {
-        flex: none;
-        width: 36px;
-        height: 20px;
-        border-radius: 999px;
-        border: 1px solid var(--a-line);
-        background: transparent;
-        position: relative;
-        transition:
-            background 0.2s,
-            border-color 0.2s;
-    }
-    .body-knob {
-        position: absolute;
-        top: 2px;
-        left: 2px;
-        width: 14px;
-        height: 14px;
-        border-radius: 50%;
-        background: var(--a-muted);
-        transition:
-            transform 0.2s,
-            background 0.2s;
-    }
-    .body-switch input:checked + .body-track {
-        background: color-mix(in oklch, var(--a-accent, #b4b4b4) 28%, transparent);
-        border-color: var(--a-accent, #b4b4b4);
-    }
-    .body-switch input:checked + .body-track .body-knob {
-        transform: translateX(16px);
-        background: var(--a-text, #eee);
-    }
-    .body-switch input:focus-visible + .body-track {
-        outline: 2px solid color-mix(in oklch, var(--a-accent, #b4b4b4) 60%, transparent);
-        outline-offset: 2px;
-    }
-    .a-note.bad {
-        color: #ffcf8a;
     }
 </style>

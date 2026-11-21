@@ -2,20 +2,20 @@
     <section class="a-card drag-card">
         <div class="flex items-center gap-3">
             <h2 class="a-h2 flex-1"><AuroraIcon name="bolt" :size="15" /> {{ t('view.space_drag.title') }}</h2>
-            <span class="body-pill" :class="badge.tone">{{ badge.text }}</span>
+            <span class="a-pill" :class="badge.tone">{{ badge.text }}</span>
         </div>
         <p class="a-note mb-4">{{ t('view.space_drag.desc') }}</p>
 
         <div class="drag-controls">
-            <label class="body-switch">
+            <label class="a-switch">
                 <input type="checkbox" :checked="dragSettings.enabled" @change="(e) => updateDragSettings({ enabled: e.target.checked })" />
-                <span class="body-track"><span class="body-knob"></span></span>
+                <span class="a-switch-track"><span class="a-switch-knob"></span></span>
                 <span class="flex-1">{{ t('view.space_drag.enable') }}</span>
             </label>
 
             <div class="drag-group">
                 <span class="drag-label">{{ t('view.space_drag.hand') }}</span>
-                <div class="body-segment" role="group" :aria-label="t('view.space_drag.hand')">
+                <div class="a-seg" role="group" :aria-label="t('view.space_drag.hand')">
                     <button
                         v-for="h in HANDS"
                         :key="h"
@@ -34,7 +34,7 @@
                 </div>
                 <input
                     type="range"
-                    class="body-slider"
+                    class="a-range full"
                     :min="DRAG_LIMITS.multiplier[0]"
                     :max="DRAG_LIMITS.multiplier[1]"
                     step="0.05"
@@ -45,14 +45,14 @@
                 <p class="a-note drag-hint">{{ t('view.space_drag.multiplier_hint') }}</p>
             </div>
 
-            <label class="body-switch">
+            <label class="a-switch">
                 <input type="checkbox" :checked="dragSettings.allowVertical" @change="(e) => updateDragSettings({ allowVertical: e.target.checked })" />
-                <span class="body-track"><span class="body-knob"></span></span>
+                <span class="a-switch-track"><span class="a-switch-knob"></span></span>
                 <span class="flex-1">{{ t('view.space_drag.vertical') }}</span>
             </label>
-            <label class="body-switch">
+            <label class="a-switch">
                 <input type="checkbox" :checked="dragSettings.comfort" @change="(e) => updateDragSettings({ comfort: e.target.checked })" />
-                <span class="body-track"><span class="body-knob"></span></span>
+                <span class="a-switch-track"><span class="a-switch-knob"></span></span>
                 <span class="flex-1">{{ t('view.space_drag.comfort') }}</span>
             </label>
 
@@ -147,111 +147,9 @@
         margin: 0;
     }
     .drag-hint.bad {
-        color: #ffcf8a;
+        color: var(--a-warn);
     }
-    .body-slider {
-        width: 100%;
-        appearance: none;
-        height: 6px;
-        border-radius: 999px;
-        background: linear-gradient(90deg, var(--a-accent, #b4b4b4) var(--fill, 50%), var(--a-line, rgba(255, 255, 255, 0.12)) var(--fill, 50%));
-        outline: none;
-        cursor: pointer;
-    }
-    .body-slider::-webkit-slider-thumb {
-        appearance: none;
-        width: 18px;
-        height: 18px;
-        border-radius: 50%;
-        background: var(--a-text, #eee);
-        box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.08);
-    }
-    .body-segment {
-        display: inline-flex;
+    .a-seg {
         align-self: flex-start;
-        border: 1px solid var(--a-line);
-        border-radius: 999px;
-        padding: 3px;
-        gap: 2px;
-    }
-    .body-segment button {
-        font-size: 0.78rem;
-        padding: 4px 14px;
-        border-radius: 999px;
-        color: var(--a-muted);
-        transition:
-            background 0.15s,
-            color 0.15s;
-    }
-    .body-segment button.on {
-        background: color-mix(in oklch, var(--a-accent, #b4b4b4) 22%, transparent);
-        color: var(--a-text);
-    }
-    .body-pill {
-        font-size: 0.72rem;
-        padding: 2px 10px;
-        border-radius: 999px;
-        border: 1px solid var(--a-line);
-        color: var(--a-muted);
-        white-space: nowrap;
-    }
-    .body-pill.ok {
-        color: #8fe3b0;
-        border-color: color-mix(in oklch, #8fe3b0 45%, transparent);
-    }
-    .body-pill.warn {
-        color: #ffcf8a;
-        border-color: color-mix(in oklch, #ffcf8a 45%, transparent);
-    }
-    .body-pill.bad {
-        color: #ff9a9a;
-        border-color: color-mix(in oklch, #ff9a9a 45%, transparent);
-    }
-    .body-switch {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        font-size: 0.85rem;
-        cursor: pointer;
-    }
-    .body-switch input {
-        position: absolute;
-        opacity: 0;
-        pointer-events: none;
-    }
-    .body-track {
-        flex: none;
-        width: 36px;
-        height: 20px;
-        border-radius: 999px;
-        border: 1px solid var(--a-line);
-        position: relative;
-        transition:
-            background 0.2s,
-            border-color 0.2s;
-    }
-    .body-knob {
-        position: absolute;
-        top: 2px;
-        left: 2px;
-        width: 14px;
-        height: 14px;
-        border-radius: 50%;
-        background: var(--a-muted);
-        transition:
-            transform 0.2s,
-            background 0.2s;
-    }
-    .body-switch input:checked + .body-track {
-        background: color-mix(in oklch, var(--a-accent, #b4b4b4) 28%, transparent);
-        border-color: var(--a-accent, #b4b4b4);
-    }
-    .body-switch input:checked + .body-track .body-knob {
-        transform: translateX(16px);
-        background: var(--a-text, #eee);
-    }
-    .body-switch input:focus-visible + .body-track {
-        outline: 2px solid color-mix(in oklch, var(--a-accent, #b4b4b4) 60%, transparent);
-        outline-offset: 2px;
     }
 </style>

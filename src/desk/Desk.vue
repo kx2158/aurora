@@ -588,7 +588,7 @@
         font-variant-numeric: tabular-nums;
     }
     .desk-height.warn {
-        color: #ffcf8a;
+        color: var(--a-warn);
     }
     .desk-hslider {
         flex: 1;
@@ -602,7 +602,7 @@
         width: 16px;
         height: 16px;
         border-radius: 50%;
-        background: var(--a-text, #eee);
+        background: var(--foreground);
     }
     .desk-fx {
         display: flex;
@@ -631,7 +631,7 @@
         border-radius: 14px;
         border: 1px solid rgba(255, 176, 64, 0.35);
         background: rgba(255, 176, 64, 0.08);
-        color: #ffcf8a;
+        color: var(--a-warn);
     }
     .desk-alert-text {
         flex: 1;
@@ -722,7 +722,7 @@
     }
     .desk-flag.new,
     .desk-flag.visitor {
-        color: #ffcf8a;
+        color: var(--a-warn);
         border-color: rgba(255, 176, 64, 0.35);
     }
     .desk-h {

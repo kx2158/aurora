@@ -36,7 +36,7 @@ export const DEFAULTS = {
     // body direction
     // walking
     walkStart: 0.2, // m/s of movement (real or from the game) that starts a walk cycle
-    walkIntent: 0.3, // meters the body has to keep going the same way (on foot, not with the stick) before it counts as walking, not a lean or a shift
+    walkIntent: 0.25, // meters the head has to get away from its own slow-moving reference (on foot, not with the stick) before it counts as walking, not a lean, a rock or a shift
     walkStop: 0.07, // below this for a moment and the walk ends
     stanceHalfWidth: 0.07, // each foot's distance from the center line while walking
     walkStepHeight: 0.09, // how high the swinging foot lifts at a normal pace
@@ -67,10 +67,6 @@ const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
 const scale = (a, s) => [a[0] * s, a[1] * s, a[2] * s];
 const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 const len = (a) => Math.hypot(a[0], a[1], a[2]);
-const norm2 = (x, z) => {
-    const l = Math.hypot(x, z);
-    return l > 1e-9 ? [x / l, z / l] : [0, 0];
-};
 const norm = (a) => {
     const l = len(a);
     return l > 1e-9 ? scale(a, 1 / l) : [0, 0, 0];
@@ -436,8 +432,10 @@ export function createFootEstimator(options = {}) {
     let pitches = { left: 0, right: 0 };
     // walking
     let walking = false;
-    let travelDist = 0; // how far the head has kept going one way, a lean out and back never adds up
-    let travelDir = [0, 0];
+    let travelDist = 0; // how far the head is from the slow reference that follows it
+    let travelAnchor = null;
+    let risingStill = 0;
+    let rising = false; // just got up from lying: the feet follow the body until it is standing
     let phase = 0; // the left foot's stride phase, the right foot is half a cycle behind
     let blend = 0; // 0 right after a walk starts, 1 once the feet have joined the stride
     let entry = null; // where the feet were when the walk started, in body coordinates
@@ -596,7 +594,7 @@ export function createFootEstimator(options = {}) {
             right,
             leftKnee: kneeL,
             rightKnee: kneeR,
-            gait: { walking: false, phase: 0, speed: 0, stepLength: 0, counterYaw: 0, sitting: false, laying: true, layPose: pose },
+            gait: { walking: false, phase: 0, speed: 0, stepLength: 0, counterYaw: 0, sitting: false, laying: true, posture: 'lying', layPose: pose },
             fired: []
         };
     }
@@ -614,7 +612,11 @@ export function createFootEstimator(options = {}) {
         const headFwdV = rotate(head.rot, [0, 0, -1]);
         const tipped = headUp[1] < 0.5 && head.pos[1] < o.layHeight;
         if (o.layHeight > 0 && input.sitting !== true) {
-            layTimer = tipped ? layTimer + dt : Math.max(0, layTimer - dt * 2);
+            // the timer builds up while tipped over, but never past 0.6 s, so getting up is noticed within a moment
+            // (it used to keep counting and took as long to run down as the time spent lying). A head that is clearly
+            // above lying height ends it at once: nobody lying down has their head that high.
+            if (head.pos[1] > o.layHeight + 0.12) layTimer = 0;
+            else layTimer = tipped ? Math.min(0.6, layTimer + dt) : Math.max(0, layTimer - dt * 3);
             if (!laying && layTimer > 0.5) {
                 laying = true;
                 layBlend = 0;
@@ -625,6 +627,7 @@ export function createFootEstimator(options = {}) {
                 sitting = false;
             } else if (laying && layTimer <= 0) {
                 laying = false;
+                rising = true;
                 // stand up fresh: the body direction and feet are worked out again from the head
                 bodyYaw = null;
                 headingVel = [0, 0, 0];
@@ -769,6 +772,18 @@ export function createFootEstimator(options = {}) {
         lastHipsGround = hipsGround;
         travelVel = add(scale(travelVel, Math.exp(-12 * dt)), scale(worldVel, 1 - Math.exp(-12 * dt)));
 
+        // got up from lying: once the body stands, the feet are put under it once (a foot left where the lying pose
+        // ended would be far behind). Doing it every frame while rising makes the hips chase their own feet.
+        if (rising) {
+            const upright = hp[1] > 0.85 * o.eyeHeight;
+            risingStill = Math.abs(vyAvg) < 0.08 && Math.hypot(vSmooth[0], vSmooth[1]) < 0.15 ? risingStill + dt : 0;
+            if (sitting) rising = false;
+            else if (upright && risingStill > 0.3) {
+                rising = false;
+                risingStill = 0;
+                feet = null;
+            } else if (!upright && risingStill > 0.5) rising = false;
+        }
         if (!feet) {
             feet = {
                 left: { pos: homeOf('left', hipsGround, bodyYaw, [0, 0, 0]), yaw: bodyYaw },
@@ -801,15 +816,13 @@ export function createFootEstimator(options = {}) {
         // A lean, a shift or a sidestep moves the head but is not walking: it comes back, or stops, within a few
         // centimeters. Walking keeps going the same way. So on foot the walk cycle only starts once the head has
         // travelled a fair distance in one direction; the stick (virtual velocity) is clear intent and starts it at once.
-        const footSpeed = Math.hypot(dot(worldVel, rgt), dot(worldVel, fwd));
-        if (footSpeed > 0.1) {
-            const dirNow = [dot(worldVel, rgt) / footSpeed, dot(worldVel, fwd) / footSpeed];
-            if (travelDist > 0 && travelDir[0] * dirNow[0] + travelDir[1] * dirNow[1] < 0.3) travelDist = 0; // turned back or went elsewhere
-            travelDir = travelDist > 0 ? norm2(travelDir[0] * 0.9 + dirNow[0] * 0.1, travelDir[1] * 0.9 + dirNow[1] * 0.1) : dirNow;
-            travelDist += footSpeed * dt;
-        } else {
-            travelDist = Math.max(0, travelDist - 0.5 * dt); // standing still forgets it within a second
-        }
+        // "How far has the head really gone from where it was a moment ago": a reference point follows the head slowly
+        // (about a second behind). Walking pulls the head well away from it; rocking, leaning and swaying keep it
+        // within the size of the rock, so they never add up to a walk.
+        if (!travelAnchor) travelAnchor = [headGround[0], headGround[2]];
+        const ak = 1 - Math.exp(-1.0 * dt);
+        travelAnchor = [lerp(travelAnchor[0], headGround[0], ak), lerp(travelAnchor[1], headGround[2], ak)];
+        travelDist = Math.hypot(headGround[0] - travelAnchor[0], headGround[2] - travelAnchor[1]);
         const stick = Math.hypot(virt[0], virt[1]) > o.walkStart;
         const intent = stick || travelDist > o.walkIntent;
         if (!sitting && !walking && speed > o.walkStart && intent && bendSmooth < 0.2 && !goingDown) {
@@ -1015,7 +1028,18 @@ export function createFootEstimator(options = {}) {
             right: footOut(result.right, 'right'),
             leftKnee: solveKnee(hipL, ankle(result.left, 'left'), p.thigh, p.shin, poleOf(result.left)),
             rightKnee: solveKnee(hipR, ankle(result.right, 'right'), p.thigh, p.shin, poleOf(result.right)),
-            gait: { walking, phase, speed, stepLength, counterYaw, sitting, laying: false },
+            gait: {
+                walking,
+                phase,
+                speed,
+                stepLength,
+                counterYaw,
+                sitting,
+                laying: false,
+                // what the body is doing right now: lying, sitting, walking, stepping (one foot catching up), leaning (head
+                // off the feet, feet planted) or standing
+                posture: sitting ? 'sitting' : walking ? 'walking' : step ? 'stepping' : bendSmooth > 0.1 || Math.hypot(balance[0], balance[1]) > 0.01 ? 'leaning' : 'standing'
+            },
             fired: result.fired
         };
     }
@@ -1040,7 +1064,9 @@ export function createFootEstimator(options = {}) {
         pitches = { left: 0, right: 0 };
         walking = false;
         travelDist = 0;
-        travelDir = [0, 0];
+        travelAnchor = null;
+        rising = false;
+        risingStill = 0;
         phase = 0;
         blend = 0;
         entry = null;

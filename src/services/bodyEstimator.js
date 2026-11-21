@@ -433,6 +433,7 @@ function createBodyCore(options = {}) {
             leftElbow: outElbow('left', makeArm('left', input.leftHand)),
             rightElbow: outElbow('right', makeArm('right', input.rightHand)),
             gait: lower.gait,
+            posture: lower.gait.posture,
             fired: lower.fired
         };
     }

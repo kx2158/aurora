@@ -141,8 +141,8 @@ describe('Quest body hint', () => {
         const make = (yaw) => {
             // the same real elbow (0.1 right, 0.3 down, 0.05 back of the shoulder), seen from a space turned by yaw
             const rot = (v) => {
-                const c = Math.cos(-yaw);
-                const s = Math.sin(-yaw);
+                const c = Math.cos(yaw);
+                const s = Math.sin(yaw);
                 return [v[0] * c + v[2] * s, v[1], -v[0] * s + v[2] * c];
             };
             const sh = rot([0.2, 1.4, 0]);
@@ -230,5 +230,73 @@ describe('leaning is not walking', () => {
             if (o.gait.walking && first === null) first = t - 1;
         }
         expect(first).toBeLessThan(0.4);
+    });
+});
+
+describe('posture without switching anything by hand', () => {
+    const sm = (x) => {
+        const c = Math.min(1, Math.max(0, x));
+        return c * c * (3 - 2 * c);
+    };
+    const seg = (t, a, b, v0, v1) => (t < a ? v0 : t > b ? v1 : v0 + (v1 - v0) * sm((t - a) / (b - a)));
+    // stand, lie down on the back, sit up, lie back down, stand up
+    function at(t) {
+        if (t < 2) return [1.65, 0, 0];
+        if (t < 5) return [seg(t, 2, 5, 1.65, 0.22), seg(t, 2, 5, 0, 0.55), seg(t, 2, 5, 0, 1.45)];
+        if (t < 9) return [0.22, 0.55, 1.45];
+        if (t < 11) return [seg(t, 9, 11, 0.22, 1.15), seg(t, 9, 11, 0.55, 0.35), seg(t, 9, 11, 1.45, 0.1)];
+        if (t < 13) return [1.15, 0.35, 0.1];
+        if (t < 15) return [seg(t, 13, 15, 1.15, 0.22), seg(t, 13, 15, 0.35, 0.55), seg(t, 13, 15, 0.1, 1.45)];
+        if (t < 18) return [0.22, 0.55, 1.45];
+        if (t < 21) return [seg(t, 18, 21, 0.22, 1.65), seg(t, 18, 21, 0.55, 0), seg(t, 18, 21, 1.45, 0)];
+        return [1.65, 0, 0];
+    }
+    const states = {};
+    let worstAfterStanding = -Infinity;
+    let feetUp = 0;
+    const e = createBodyEstimator();
+    for (let i = 0; i < 24 * 90; i++) {
+        const t = i / 90;
+        const [h, z, pitch] = at(t);
+        const rot = [Math.sin(pitch / 2), 0, 0, Math.cos(pitch / 2)];
+        const hand = (s) => pose(s * 0.25, Math.max(0.1, h - 0.45), z - 0.2, rot);
+        const o = e.update({ head: pose(0, h, z, rot), leftHand: hand(-1), rightHand: hand(1) }, 1 / 90);
+        for (const mark of [3.5, 7, 8.9, 11.6, 12.5, 17, 22]) if (Math.abs(t - mark) < 1 / 180) states[mark] = o.posture;
+        if (t > 21.5) {
+            worstAfterStanding = Math.max(worstAfterStanding, o.hips.pos[1] - h);
+            feetUp = Math.max(feetUp, o.leftFoot.pos[1], o.rightFoot.pos[1]);
+        }
+    }
+    it('knows it is lying, then sitting, then lying, then standing', () => {
+        expect(states[7]).toBe('lying');
+        expect(states[8.9]).toBe('lying');
+        expect(states[12.5]).toBe('sitting');
+        expect(states[17]).toBe('lying');
+        expect(states[22]).toBe('standing');
+    });
+    it('sitting up from lying ends the lying pose within a moment', () => {
+        expect(states[11.6] === 'lying').toBe(false);
+    });
+    it('after getting up the hips are under the head and the feet are on the floor', () => {
+        expect(worstAfterStanding).toBeLessThan(0);
+        expect(feetUp).toBeLessThan(0.12);
+    });
+    it('rocking and swaying on the spot never count as walking', () => {
+        for (const path of [(t) => [0.15 * Math.sin(t * 5.03), 0], (t) => [0, 0.12 * Math.sin(t * 6.28)], (t) => [0.08 * Math.sin(t * 3), 0.05 * Math.sin(t * 6)]]) {
+            const r = createBodyEstimator();
+            let walked = 0;
+            let first = null;
+            let moved = 0;
+            for (let i = 0; i < 20 * 90; i++) {
+                const t = i / 90;
+                const [x, z] = path(t);
+                const o = r.update({ head: pose(x, 1.65, z), leftHand: pose(x - 0.25, 1.2, z - 0.3), rightHand: pose(x + 0.25, 1.2, z - 0.3) }, 1 / 90);
+                if (o.posture === 'walking') walked++;
+                if (t < 1) first = o.leftFoot.pos;
+                else moved = Math.max(moved, Math.hypot(o.leftFoot.pos[0] - first[0], o.leftFoot.pos[2] - first[2]));
+            }
+            expect(walked).toBe(0);
+            expect(moved).toBeLessThan(0.02);
+        }
     });
 });

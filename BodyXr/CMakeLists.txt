@@ -4,6 +4,8 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # no Visual C++ runtime to install: link it statically, for this helper and for the OpenXR loader below
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")
+# the OpenXR SDK asks for an older CMake policy set, which would ignore the line above for the loader
+set(CMAKE_POLICY_DEFAULT_CMP0091 NEW)
 
 # The Khronos OpenXR SDK (Apache-2.0): headers and the loader, built into the exe
 set(BUILD_TESTS OFF CACHE BOOL "" FORCE)

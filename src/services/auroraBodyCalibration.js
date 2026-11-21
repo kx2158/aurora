@@ -45,9 +45,33 @@ export const estimatorOptions = computed(() => ({
 export const sitMode = ref('auto');
 export const sittingInput = () => (sitMode.value === 'sit' ? true : sitMode.value === 'stand' ? false : undefined);
 
+/** Which of the 8 VRChat trackers are sent. VRChat takes hips, chest, 2 feet, 2 knees and 2 elbows, nothing more. */
+export const TRACKER_KEYS = ['hips', 'chest', 'leftFoot', 'rightFoot', 'leftKnee', 'rightKnee', 'leftElbow', 'rightElbow'];
+export const trackerOn = ref(Object.fromEntries(TRACKER_KEYS.map((k) => [k, true])));
+const TRACKER_KEY = 'Aurora_body_trackers';
+
+/** The body without the trackers that are switched off, ready for buildTrackerMessages. */
+export function enabledBody(body) {
+    const out = {};
+    for (const k of TRACKER_KEYS) if (trackerOn.value[k] !== false && body?.[k]) out[k] = body[k];
+    return out;
+}
+
+export function toggleTracker(name) {
+    if (!TRACKER_KEYS.includes(name)) return;
+    trackerOn.value = { ...trackerOn.value, [name]: !trackerOn.value[name] };
+    configRepository.setString(TRACKER_KEY, JSON.stringify(trackerOn.value));
+}
+
 export async function initCalibration() {
     if (loaded) return;
     loaded = true;
+    try {
+        const saved = JSON.parse(await configRepository.getString(TRACKER_KEY, '{}'));
+        for (const k of TRACKER_KEYS) if (saved[k] === false) trackerOn.value[k] = false;
+    } catch {
+        // keep all on
+    }
     try {
         calibration.value = sanitize(JSON.parse(await configRepository.getString(KEY, '{}')));
     } catch {

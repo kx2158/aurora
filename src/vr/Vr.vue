@@ -1339,6 +1339,23 @@
             <div v-if="neonState.bodyUnlocked" class="vr-tabs">
                 <button type="button" class="vr-tab" :class="{ on: dashTab === 'main' }" @click="dashTab = 'main'">Main</button>
                 <button type="button" class="vr-tab" :class="{ on: dashTab === 'body' }" @click="dashTab = 'body'">Body</button>
+                <button type="button" class="vr-tab" :class="{ on: dashTab === 'trackers' }" @click="dashTab = 'trackers'">Trackers</button>
+            </div>
+            <div v-if="neonState.bodyUnlocked && dashTab === 'trackers'" class="vr-group">
+                <div class="vr-group-title">VRChat trackers (8 is the most it takes)</div>
+                <div class="vr-grid">
+                    <button
+                        v-for="t in bodyTrackerList"
+                        :key="t.key"
+                        type="button"
+                        class="vr-tile"
+                        :class="{ on: neonState.bodyTrackers[t.key] !== false }"
+                        @click="dashPress(`bodyTracker:${t.key}`)">
+                        <AuroraIcon name="dot" :size="34" :stroke="1.8" />
+                        <span class="vr-tile-label">{{ t.label }}</span>
+                        <span class="vr-tile-state">{{ onOffWord(neonState.bodyTrackers[t.key] !== false) }}</span>
+                    </button>
+                </div>
             </div>
             <div v-if="neonState.bodyUnlocked && dashTab === 'body'" class="vr-group">
                 <div class="vr-group-title">Sitting</div>
@@ -1367,7 +1384,7 @@
                     </div>
                 </div>
             </div>
-            <div v-for="g in dashTab === 'body' && neonState.bodyUnlocked ? [] : dashGroups" :key="g.title" class="vr-group">
+            <div v-for="g in dashTab !== 'main' && neonState.bodyUnlocked ? [] : dashGroups" :key="g.title" class="vr-group">
                 <div class="vr-group-title">{{ g.title }}</div>
                 <div class="vr-grid">
                     <!-- avatar height: a real slider, drag it with the laser -->
@@ -1615,7 +1632,7 @@
 
 
     // Aurora in the headset: a tiny synth blip for events, alarms and the quick controls.
-    const neonState = reactive({ accent: '#b4b4b4', mm: false, mmMuted: false, mmApp: '', mmVol: 80, song: '', artist: '', playing: false, chatbox: false, sounds: true, afk: false, music: false, preview: '', nextAlarm: '', watchAlert: null, height: 0, bodyUnlocked: false, bodySit: 'auto', bodyStandableOff: true, bodyStandable: 'unknown' });
+    const neonState = reactive({ accent: '#b4b4b4', mm: false, mmMuted: false, mmApp: '', mmVol: 80, song: '', artist: '', playing: false, chatbox: false, sounds: true, afk: false, music: false, preview: '', nextAlarm: '', watchAlert: null, height: 0, bodyUnlocked: false, bodySit: 'auto', bodyStandableOff: true, bodyStandable: 'unknown', bodyTrackers: {} });
     // the dashboard has two pages: the main one and the body estimation one (shown once it is unlocked)
     const dashTab = ref('main');
     // ---- the wrist opening: the overlay host calls wristShown / wristHidden ----
@@ -1797,6 +1814,16 @@
             ]
         }
     ]);
+    const bodyTrackerList = [
+        { key: 'hips', label: 'Hips' },
+        { key: 'chest', label: 'Chest' },
+        { key: 'leftFoot', label: 'Left foot' },
+        { key: 'rightFoot', label: 'Right foot' },
+        { key: 'leftKnee', label: 'Left knee' },
+        { key: 'rightKnee', label: 'Right knee' },
+        { key: 'leftElbow', label: 'Left elbow' },
+        { key: 'rightElbow', label: 'Right elbow' }
+    ];
     const bodySitModes = [
         { mode: 'auto', icon: 'refresh', label: 'Auto' },
         { mode: 'sit', icon: 'arrow', label: 'Sit' },

@@ -24,7 +24,7 @@ import { chatboxEnabled, chatboxPreview, sendChatboxNow, setChatboxEnabled } fro
 import { setEnabled, state } from './auroraIntegrations';
 import { herePeople, instanceWatch, openProfile, toggleWatched, watchAlert } from './auroraWatch';
 import { backToNormal, height, initHeight, normalHeight, setHeight, setNormalHeight, stepHeight } from './auroraHeight';
-import { initCalibration, sitMode } from './auroraBodyCalibration';
+import { initCalibration, sitMode, toggleTracker, trackerOn } from './auroraBodyCalibration';
 import { bodyUnlocked, initBodyLock } from './auroraBodyLock';
 import { autoDisable, initStandable, standableState } from './auroraStandable';
 import { useLocationStore } from '../stores/location';
@@ -240,7 +240,8 @@ function pushState() {
                 bodyUnlocked: bodyUnlocked.value,
                 bodySit: sitMode.value,
                 bodyStandableOff: autoDisable.value,
-                bodyStandable: standableState.value
+                bodyStandable: standableState.value,
+                bodyTrackers: trackerOn.value
             })
         );
     } catch {
@@ -259,6 +260,8 @@ export function neonCommand(command) {
         if (command.startsWith('bodySit:')) {
             const mode = command.slice(8);
             if (mode === 'auto' || mode === 'sit' || mode === 'stand') sitMode.value = mode;
+        } else if (command.startsWith('bodyTracker:')) {
+            toggleTracker(command.slice(12));
         } else if (command === 'bodyStandable') {
             autoDisable.value = !autoDisable.value;
         }
@@ -350,7 +353,7 @@ export async function initVrBridge() {
     vrSounds = await configRepository.getBool('Neon_vrSounds', true);
     initHeight();
     initBodyLock();
-    watch([bodyUnlocked, sitMode, autoDisable, standableState], pushState);
+    watch([bodyUnlocked, sitMode, autoDisable, standableState, trackerOn], pushState, { deep: true });
     // once unlocked, the body settings and the Standable check run in the background too
     watch(
         bodyUnlocked,

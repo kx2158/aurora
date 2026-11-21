@@ -38,7 +38,12 @@ export const estimatorOptions = computed(() => ({
     eyeHeight: calibration.value.eyeHeight,
     armScale: calibration.value.armScale,
     legScale: calibration.value.legScale,
-    seatHeight: calibration.value.seatHeight
+    seatHeight: calibration.value.seatHeight,
+    swayAmount: calibration.value.swayAmount,
+    seatSensitivity: calibration.value.seatSensitivity,
+    // the feet stand and walk wider or closer together
+    stanceHalfWidth: 0.07 * calibration.value.feetSeparation,
+    minFootSeparation: 0.13 * calibration.value.feetSeparation
 }));
 
 /** 'auto' decides from the hips height, 'sit' and 'stand' force it. Pass it to the estimator as input.sitting. */

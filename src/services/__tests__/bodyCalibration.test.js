@@ -114,3 +114,38 @@ describe('the estimator uses the calibration', () => {
         expect(short.leftFoot.pos[1]).toBeCloseTo(0, 6);
     });
 });
+
+describe('feel settings', () => {
+    test('are kept inside their limits and default to 1', () => {
+        const d = defaults();
+        expect(d.swayAmount).toBe(1);
+        const c = sanitize({ swayAmount: 99, feetSeparation: -3, seatSensitivity: 'x' });
+        expect(c.swayAmount).toBe(CAL_LIMITS.swayAmount[1]);
+        expect(c.feetSeparation).toBe(CAL_LIMITS.feetSeparation[0]);
+        expect(c.seatSensitivity).toBe(1);
+    });
+
+    test('no sway means the hips stay put sideways while walking', () => {
+        const run = (swayAmount) => {
+            const body = createBodyEstimator({ eyeHeight: 1.65, swayAmount });
+            const rot = quatFromYaw(0);
+            let min = Infinity;
+            let max = -Infinity;
+            let out;
+            for (let i = 0; i < 240; i++) {
+                const t = i / 60;
+                const head = { pos: [0, 1.65, -t * 1.0], rot };
+                out = body.update(
+                    { head, leftHand: { pos: [-0.3, 1.1, -t - 0.1], rot }, rightHand: { pos: [0.3, 1.1, -t - 0.1], rot }, virtualVelocity: [0, 1] },
+                    1 / 60
+                );
+                if (i > 120) {
+                    min = Math.min(min, out.hips.pos[0]);
+                    max = Math.max(max, out.hips.pos[0]);
+                }
+            }
+            return max - min;
+        };
+        expect(run(0)).toBeLessThan(run(1));
+    });
+});

@@ -1764,7 +1764,10 @@
             "driver_ready": "Ready. SteamVR loads it at its next start.",
             "driver_restart": "Restart SteamVR once.",
             "driver_missing": "This Aurora build has no driver.",
-            "driver_error": "Could not set the driver up."
+            "driver_error": "Could not set the driver up.",
+            "feel_swayAmount": "Hip sway when walking",
+            "feel_feetSeparation": "How far apart the feet stand",
+            "feel_seatSensitivity": "How easily it decides you sat down"
         },
         "desk": {
             "hint": "{key} to hide",

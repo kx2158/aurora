@@ -82,6 +82,23 @@
                 </div>
                 <p class="a-note body-hint">{{ t('view.body_cal.average') }} {{ t('view.body_cal.dblclick') }}</p>
 
+                <!-- feel: how the body moves -->
+                <div v-for="f in FEEL" :key="f.key" class="body-group">
+                    <div class="body-head">
+                        <span class="body-label">{{ t(`view.body_cal.feel_${f.key}`) }}</span>
+                        <span class="body-value small">{{ Math.round(calibration[f.key] * 100) }}%</span>
+                    </div>
+                    <input
+                        type="range"
+                        class="body-slider"
+                        :min="CAL_LIMITS[f.key][0]"
+                        :max="CAL_LIMITS[f.key][1]"
+                        step="0.05"
+                        :value="calibration[f.key]"
+                        :style="{ '--fill': fill(calibration[f.key], CAL_LIMITS[f.key]) }"
+                        @input="(e) => setManual({ [f.key]: e.target.value })"
+                        @dblclick="setManual({ [f.key]: 1 })" />
+                </div>
                 <!-- sitting -->
                 <div class="body-group">
                     <div class="body-head">
@@ -222,6 +239,7 @@
         { label: 'stool', h: 0.65 }
     ];
     const SIT_MODES = ['auto', 'sit', 'stand'];
+    const FEEL = [{ key: 'swayAmount' }, { key: 'feetSeparation' }, { key: 'seatSensitivity' }];
 
     onMounted(() => {
         initCalibration();

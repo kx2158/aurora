@@ -35,6 +35,8 @@ export const DEFAULTS = {
     stanceHalfWidth: 0.07, // each foot's distance from the center line while walking
     walkStepHeight: 0.09, // how high the swinging foot lifts at a normal pace
     seatHeight: 0.46, // top of the chair or bed you sit on, meters; 0 turns sitting off
+    seatSensitivity: 1, // above 1 sits down sooner and from a little higher, below 1 needs a clearer sit
+    swayAmount: 1, // how much the hips sway side to side while walking, 0 is none
     yawDeadband: 0.6, // radians the head may turn before the body follows
     yawFollowSpeed: 7
 };
@@ -445,11 +447,11 @@ export function createFootEstimator(options = {}) {
             else if (!sitting) {
                 // a bend looks like sitting by height alone, but then the head is well ahead of the feet
                 const overFeet = !feet || Math.hypot(head.pos[0] - (feet.left.pos[0] + feet.right.pos[0]) / 2, head.pos[2] - (feet.left.pos[2] + feet.right.pos[2]) / 2) < 0.2;
-                const near = Math.abs(hipEst - seatHips) < 0.09 && headSpeed < 0.15 && !walking && overFeet;
+                const near = Math.abs(hipEst - seatHips) < 0.09 * o.seatSensitivity && headSpeed < 0.15 && !walking && overFeet;
                 sitTimer = near ? sitTimer + dt : 0;
-                want = sitTimer > 0.6;
+                want = sitTimer > 0.6 / o.seatSensitivity;
             } else {
-                want = hipEst < seatHips + 0.14;
+                want = hipEst < seatHips + 0.14 * o.seatSensitivity;
             }
             if (want && !sitting) {
                 sitting = true;
@@ -600,7 +602,7 @@ export function createFootEstimator(options = {}) {
             const fast = Math.min(speed, 1.6);
             const c1 = Math.cos(2 * Math.PI * phase);
             const bob = (0.02 + 0.016 * fast) * amp * ((1 + Math.cos(4 * Math.PI * phase)) / 2);
-            const sway = (0.012 + 0.01 * fast) * amp * -Math.sin(2 * Math.PI * phase);
+            const sway = (0.012 + 0.01 * fast) * amp * o.swayAmount * -Math.sin(2 * Math.PI * phase);
             pelvisYaw = -(0.04 + 0.03 * fast) * amp * c1;
             counterYaw = -0.6 * pelvisYaw;
             hips = add(sub(baseHips, [0, bob + crouch * sm, 0]), scale(rgt, sway));

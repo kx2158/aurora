@@ -7,6 +7,9 @@ export const CAL_LIMITS = {
     eyeHeight: [0.01, 100], // any body size, an avatar of 1 cm or 100 m works too,
     armScale: [0.8, 1.25],
     seatHeight: [0.25, 0.9], // for a normal sized body, it scales with eyeHeight
+    swayAmount: [0, 3],
+    feetSeparation: [0.6, 2],
+    seatSensitivity: [0.5, 2],
     legScale: [0.88, 1.05] // legs longer than the hips are high would not fit, so the top is kept low
 };
 
@@ -21,6 +24,9 @@ export const defaults = () => ({
     armScale: 1,
     legScale: 1,
     seatHeight: 0.46, // chair 0.45, bed around 0.55 to 0.6
+    swayAmount: 1, // hip sway while walking
+    feetSeparation: 1, // how far apart the feet stand and walk
+    seatSensitivity: 1, // how easily it decides you sat down
     calibratedAt: 0,
     source: 'default' // 'default', 'manual' or 'vr'
 });
@@ -36,6 +42,9 @@ export function sanitize(c) {
         armScale: clampTo(num(c?.armScale, d.armScale), CAL_LIMITS.armScale),
         legScale: clampTo(num(c?.legScale, d.legScale), CAL_LIMITS.legScale),
         seatHeight: clampTo(num(c?.seatHeight, d.seatHeight), CAL_LIMITS.seatHeight),
+        swayAmount: clampTo(num(c?.swayAmount, d.swayAmount), CAL_LIMITS.swayAmount),
+        feetSeparation: clampTo(num(c?.feetSeparation, d.feetSeparation), CAL_LIMITS.feetSeparation),
+        seatSensitivity: clampTo(num(c?.seatSensitivity, d.seatSensitivity), CAL_LIMITS.seatSensitivity),
         calibratedAt: num(c?.calibratedAt, 0),
         source: ['manual', 'vr'].includes(c?.source) ? c.source : 'default'
     };

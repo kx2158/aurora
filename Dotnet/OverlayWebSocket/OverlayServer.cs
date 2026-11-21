@@ -174,6 +174,7 @@ public class OverlayServer
                     MainForm.Instance.Browser.ExecuteScriptAsync("window?.$bridge?.vrPoses", message.Data);
                 break;
 
+            case OverlayMessageType.TrackerPoses:
             case OverlayMessageType.JsFunctionCall:
             case OverlayMessageType.UpdateVars:
             default:

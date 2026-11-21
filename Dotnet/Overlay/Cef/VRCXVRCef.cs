@@ -27,6 +27,7 @@ namespace VRCX
         private static readonly float[] _rotationRight = { -90f * (float)(Math.PI / 180f), -90f * (float)(Math.PI / 180f), -90f * (float)(Math.PI / 180f) };
 
         private static OffScreenBrowser _sharedOverlay;
+        private readonly TrackerDriverFeed _trackerFeed = new();
         private readonly List<string[]> _deviceList;
         private readonly ReaderWriterLockSlim _deviceListLock;
         private readonly bool _isLegacy;
@@ -248,6 +249,7 @@ namespace VRCX
                         }
 
                         SendPoses(system); // every loop, about 30 times a second
+                        _trackerFeed.UpdateTransform(system);
 
                         var overlay = OpenVR.Overlay;
                         if (overlay != null)
@@ -311,6 +313,7 @@ namespace VRCX
             _adapter.Dispose();
             _factory.Dispose();
 
+            _trackerFeed.Close();
             _sharedOverlay?.Dispose();
             _sharedOverlay = null;
             _sharedTexture.Dispose();
@@ -319,6 +322,11 @@ namespace VRCX
             _multithread.Dispose();
             _dxgi?.Dispose();
             _d3d11?.Dispose();
+        }
+
+        public override void SetTrackerPoses(string json)
+        {
+            _trackerFeed.Write(json);
         }
 
         public override void SetActive(bool active, bool hmdOverlay, bool wristOverlay, bool menuButton, int overlayHand)

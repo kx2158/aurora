@@ -45,6 +45,15 @@ jobs:
       - name: Build the Windows app (CEF)
         run: dotnet build Dotnet/VRCX-Cef.csproj -p:Configuration=Release -p:WarningLevel=0 -p:Platform=x64 -p:PlatformTarget=x64 -t:"Clean;Build" -maxcpucount --runtime win-x64 --self-contained
 
+      # Aurora's own SteamVR driver (the body trackers). It goes into the app folder, so the installer ships it.
+      - name: Build the SteamVR tracker driver
+        run: |
+          cmake -S Driver -B Driver/build -A x64
+          cmake --build Driver/build --config Release
+          test -f Driver/build/out/aurora/bin/win64/driver_aurora.dll
+          mkdir -p build/Cef/SteamVRDriver
+          cp -r Driver/build/out/aurora build/Cef/SteamVRDriver/aurora
+
       - name: Install NSIS
         run: choco install nsis -y
 

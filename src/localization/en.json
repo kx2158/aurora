@@ -1757,8 +1757,14 @@
             "measure_no_controller": "No controller found. Is SteamVR running?",
             "measure_no_floor": "Do the floor first.",
             "measure_too_low": "That is the same height as the floor.",
-            "osc_send": "Send the trackers to VRChat",
-            "osc_note": "VRChat needs OSC on (Options > OSC > Enabled). Then press Auto-center OSC Trackers once in its action menu. Steam VR does not list these trackers, only VRChat sees them."
+            "osc_send": "Send the trackers to VRChat only (OSC)",
+            "osc_note": "VRChat needs OSC on (Options > OSC > Enabled). Then press Auto-center OSC Trackers once in its action menu. Steam VR does not list these trackers, only VRChat sees them.",
+            "driver_send": "Show the trackers in SteamVR (Aurora driver)",
+            "driver_unknown": "",
+            "driver_ready": "Ready. SteamVR loads it at its next start.",
+            "driver_restart": "Restart SteamVR once.",
+            "driver_missing": "This Aurora build has no driver.",
+            "driver_error": "Could not set the driver up."
         },
         "desk": {
             "hint": "{key} to hide",

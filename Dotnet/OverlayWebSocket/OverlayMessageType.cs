@@ -7,5 +7,6 @@ public enum OverlayMessageType
     UpdateVars,
     IsHmdAfk,
     NeonCommand,
-    VrPoses
+    VrPoses,
+    TrackerPoses
 }

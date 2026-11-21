@@ -279,6 +279,8 @@ declare global {
         GetStandableStatus(): Promise<string>;
         DisableStandable(): Promise<string>;
         SendOsc(base64: string, port: number): Promise<boolean>;
+        EnsureAuroraTrackerDriver(): Promise<string>;
+        SendTrackerPoses(json: string): Promise<void>;
         NeonMediaControl(action: string): Promise<void>;
         GetNeonAudioDevices(): Promise<string>;
         GetNeonAudioApps(): Promise<string>;

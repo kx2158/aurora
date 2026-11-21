@@ -26,7 +26,7 @@ import { herePeople, instanceWatch, openProfile, toggleWatched, watchAlert } fro
 import { backToNormal, height, initHeight, normalHeight, setHeight, setNormalHeight, stepHeight } from './auroraHeight';
 import { initCalibration, sitMode, toggleTracker, trackerOn } from './auroraBodyCalibration';
 import { bodyUnlocked, initBodyLock } from './auroraBodyLock';
-import { initBodyOutput, oscOut, setOscOut } from './auroraBodyOutput';
+import { driverOut, initBodyOutput, oscOut, setDriverOut, setOscOut } from './auroraBodyOutput';
 import { applyMeasure, measure, measureFloor, measurePoint, setMeasureHand } from './auroraMeasure';
 import { autoDisable, initStandable, standableState } from './auroraStandable';
 import { useLocationStore } from '../stores/location';
@@ -245,6 +245,7 @@ function pushState() {
                 bodyStandable: standableState.value,
                 bodyTrackers: trackerOn.value,
                 bodyOsc: oscOut.value,
+                bodyDriver: driverOut.value,
                 bodyMeasure: { hand: measure.hand, status: measure.status, step: measure.step, floor: measure.floorY !== null, meters: measure.meters, message: measure.message }
             })
         );
@@ -274,6 +275,8 @@ export function neonCommand(command) {
             setMeasureHand(command.slice(16));
         } else if (command === 'bodyApplySeat' || command === 'bodyApplyEye') {
             applyMeasure(command === 'bodyApplyEye' ? 'eye' : 'seat');
+        } else if (command === 'bodyDriver') {
+            setDriverOut(!driverOut.value);
         } else if (command === 'bodyOsc') {
             setOscOut(!oscOut.value);
         } else if (command === 'bodyStandable') {
@@ -368,7 +371,7 @@ export async function initVrBridge() {
     initHeight();
     initBodyLock();
     initBodyOutput();
-    watch([bodyUnlocked, sitMode, autoDisable, standableState, trackerOn, measure, oscOut], pushState, { deep: true });
+    watch([bodyUnlocked, sitMode, autoDisable, standableState, trackerOn, measure, oscOut, driverOut], pushState, { deep: true });
     // once unlocked, the body settings and the Standable check run in the background too
     watch(
         bodyUnlocked,

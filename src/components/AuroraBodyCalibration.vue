@@ -156,6 +156,11 @@
                     </button>
                 </div>
                 <label class="flex items-center gap-3">
+                    <input type="checkbox" :checked="driverOut" @change="(e) => setDriverOut(e.target.checked)" />
+                    <span class="flex-1">{{ t('view.body_cal.driver_send') }}</span>
+                    <span class="a-note">{{ t(`view.body_cal.driver_${driverState}`) }}</span>
+                </label>
+                <label class="flex items-center gap-3">
                     <input type="checkbox" :checked="oscOut" @change="(e) => setOscOut(e.target.checked)" />
                     <span class="flex-1">{{ t('view.body_cal.osc_send') }}</span>
                 </label>
@@ -177,7 +182,8 @@
 
     import AuroraBodyPreview from './AuroraBodyPreview.vue';
     import AuroraIcon from './AuroraIcon.vue';
-    import { oscOut, setOscOut } from '../services/auroraBodyOutput';
+    import { driverOut, oscOut, setDriverOut, setOscOut } from '../services/auroraBodyOutput';
+    import { driverState } from '../services/auroraTrackerDriver';
     import { applyMeasure, calibrateNow, measure, measureFloor, measurePoint, setMeasureHand } from '../services/auroraMeasure';
     import { formatHeight } from '../services/auroraHeight';
     import { autoDisable, initStandable, standableError, standableState } from '../services/auroraStandable';

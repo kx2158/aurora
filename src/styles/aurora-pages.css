@@ -477,8 +477,18 @@ button.a-row:hover {
 
 /* full width slider (same look as .a-range) */
 .a-range.full {
-    flex: 1;
+    flex: 1 1 auto;
     width: 100%;
+    min-width: 0;
+    height: 4px;
+    max-height: 4px;
+    align-self: center;
+}
+/* in a column a growing slider would stretch in height, so it only takes the width there */
+.flex-col > .a-range.full,
+:where(.body-group, .drag-group) > .a-range.full {
+    flex: none;
+    align-self: stretch;
 }
 .a-range:focus-visible::-webkit-slider-thumb {
     box-shadow: 0 0 0 3px color-mix(in oklch, var(--a-accent) 55%, transparent);

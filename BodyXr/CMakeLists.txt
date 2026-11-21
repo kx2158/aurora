@@ -16,6 +16,10 @@ include(FetchContent)
 FetchContent_Declare(openxr
     URL https://github.com/KhronosGroup/OpenXR-SDK/archive/refs/tags/release-1.1.65.zip)
 FetchContent_MakeAvailable(openxr)
+# the loader sets its own runtime library; make it match the helper's static one
+if(MSVC AND TARGET openxr_loader)
+    set_property(TARGET openxr_loader PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded")
+endif()
 
 add_executable(Aurora.BodyXr BodyXr.cpp)
 target_link_libraries(Aurora.BodyXr PRIVATE OpenXR::openxr_loader)

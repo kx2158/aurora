@@ -30,12 +30,13 @@ export const DEFAULTS = {
     kneeYawShare: 0.75, // how much of the foot's turn the knee follows (the rest stays with the pelvis)
     maxKneeYaw: 0.6, // radians the knee may point away from the pelvis direction
     // stepping
-    stepDistance: 0.2, // a foot steps when the hips are this far from its resting spot
+    stepDistance: 0.26, // a foot steps when the hips are this far from its resting spot
     stepTime: 0.22, // seconds per step
     stepHeight: 0.07,
     // body direction
     // walking
     walkStart: 0.2, // m/s of movement (real or from the game) that starts a walk cycle
+    walkIntent: 0.3, // meters the body has to keep going the same way (on foot, not with the stick) before it counts as walking, not a lean or a shift
     walkStop: 0.07, // below this for a moment and the walk ends
     stanceHalfWidth: 0.07, // each foot's distance from the center line while walking
     walkStepHeight: 0.09, // how high the swinging foot lifts at a normal pace
@@ -66,6 +67,10 @@ const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
 const scale = (a, s) => [a[0] * s, a[1] * s, a[2] * s];
 const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 const len = (a) => Math.hypot(a[0], a[1], a[2]);
+const norm2 = (x, z) => {
+    const l = Math.hypot(x, z);
+    return l > 1e-9 ? [x / l, z / l] : [0, 0];
+};
 const norm = (a) => {
     const l = len(a);
     return l > 1e-9 ? scale(a, 1 / l) : [0, 0, 0];
@@ -431,6 +436,8 @@ export function createFootEstimator(options = {}) {
     let pitches = { left: 0, right: 0 };
     // walking
     let walking = false;
+    let travelDist = 0; // how far the head has kept going one way, a lean out and back never adds up
+    let travelDir = [0, 0];
     let phase = 0; // the left foot's stride phase, the right foot is half a cycle behind
     let blend = 0; // 0 right after a walk starts, 1 once the feet have joined the stride
     let entry = null; // where the feet were when the walk started, in body coordinates
@@ -791,7 +798,21 @@ export function createFootEstimator(options = {}) {
         // lowering the body (sitting down, a squat, getting up from a chair) moves the head sideways a little but
         // is not walking: no walk cycle starts while the head is going down fast or is well below standing height
         const goingDown = vyAvg < -0.18 || lowered > 0.22;
-        if (!sitting && !walking && speed > o.walkStart && bendSmooth < 0.2 && !goingDown) {
+        // A lean, a shift or a sidestep moves the head but is not walking: it comes back, or stops, within a few
+        // centimeters. Walking keeps going the same way. So on foot the walk cycle only starts once the head has
+        // travelled a fair distance in one direction; the stick (virtual velocity) is clear intent and starts it at once.
+        const footSpeed = Math.hypot(dot(worldVel, rgt), dot(worldVel, fwd));
+        if (footSpeed > 0.1) {
+            const dirNow = [dot(worldVel, rgt) / footSpeed, dot(worldVel, fwd) / footSpeed];
+            if (travelDist > 0 && travelDir[0] * dirNow[0] + travelDir[1] * dirNow[1] < 0.3) travelDist = 0; // turned back or went elsewhere
+            travelDir = travelDist > 0 ? norm2(travelDir[0] * 0.9 + dirNow[0] * 0.1, travelDir[1] * 0.9 + dirNow[1] * 0.1) : dirNow;
+            travelDist += footSpeed * dt;
+        } else {
+            travelDist = Math.max(0, travelDist - 0.5 * dt); // standing still forgets it within a second
+        }
+        const stick = Math.hypot(virt[0], virt[1]) > o.walkStart;
+        const intent = stick || travelDist > o.walkIntent;
+        if (!sitting && !walking && speed > o.walkStart && intent && bendSmooth < 0.2 && !goingDown) {
             walking = true;
             plant = { left: null, right: null };
             releaseOff = { left: [0, 0], right: [0, 0] };
@@ -1018,6 +1039,8 @@ export function createFootEstimator(options = {}) {
         swingPitch = null;
         pitches = { left: 0, right: 0 };
         walking = false;
+        travelDist = 0;
+        travelDir = [0, 0];
         phase = 0;
         blend = 0;
         entry = null;

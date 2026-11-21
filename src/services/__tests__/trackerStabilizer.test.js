@@ -175,3 +175,60 @@ describe('Quest body hint', () => {
         expect(Math.abs(d - e2.arm.upper)).toBeLessThan(1e-4);
     });
 });
+
+describe('leaning is not walking', () => {
+    const sm = (x) => x * x * (3 - 2 * x);
+    function run(headAt, seconds, virt) {
+        const e = createBodyEstimator();
+        let walked = 0;
+        let start = null;
+        let maxFoot = 0;
+        const d = 1 / 90;
+        for (let i = 0; i < seconds * 90; i++) {
+            const t = i * d;
+            const [x, z] = headAt(t);
+            const o = e.update({ head: pose(x, 1.65, z), leftHand: pose(x - 0.25, 1.2, z - 0.3), rightHand: pose(x + 0.25, 1.2, z - 0.3), virtualVelocity: virt ? virt(t) : undefined }, d);
+            if (t < 0.5) start = [o.leftFoot.pos, o.rightFoot.pos];
+            if (o.gait.walking) walked += d;
+            if (start && t > 0.6) maxFoot = Math.max(maxFoot, Math.hypot(o.leftFoot.pos[0] - start[0][0], o.leftFoot.pos[2] - start[0][2]), Math.hypot(o.rightFoot.pos[0] - start[1][0], o.rightFoot.pos[2] - start[1][2]));
+        }
+        return { walked, maxFoot };
+    }
+    const out = (t, a, b, h, amount) => (t < a ? 0 : t < b ? amount * sm((t - a) / (b - a)) : t < b + h ? amount : t < b + h + (b - a) ? amount * (1 - sm((t - b - h) / (b - a))) : 0);
+    it('a sideways shift of 15 cm keeps the feet where they are', () => {
+        const r = run((t) => [out(t, 1, 1.6, 1, 0.15), 0], 4.5);
+        expect(r.walked).toBe(0);
+        expect(r.maxFoot).toBeLessThan(0.02);
+    });
+    it('a forward lean of 12 cm and back does not start a walk', () => {
+        const r = run((t) => [0, -out(t, 1, 1.5, 1, 0.12)], 4.5);
+        expect(r.walked).toBe(0);
+        expect(r.maxFoot).toBeLessThan(0.02);
+    });
+    it('a slow 20 cm lean keeps the feet nearly still', () => {
+        const r = run((t) => [0, -out(t, 1, 2, 1, 0.2)], 5.5);
+        expect(r.walked).toBe(0);
+        expect(r.maxFoot).toBeLessThan(0.05);
+    });
+    it('real walking still starts within about half a second', () => {
+        const e = createBodyEstimator();
+        let first = null;
+        for (let i = 0; i < 5 * 90; i++) {
+            const t = i / 90;
+            const o = e.update({ head: pose(0, 1.65, -(t < 1 ? 0 : (t - 1) * 0.8)), leftHand: pose(-0.25, 1.2, -0.3), rightHand: pose(0.25, 1.2, -0.3) }, 1 / 90);
+            if (o.gait.walking && first === null) first = t - 1;
+        }
+        expect(first === null).toBe(false);
+        expect(first).toBeLessThan(0.6);
+    });
+    it('the stick starts walking at once', () => {
+        const e = createBodyEstimator();
+        let first = null;
+        for (let i = 0; i < 3 * 90; i++) {
+            const t = i / 90;
+            const o = e.update({ head: pose(0, 1.65, 0), leftHand: pose(-0.25, 1.2, -0.3), rightHand: pose(0.25, 1.2, -0.3), virtualVelocity: t < 1 ? [0, 0] : [0, 1] }, 1 / 90);
+            if (o.gait.walking && first === null) first = t - 1;
+        }
+        expect(first).toBeLessThan(0.4);
+    });
+});

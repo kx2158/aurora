@@ -41,6 +41,15 @@ export const estimatorOptions = computed(() => ({
     seatHeight: calibration.value.seatHeight,
     swayAmount: calibration.value.swayAmount,
     seatSensitivity: calibration.value.seatSensitivity,
+    counterbalance: calibration.value.counterbalance,
+    smoothing: calibration.value.smoothing,
+    // how far the head turns on the neck before the chest and then the whole body follow
+    yawDeadband: 1.05 * calibration.value.neckRange,
+    neckTurnRange: 0.95 * calibration.value.neckRange,
+    // how far the legs may swing at the hips
+    maxHipAbduction: 0.75 * calibration.value.legFreedom,
+    maxHipAdduction: 0.42 * calibration.value.legFreedom,
+    maxHipExtension: 0.55 * calibration.value.legFreedom,
     // the feet stand and walk wider or closer together
     stanceHalfWidth: 0.07 * calibration.value.feetSeparation,
     minFootSeparation: 0.13 * calibration.value.feetSeparation

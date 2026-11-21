@@ -10,6 +10,10 @@ export const CAL_LIMITS = {
     swayAmount: [0, 3],
     feetSeparation: [0.6, 2],
     seatSensitivity: [0.5, 2],
+    counterbalance: [0, 3], // how far the hips shift away from a leaning head
+    smoothing: [0.4, 2], // higher is smoother and a little slower, lower is quicker and a little livelier
+    neckRange: [0.5, 1.5], // how far the head can turn on the neck before the body follows
+    legFreedom: [0.7, 1.3], // how far the legs may swing at the hips
     legScale: [0.88, 1.05] // legs longer than the hips are high would not fit, so the top is kept low
 };
 
@@ -27,6 +31,10 @@ export const defaults = () => ({
     swayAmount: 1, // hip sway while walking
     feetSeparation: 1, // how far apart the feet stand and walk
     seatSensitivity: 1, // how easily it decides you sat down
+    counterbalance: 1,
+    smoothing: 1,
+    neckRange: 1,
+    legFreedom: 1,
     calibratedAt: 0,
     source: 'default' // 'default', 'manual' or 'vr'
 });
@@ -45,6 +53,10 @@ export function sanitize(c) {
         swayAmount: clampTo(num(c?.swayAmount, d.swayAmount), CAL_LIMITS.swayAmount),
         feetSeparation: clampTo(num(c?.feetSeparation, d.feetSeparation), CAL_LIMITS.feetSeparation),
         seatSensitivity: clampTo(num(c?.seatSensitivity, d.seatSensitivity), CAL_LIMITS.seatSensitivity),
+        counterbalance: clampTo(num(c?.counterbalance, d.counterbalance), CAL_LIMITS.counterbalance),
+        smoothing: clampTo(num(c?.smoothing, d.smoothing), CAL_LIMITS.smoothing),
+        neckRange: clampTo(num(c?.neckRange, d.neckRange), CAL_LIMITS.neckRange),
+        legFreedom: clampTo(num(c?.legFreedom, d.legFreedom), CAL_LIMITS.legFreedom),
         calibratedAt: num(c?.calibratedAt, 0),
         source: ['manual', 'vr'].includes(c?.source) ? c.source : 'default'
     };

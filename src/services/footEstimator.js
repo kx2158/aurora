@@ -24,6 +24,11 @@ export const DEFAULTS = {
     maxToeAngle: 0.7, // about 40 degrees of toe in or out from the body direction
     maxFootYawDifference: 0.9, // feet may not point more than about 50 degrees apart
     reachFactor: 0.98, // share of the full leg length a foot may be from its hip
+    maxHipAbduction: 0.75, // radians (about 43 degrees): how far out to the side a leg may swing from straight down
+    maxHipAdduction: 0.42, // about 24 degrees: how far a leg may swing inward, across the other one
+    maxHipExtension: 0.55, // about 31 degrees: how far behind the hip a leg may reach
+    kneeYawShare: 0.75, // how much of the foot's turn the knee follows (the rest stays with the pelvis)
+    maxKneeYaw: 0.6, // radians the knee may point away from the pelvis direction
     // stepping
     stepDistance: 0.2, // a foot steps when the hips are this far from its resting spot
     stepTime: 0.22, // seconds per step
@@ -35,10 +40,15 @@ export const DEFAULTS = {
     stanceHalfWidth: 0.07, // each foot's distance from the center line while walking
     walkStepHeight: 0.09, // how high the swinging foot lifts at a normal pace
     seatHeight: 0.46, // top of the chair or bed you sit on, meters; 0 turns sitting off
+    layHeight: 0.75, // the head must be lower than this (meters) to count as lying down; a deep bend stays above it
+    layDepth: 1, // how far the legs stretch out while lying, 1 is nearly straight
+    laySpread: 1, // how far apart the feet lie, 1 is about hip width
     seatSensitivity: 1, // above 1 sits down sooner and from a little higher, below 1 needs a clearer sit
     swayAmount: 1, // how much the hips sway side to side while walking, 0 is none
-    yawDeadband: 0.6, // radians the head may turn before the body follows
-    yawFollowSpeed: 7
+    counterbalance: 1, // how far the hips shift away from a leaning head while standing, 0 is off
+    yawDeadband: 1.05, // radians (about 60 degrees) the head may turn on the neck before the body follows
+    yawFollowSpeed: 7,
+    pivotTurn: 0.5, // radians the body may turn before the feet re-plant (pivot) to face the new way
 };
 
 // ---------- small vector and angle helpers ----------
@@ -86,6 +96,19 @@ export function yawOfRotation(q) {
     const r = rotate(q, [1, 0, 0]);
     if (Math.hypot(r[0], r[2]) < 1e-6) return 0;
     return Math.atan2(-r[2], r[0]);
+}
+
+
+/**
+ * Where the head would be if it sat directly over the spine. The headset hangs about 9 cm in front of the
+ * neck joint, so turning or nodding the head swings it around that joint. Undoing that swing means a head
+ * that only turns (or nods, or tilts) does not look like the whole body moving. Facing straight ahead with
+ * the body, this returns the headset position itself.
+ */
+export function neckAnchor(head, bodyYaw) {
+    const o = rotate(head.rot, [0, -0.08, 0.09]); // neck joint relative to the headset, in the world
+    const f = forwardOf(bodyYaw);
+    return [head.pos[0] + o[0] + f[0] * 0.09, head.pos[1] + o[1] + 0.08, head.pos[2] + o[2] + f[2] * 0.09];
 }
 
 /** Quaternion for a rotation about +y. */
@@ -191,6 +214,21 @@ export function constrainFeet(left, right, frame, options = {}) {
             foot.v *= k;
             fired.add('reach');
         }
+        // hip joint range: the leg can swing out to the side or back only so far for how low the foot hangs
+        const drop = Math.max(dy, 0.12);
+        const outSign = hipU < 0 ? -1 : 1; // which way is outward for this leg
+        const side = (foot.u - hipU) * outSign; // positive: foot is outside its hip
+        const maxOut = Math.tan(o.maxHipAbduction) * drop;
+        const maxIn = Math.tan(o.maxHipAdduction) * drop;
+        if (side > maxOut || side < -maxIn) {
+            foot.u = hipU + outSign * clamp(side, -maxIn, maxOut);
+            fired.add('hip');
+        }
+        const maxBack = Math.tan(o.maxHipExtension) * drop;
+        if (foot.v < -maxBack) {
+            foot.v = -maxBack;
+            fired.add('hip');
+        }
     };
 
     for (let pass = 0; pass < 8; pass++) {
@@ -218,6 +256,11 @@ export function constrainFeet(left, right, frame, options = {}) {
         ]) {
             const dy = hipY - (f.y + ankle);
             if (Math.hypot(f.u - hu, f.v, dy) > reach + 1e-6) return false;
+            const drop = Math.max(dy, 0.12);
+            const outSign = hu < 0 ? -1 : 1;
+            const sd = (f.u - hu) * outSign;
+            if (sd > Math.tan(o.maxHipAbduction) * drop + 1e-6 || sd < -Math.tan(o.maxHipAdduction) * drop - 1e-6) return false;
+            if (f.v < -Math.tan(o.maxHipExtension) * drop - 1e-6) return false;
         }
         return true;
     };
@@ -390,7 +433,15 @@ export function createFootEstimator(options = {}) {
     let phase = 0; // the left foot's stride phase, the right foot is half a cycle behind
     let blend = 0; // 0 right after a walk starts, 1 once the feet have joined the stride
     let entry = null; // where the feet were when the walk started, in body coordinates
+    let stanceYaw = null; // the way the planted feet point; they only turn once the body has turned a good way
+    let pivoting = false;
+    let laying = false;
+    let layTimer = 0;
+    let layAxis = null; // horizontal direction from the hips toward the head while lying
+    let layBlend = 0;
     let stopTimer = 0;
+    let releaseOff = { left: [0, 0], right: [0, 0] };
+    let plant = { left: null, right: null }; // world spot a planted foot is held at so it does not creep
     let vSmooth = [0, 0];
     let bendSmooth = 0;
     let sitting = false;
@@ -398,6 +449,7 @@ export function createFootEstimator(options = {}) {
     let sitBlend = 0;
     let sitAnchor = null;
     let lastHeadPos = null;
+    let balance = [0, 0]; // smoothed world x/z shift of the hips that counters the head leaning off the feet
     let travelVel = [0, 0, 0]; // smoothed world velocity of the hips, used to point the body where it walks
 
     const homeOf = (side, hipsGround, yaw, velocity) => {
@@ -407,16 +459,108 @@ export function createFootEstimator(options = {}) {
         return add(add(hipsGround, scale(rightOf(yaw), sign * half)), scale(forwardOf(yaw), lead));
     };
 
+    // The lying pose. Face up, face down and on the side differ only in which way the toes and knees point.
+    function layOut(head, headUp, headFwdV, dt) {
+        layBlend = Math.min(1, layBlend + dt / 0.5);
+        const flat = [headUp[0], 0, headUp[2]];
+        if (len(flat) > 0.25) {
+            const a = norm(flat);
+            layAxis = layAxis ? norm(add(scale(layAxis, Math.exp(-4 * dt)), scale(a, 1 - Math.exp(-4 * dt)))) : a;
+        } else if (!layAxis) {
+            layAxis = forwardOf(bodyYaw ?? 0);
+        }
+        const axis = layAxis;
+        const side = [-axis[2], 0, axis[0]]; // horizontal, across the body
+        // 'back' faces the ceiling, 'front' the floor, otherwise on a side
+        const faceUp = headFwdV[1];
+        const pose = faceUp > 0.5 ? 'back' : faceUp < -0.5 ? 'front' : 'side';
+        const floorY = 0;
+        const hipsY = Math.max(floorY + 0.08, head.pos[1] - 0.09);
+        const torso = p.headToHips * 0.85;
+        const hips = [head.pos[0] - axis[0] * torso, hipsY, head.pos[2] - axis[2] * torso];
+        const hipsYaw = Math.atan2(-axis[0], -axis[2]);
+        const legDir = scale(axis, -1);
+        const dist = p.legLength * 0.9 * clamp(o.layDepth, 0.4, 1.1);
+        const halfSpread = (p.hipWidth / 2 + 0.03) * o.laySpread;
+        const footY = Math.max(floorY, hipsY - 0.07);
+        const sideSign = pose === 'side' ? 0 : 1;
+        // on the side the legs stack: both feet sit nearly together, one in front of the other
+        const feetAt = (sign) => [
+            hips[0] + legDir[0] * (dist - (pose === 'side' ? 0.06 * sign : 0)) + side[0] * sign * halfSpread * sideSign,
+            footY + (pose === 'side' && sign > 0 ? 0.1 : 0),
+            hips[2] + legDir[2] * (dist - (pose === 'side' ? 0.06 * sign : 0)) + side[2] * sign * halfSpread * sideSign
+        ];
+        // toes point up when lying on the back, down on the front, and sideways on the side
+        const pitch = pose === 'back' ? 1.2 : pose === 'front' ? -0.9 : 0;
+        const footYaw = Math.atan2(-legDir[0], -legDir[2]) + (pose === 'front' ? Math.PI : 0);
+        const mk = (sign) => {
+            const pos = feetAt(sign);
+            return { pos, yaw: footYaw, pitch, rot: quatMul(quatFromYaw(footYaw), quatFromAxisAngle([1, 0, 0], pitch)) };
+        };
+        const left = mk(-1);
+        const right = mk(1);
+        const hipJoint = (sign) => add(hips, scale(side, sign * p.hipWidth / 2));
+        const hipL = hipJoint(-1);
+        const hipR = hipJoint(1);
+        // knees bend a little upward so they never end up under the surface
+        const kneePole = [0, 1, 0];
+        const kneeL = solveKnee(hipL, add(left.pos, [0, p.ankleHeight, 0]), p.thigh, p.shin, kneePole);
+        const kneeR = solveKnee(hipR, add(right.pos, [0, p.ankleHeight, 0]), p.thigh, p.shin, kneePole);
+        lastHipsGround = [hips[0], 0, hips[2]];
+        feet = { left: { pos: [...left.pos], yaw: footYaw }, right: { pos: [...right.pos], yaw: footYaw } };
+        return {
+            bodyYaw: hipsYaw,
+            hips: { pos: hips, yaw: hipsYaw },
+            hipsBase: hips,
+            hipsGround: lastHipsGround,
+            hipJoints: { left: hipL, right: hipR },
+            left,
+            right,
+            leftKnee: kneeL,
+            rightKnee: kneeR,
+            gait: { walking: false, phase: 0, speed: 0, stepLength: 0, counterYaw: 0, sitting: false, laying: true, layPose: pose },
+            fired: []
+        };
+    }
+
     function update(input, dt) {
         dt = clamp(dt || 0.011, 0.001, 0.1);
         const head = input.head;
         const headYaw = yawOfRotation(head.rot);
 
+        // lying down: the head is low and tipped over, so its up direction is level instead of vertical. The body
+        // then lies along that direction: hips back from the head, legs stretched out the other way.
+        const headUp = rotate(head.rot, [0, 1, 0]);
+        const headFwdV = rotate(head.rot, [0, 0, -1]);
+        const tipped = headUp[1] < 0.5 && head.pos[1] < o.layHeight;
+        if (o.layHeight > 0 && input.sitting !== true) {
+            layTimer = tipped ? layTimer + dt : Math.max(0, layTimer - dt * 2);
+            if (!laying && layTimer > 0.5) {
+                laying = true;
+                layBlend = 0;
+                layAxis = null;
+                step = null;
+                walking = false;
+                sitting = false;
+            } else if (laying && layTimer <= 0) {
+                laying = false;
+                // stand up fresh: the body direction and feet are worked out again from the head
+                bodyYaw = null;
+                feet = null;
+                stanceYaw = null;
+                lastHipsGround = null;
+            }
+        }
+        if (laying) return layOut(head, headUp, headFwdV, dt);
+
         // body direction follows the head only after it has turned past the deadband
         if (bodyYaw === null) bodyYaw = headYaw;
         const diff = wrap(headYaw - bodyYaw);
-        if (Math.abs(diff) > o.yawDeadband) {
-            const target = headYaw - Math.sign(diff) * o.yawDeadband * 0.5;
+        // input.turning (0 to 1) says the arms are turning with the head, so the whole body is turning and
+        // not just the head looking around: the body then follows after a much smaller head turn
+        const band = o.yawDeadband * (1 - 0.6 * clamp(input.turning || 0, 0, 1));
+        if (Math.abs(diff) > band) {
+            const target = headYaw - Math.sign(diff) * band * 0.5;
             bodyYaw = wrap(bodyYaw + wrap(target - bodyYaw) * (1 - Math.exp(-o.yawFollowSpeed * dt)));
         }
 
@@ -430,14 +574,22 @@ export function createFootEstimator(options = {}) {
             }
         }
 
+        if (stanceYaw === null) stanceYaw = bodyYaw;
+        const sd = wrap(bodyYaw - stanceYaw);
+        if (!pivoting && Math.abs(sd) > o.pivotTurn) pivoting = true;
+        if (pivoting) {
+            stanceYaw = wrap(stanceYaw + sd * (1 - Math.exp(-9 * dt)));
+            if (Math.abs(wrap(bodyYaw - stanceYaw)) < 0.06) pivoting = false;
+        }
         const fwd = forwardOf(bodyYaw);
         const rgt = rightOf(bodyYaw);
-        let baseHips = add(sub(head.pos, [0, p.headToHips, 0]), scale(fwd, -0.04));
+        const hp = neckAnchor(head, bodyYaw); // head position with the swing around the neck removed
+        let baseHips = add(sub(hp, [0, p.headToHips, 0]), scale(fwd, -0.07)); // the hips sit almost under the neck joint (2 cm ahead of it)
 
         // sitting: with a seat height set, hips that settle at seat height and stay there mean sitting.
         // input.sitting can force it on (true) or off (false); leave it out for automatic.
-        const headSpeed = lastHeadPos ? Math.hypot(head.pos[0] - lastHeadPos[0], head.pos[2] - lastHeadPos[2]) / dt : 0;
-        lastHeadPos = [...head.pos];
+        const headSpeed = lastHeadPos ? Math.hypot(hp[0] - lastHeadPos[0], hp[2] - lastHeadPos[2]) / dt : 0;
+        lastHeadPos = [...hp];
         const seatHips = o.seatHeight + 0.05; // hips centre when seated
         if (o.seatHeight > 0 || input.sitting === true) {
             const hipEst = baseHips[1];
@@ -446,7 +598,7 @@ export function createFootEstimator(options = {}) {
             else if (input.sitting === false) want = false;
             else if (!sitting) {
                 // a bend looks like sitting by height alone, but then the head is well ahead of the feet
-                const overFeet = !feet || Math.hypot(head.pos[0] - (feet.left.pos[0] + feet.right.pos[0]) / 2, head.pos[2] - (feet.left.pos[2] + feet.right.pos[2]) / 2) < 0.2;
+                const overFeet = !feet || Math.hypot(hp[0] - (feet.left.pos[0] + feet.right.pos[0]) / 2, hp[2] - (feet.left.pos[2] + feet.right.pos[2]) / 2) < 0.2;
                 const near = Math.abs(hipEst - seatHips) < 0.09 * o.seatSensitivity && headSpeed < 0.15 && !walking && overFeet;
                 sitTimer = near ? sitTimer + dt : 0;
                 want = sitTimer > 0.6 / o.seatSensitivity;
@@ -481,8 +633,8 @@ export function createFootEstimator(options = {}) {
         if (feet && !sitting) {
             const cx = (feet.left.pos[0] + feet.right.pos[0]) / 2;
             const cz = (feet.left.pos[2] + feet.right.pos[2]) / 2;
-            const ahead = (head.pos[0] - cx) * fwd[0] + (head.pos[2] - cz) * fwd[2];
-            const drop = o.eyeHeight - head.pos[1];
+            const ahead = (hp[0] - cx) * fwd[0] + (hp[2] - cz) * fwd[2];
+            const drop = o.eyeHeight - hp[1];
             bend = smooth01((ahead - 0.04) / 0.15) * smooth01((drop - 0.02) / 0.06);
             bendSmooth = lerp(bendSmooth, bend, 1 - Math.exp(-12 * dt));
         } else {
@@ -495,11 +647,11 @@ export function createFootEstimator(options = {}) {
             const stand = o.eyeHeight - T - 0.03 * bendSmooth;
             let hx = cx - fwd[0] * 0.05;
             let hz = cz - fwd[2] * 0.05;
-            const f = Math.min((head.pos[0] - hx) * fwd[0] + (head.pos[2] - hz) * fwd[2], T * 0.95);
-            const hyHinge = Math.min(head.pos[1] - Math.sqrt(Math.max(T * T - f * f, 0.01)) - 0.03 * bendSmooth, stand);
+            const f = Math.min((hp[0] - hx) * fwd[0] + (hp[2] - hz) * fwd[2], T * 0.95);
+            const hyHinge = Math.min(hp[1] - Math.sqrt(Math.max(T * T - f * f, 0.01)) - 0.03 * bendSmooth, stand);
             // full bend: head below the hips. Keep the hips high and push them back until the torso fits.
-            const f2 = Math.sqrt(Math.max(T * T - (stand - head.pos[1]) ** 2, 0.01));
-            const headF = (head.pos[0] - cx) * fwd[0] + (head.pos[2] - cz) * fwd[2];
+            const f2 = Math.sqrt(Math.max(T * T - (stand - hp[1]) ** 2, 0.01));
+            const headF = (hp[0] - cx) * fwd[0] + (hp[2] - cz) * fwd[2];
             const back = clamp(f2 - headF, -0.05, 0.35);
             // slide from the first model to the second as the hinge solution gets too low to be believable
             const w = smooth01((0.6 - hyHinge) / 0.25);
@@ -523,7 +675,10 @@ export function createFootEstimator(options = {}) {
         // how fast the body is moving through the world, in its own frame (right, forward)
         const virt = input.virtualVelocity || [0, 0];
         const vNow = [dot(worldVel, rgt) + virt[0], dot(worldVel, fwd) + virt[1]];
-        const k = 1 - Math.exp(-dt / 0.12);
+        // slow and heavy while the speed is steady (the stride should not wobble), quick when it really changes
+        const change = Math.hypot(vNow[0] - vSmooth[0], vNow[1] - vSmooth[1]);
+        const tcSpeed = lerp(0.2, 0.07, smooth01(change / 0.6));
+        const k = 1 - Math.exp(-dt / tcSpeed);
         vSmooth = [lerp(vSmooth[0], vNow[0], k), lerp(vSmooth[1], vNow[1], k)];
         const speed = Math.hypot(vSmooth[0], vSmooth[1]);
         const toLocal = (pos) => {
@@ -538,6 +693,8 @@ export function createFootEstimator(options = {}) {
 
         if (!sitting && !walking && speed > o.walkStart && bendSmooth < 0.2) {
             walking = true;
+            plant = { left: null, right: null };
+            releaseOff = { left: [0, 0], right: [0, 0] };
             blend = 0;
             stopTimer = 0;
             step = null;
@@ -555,6 +712,21 @@ export function createFootEstimator(options = {}) {
         }
 
         let hips = baseHips;
+        // counterbalance: a person whose head drifts off their feet pushes the hips the other way to keep
+        // their weight over the feet. Small leans (under 5 cm) do nothing, so standing still stays still;
+        // a real bend already moves the hips back on its own, so this fades out as the bend takes over.
+        let bTarget = [0, 0];
+        if (o.counterbalance > 0 && feet && !walking && !sitting) {
+            // measured from where the head rests over the feet (it stands 7 cm ahead of the hips), not from zero
+            const ox = hp[0] - (feet.left.pos[0] + feet.right.pos[0]) / 2 - fwd[0] * 0.07;
+            const oz = hp[2] - (feet.left.pos[2] + feet.right.pos[2]) / 2 - fwd[2] * 0.07;
+            const mag = Math.hypot(ox, oz);
+            const amount = Math.min(0.12, 0.22 * o.counterbalance * Math.max(0, Math.min(mag, 0.4) - 0.05)) * (1 - bendSmooth);
+            if (mag > 1e-6) bTarget = [(-ox / mag) * amount, (-oz / mag) * amount];
+        }
+        const bk = 1 - Math.exp(-6 * dt);
+        balance = [lerp(balance[0], bTarget[0], bk), lerp(balance[1], bTarget[1], bk)];
+        if (Math.abs(balance[0]) + Math.abs(balance[1]) > 1e-5) hips = [hips[0] + balance[0], hips[1], hips[2] + balance[1]];
         let pelvisYaw = 0;
         let counterYaw = 0;
         let stepLength = 0;
@@ -562,6 +734,8 @@ export function createFootEstimator(options = {}) {
         let reachFactor = o.reachFactor;
 
         if (walking) {
+            stanceYaw = bodyYaw;
+            pivoting = false;
             const dirv = speed > 1e-6 ? [vSmooth[0] / speed, vSmooth[1] / speed] : [0, 1];
             const sideways = Math.abs(dirv[0]);
             const half = o.stanceHalfWidth + 0.1 * sideways; // a wider stance when moving sideways
@@ -592,7 +766,28 @@ export function createFootEstimator(options = {}) {
                 const gv = sign * half * lane[1] + dirv[1] * g.along;
                 const u = lerp(entry[side][0], gu, sm);
                 const v = lerp(entry[side][1], gv, sm);
-                feet[side] = { pos: toWorld(u, v, g.y * sm), yaw: bodyYaw - sign * 0.1 + toeLean * sm };
+                let pos = toWorld(u, v, g.y * sm);
+                if (theta < 0.6 && sm >= 1) {
+                    // planted: hold the spot where the foot landed. The stride math only pulls it along when the
+                    // speed estimate has drifted so far (over 5 cm) that holding it would look wrong.
+                    if (!plant[side]) plant[side] = [pos[0], 0, pos[2]];
+                    const off = [pos[0] - plant[side][0], 0, pos[2] - plant[side][2]];
+                    const ol = len(off);
+                    if (ol > 0.05) plant[side] = add(plant[side], scale(off, (ol - 0.05) / ol));
+                    releaseOff[side] = [plant[side][0] - pos[0], plant[side][2] - pos[2]];
+                    pos = [plant[side][0], g.y * sm, plant[side][2]];
+                } else {
+                    plant[side] = null;
+                    // leaving the ground: the held spot and the stride curve can differ by a few cm. Fade that
+                    // difference out over the swing instead of jumping, so the toe-off is smooth.
+                    if (theta >= 0.6) {
+                        const fade = 1 - smooth01((theta - 0.6) / 0.25);
+                        pos = [pos[0] + releaseOff[side][0] * fade, pos[1], pos[2] + releaseOff[side][1] * fade];
+                    } else {
+                        releaseOff[side] = [0, 0];
+                    }
+                }
+                feet[side] = { pos, yaw: bodyYaw - sign * 0.1 + toeLean * sm };
                 pitches[side] = gaitPitch(theta) * sm;
             }
 
@@ -605,7 +800,7 @@ export function createFootEstimator(options = {}) {
             const sway = (0.012 + 0.01 * fast) * amp * o.swayAmount * -Math.sin(2 * Math.PI * phase);
             pelvisYaw = -(0.04 + 0.03 * fast) * amp * c1;
             counterYaw = -0.6 * pelvisYaw;
-            hips = add(sub(baseHips, [0, bob + crouch * sm, 0]), scale(rgt, sway));
+            hips = add(add(sub(baseHips, [0, bob + crouch * sm, 0]), scale(rgt, sway)), [balance[0], 0, balance[1]]);
             ankleExtra = 0.05; // covers the most the ankle rises when the foot tilts (see ankle() below)
             reachFactor = 0.995;
         } else if (sitting) {
@@ -631,7 +826,7 @@ export function createFootEstimator(options = {}) {
                 Math.sin(t * Math.PI) * o.stepHeight,
                 lerp(step.from[2], step.to[2], eased) + rgt[2] * clear
             ];
-            feet[step.side] = { pos, yaw: bodyYaw };
+            feet[step.side] = { pos, yaw: stanceYaw };
             swingPitch = { side: step.side, pitch: stepPitch(t) };
             if (t >= 1) step = null;
         } else {
@@ -646,8 +841,8 @@ export function createFootEstimator(options = {}) {
                     t: 0
                 };
             } else {
-                feet.left.yaw = bodyYaw;
-                feet.right.yaw = bodyYaw;
+                feet.left.yaw = stanceYaw;
+                feet.right.yaw = stanceYaw;
             }
         }
 
@@ -683,7 +878,8 @@ export function createFootEstimator(options = {}) {
         const hipR = add(hips, scale(rgtP, p.hipWidth / 2));
         // the ankle sits higher than the sole when the foot is tilted heel-up or toe-up
         const ankle = (f, side) => add(f.pos, [0, p.ankleHeight + 0.09 * Math.abs(Math.sin(pitches[side])), 0]);
-        const poleOf = (f) => forwardOf(f.yaw);
+        // the knee points mostly where the foot points, but it is tied to the pelvis: it can only turn so far from it
+        const poleOf = (f) => forwardOf(hipsYaw + clamp(wrap(f.yaw - hipsYaw) * o.kneeYawShare, -o.maxKneeYaw, o.maxKneeYaw));
         return {
             bodyYaw,
             hips: { pos: hips, yaw: hipsYaw },
@@ -694,7 +890,7 @@ export function createFootEstimator(options = {}) {
             right: footOut(result.right, 'right'),
             leftKnee: solveKnee(hipL, ankle(result.left, 'left'), p.thigh, p.shin, poleOf(result.left)),
             rightKnee: solveKnee(hipR, ankle(result.right, 'right'), p.thigh, p.shin, poleOf(result.right)),
-            gait: { walking, phase, speed, stepLength, counterYaw, sitting },
+            gait: { walking, phase, speed, stepLength, counterYaw, sitting, laying: false },
             fired: result.fired
         };
     }
@@ -718,6 +914,14 @@ export function createFootEstimator(options = {}) {
         entry = null;
         stopTimer = 0;
         vSmooth = [0, 0];
+        laying = false;
+        layTimer = 0;
+        layAxis = null;
+        layBlend = 0;
+        stanceYaw = null;
+        pivoting = false;
+        balance = [0, 0];
+        plant = { left: null, right: null };
     }
 
     return { update, reset, proportions: p };

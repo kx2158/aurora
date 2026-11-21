@@ -1767,7 +1767,11 @@
             "driver_error": "Could not set the driver up.",
             "feel_swayAmount": "Hip sway when walking",
             "feel_feetSeparation": "How far apart the feet stand",
-            "feel_seatSensitivity": "How easily it decides you sat down"
+            "feel_seatSensitivity": "How easily it decides you sat down",
+            "feel_counterbalance": "Hips shift away from a leaning head",
+            "feel_smoothing": "Smoothing (higher is smoother)",
+            "feel_neckRange": "How far the head turns before the body follows",
+            "feel_legFreedom": "How far the legs may swing at the hips"
         },
         "desk": {
             "hint": "{key} to hide",

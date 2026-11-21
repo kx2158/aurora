@@ -239,7 +239,15 @@
         { label: 'stool', h: 0.65 }
     ];
     const SIT_MODES = ['auto', 'sit', 'stand'];
-    const FEEL = [{ key: 'swayAmount' }, { key: 'feetSeparation' }, { key: 'seatSensitivity' }];
+    const FEEL = [
+        { key: 'swayAmount' },
+        { key: 'feetSeparation' },
+        { key: 'seatSensitivity' },
+        { key: 'counterbalance' },
+        { key: 'smoothing' },
+        { key: 'neckRange' },
+        { key: 'legFreedom' }
+    ];
 
     onMounted(() => {
         initCalibration();

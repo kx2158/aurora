@@ -18,7 +18,7 @@ public sealed class DragSettings
     /// <summary>How far the world moves for one unit of hand movement. 1 is 1:1.</summary>
     [JsonPropertyName("multiplier")] public double Multiplier { get; set; } = 1.0;
     /// <summary>When false, dragging only moves you along the floor.</summary>
-    [JsonPropertyName("allowVertical")] public bool AllowVertical { get; set; } = true;
+    [JsonPropertyName("vertical")] public bool AllowVertical { get; set; } = false;
     /// <summary>Comfort mode: the world moves in small steps instead of continuously, which is easier on the stomach.</summary>
     [JsonPropertyName("comfort")] public bool Comfort { get; set; } = false;
     /// <summary>Each increase asks the helper to put the play space back where SteamVR has it.</summary>

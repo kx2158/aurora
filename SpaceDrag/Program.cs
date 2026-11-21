@@ -82,6 +82,7 @@ internal static class Program
         var dataDir = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Neon");
         _settingsPath = Path.Join(dataDir, "spacedrag.json");
         _statusPath = Path.Join(dataDir, "spacedrag-status.json");
+        _homePath = Path.Join(dataDir, "spacedrag-home.json");
         for (var i = 0; i + 1 < args.Length; i++)
         {
             if (args[i] == "--settings") _settingsPath = args[i + 1];
@@ -164,6 +165,49 @@ internal static class Program
 
     private static Vector3 Position(HmdMatrix34_t m) => new(m.m3, m.m7, m.m11);
     private static Vector3 Translation(float[,] a) => new(a[0, 3], a[1, 3], a[2, 3]);
+
+    private static string _homePath;
+
+    /// <summary>The play space before the first drag, so Reset can put it back (also after a restart).</summary>
+    private static float[,] LoadHome()
+    {
+        try
+        {
+            if (!File.Exists(_homePath)) return null;
+            var v = JsonSerializer.Deserialize<float[]>(File.ReadAllText(_homePath));
+            if (v == null || v.Length != 12) return null;
+            var m = new float[3, 4];
+            for (var i = 0; i < 12; i++) m[i / 4, i % 4] = v[i];
+            return DragMath.IsSane(m) ? m : null;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private static void SaveHome(float[,] m)
+    {
+        try
+        {
+            var v = new float[12];
+            for (var i = 0; i < 12; i++) v[i] = m[i / 4, i % 4];
+            File.WriteAllText(_homePath, JsonSerializer.Serialize(v));
+        }
+        catch
+        {
+            // not fatal: Reset then falls back to SteamVR's saved play space
+        }
+    }
+
+    /// <summary>Makes the moved play space SteamVR's real one, so it stays when you let go (a preview alone snaps back).</summary>
+    private static void Commit()
+    {
+        var setup = OpenVR.ChaperoneSetup;
+        if (setup == null) return;
+        setup.CommitWorkingCopy(EChaperoneConfigFile.Live);
+        setup.HideWorkingSetPreview();
+    }
 
     private static void Run(Status status)
     {
@@ -311,6 +355,15 @@ internal static class Program
                 if (setup != null)
                 {
                     setup.RevertWorkingCopy();
+                    var home = LoadHome();
+                    if (home != null)
+                    {
+                        var hm = ToMatrix(home);
+                        setup.SetWorkingStandingZeroPoseToRawTrackingPose(ref hm);
+                        setup.CommitWorkingCopy(EChaperoneConfigFile.Live);
+                        lastWrite = now;
+                        try { File.Delete(_homePath); } catch { }
+                    }
                     setup.HideWorkingSetPreview();
                 }
 
@@ -340,6 +393,12 @@ internal static class Program
             var driver = DragMath.PickHand(left, right, hand, settings.Hand);
             if (driver != hand)
             {
+                // let go (or switched hands): keep the play space where the drag left it
+                if (hand != null && applied != null && lastWrite > DateTime.MinValue)
+                {
+                    Commit();
+                    lastWrite = now;
+                }
                 hand = driver;
                 if (hand != null)
                 {
@@ -353,7 +412,11 @@ internal static class Program
                         // play space) load what SteamVR really has first, then start from whatever it holds now.
                         if (applied == null) setup.RevertWorkingCopy();
                         if (!setup.GetWorkingStandingZeroPoseToRawTrackingPose(ref m)) { hand = null; }
-                        else applied = ToArray(m);
+                        else
+                        {
+                            applied = ToArray(m);
+                            if (LoadHome() == null) SaveHome(applied);
+                        }
 
                         var idx = system.GetTrackedDeviceIndexForControllerRole(hand == "left" ? ETrackedControllerRole.LeftHand : ETrackedControllerRole.RightHand);
                         if (hand != null && idx != OpenVR.k_unTrackedDeviceIndexInvalid)

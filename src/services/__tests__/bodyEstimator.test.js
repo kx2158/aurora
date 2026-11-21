@@ -78,9 +78,9 @@ describe('solveArm', () => {
             swivel = a.swivel;
         }
         for (let i = 0; i < 200; i++) swivel = solveArm(shoulder, hand, upper, fore, 'left', 0, swivel, 1 / 90, 9).swivel;
-        expect(swivel).toBeCloseTo(BODY_DEFAULTS.maxElbowSwivel, 9);
+        expect(swivel).toBeCloseTo(BODY_DEFAULTS.elbowSwivelLimit, 9);
         for (let i = 0; i < 400; i++) swivel = solveArm(shoulder, hand, upper, fore, 'left', 0, swivel, 1 / 90, -9).swivel;
-        expect(swivel).toBeCloseTo(-BODY_DEFAULTS.maxElbowSwivel, 9);
+        expect(swivel).toBeCloseTo(-BODY_DEFAULTS.elbowSwivelLimit, 9);
     });
 
     test('moving the hand smoothly through every pose never makes the elbow jump or flip', () => {
@@ -183,7 +183,7 @@ describe('createBodyEstimator', () => {
             const ru = dot(sub(out.rightFoot.pos, out.hips.pos), right);
             expect(ru).toBeGreaterThanOrEqual(lu - 1e-6);
             for (const k of ['leftElbow', 'rightElbow']) {
-                expect(Math.abs(out[k].swivel)).toBeLessThanOrEqual(BODY_DEFAULTS.maxElbowSwivel + 1e-9);
+                expect(Math.abs(out[k].swivel)).toBeLessThanOrEqual(BODY_DEFAULTS.elbowSwivelLimit + 1e-9);
                 expect(out[k].pos.every(Number.isFinite)).toBe(true);
             }
         }

@@ -9,7 +9,7 @@ namespace VRCX;
 
 /// <summary>
 /// Hands Aurora's body tracker poses to the Aurora SteamVR driver (Driver/aurora_driver.cpp) through shared memory.
-/// Aurora works in standing space, a driver works in SteamVR's raw tracking space, so the poses are converted here.
+/// Aurora works in its body space (see BodySpace), a driver works in SteamVR's raw tracking space, so the poses are converted here.
 /// Layout (packed): u32 magic, u32 reserved, u64 updatedMs, then 8 slots of { u32 valid, f64 pos[3], f64 rot[4] }.
 /// </summary>
 internal sealed class TrackerDriverFeed
@@ -24,36 +24,6 @@ internal sealed class TrackerDriverFeed
     private readonly object _lock = new();
     private MemoryMappedFile _file;
     private MemoryMappedViewAccessor _view;
-    private Matrix4x4 _standingToRaw = Matrix4x4.Identity;
-    private Quaternion _standingToRawRot = Quaternion.Identity;
-    private bool _haveTransform;
-
-    /// <summary>Called from the OpenVR thread: remembers how to get from standing space back to raw space.</summary>
-    public void UpdateTransform(CVRSystem system)
-    {
-        try
-        {
-            var m = system.GetRawZeroPoseToStandingAbsoluteTrackingPose();
-            var rotation = new Matrix4x4(
-                m.m0, m.m4, m.m8, 0,
-                m.m1, m.m5, m.m9, 0,
-                m.m2, m.m6, m.m10, 0,
-                m.m3, m.m7, m.m11, 1);
-            // standing = Z * raw, so raw = inverse(Z) * standing
-            if (!Matrix4x4.Invert(rotation, out var inverse))
-                return;
-            lock (_lock)
-            {
-                _standingToRaw = inverse;
-                _standingToRawRot = Quaternion.Normalize(Quaternion.CreateFromRotationMatrix(inverse));
-                _haveTransform = true;
-            }
-        }
-        catch (Exception ex)
-        {
-            logger.Error(ex);
-        }
-    }
 
     public void Write(string json)
     {
@@ -61,7 +31,7 @@ internal sealed class TrackerDriverFeed
         {
             lock (_lock)
             {
-                if (!_haveTransform || !Open())
+                if (!BodySpace.Ready || !Open())
                     return;
 
                 using var doc = JsonDocument.Parse(json);
@@ -76,9 +46,10 @@ internal sealed class TrackerDriverFeed
                         continue;
                     }
 
-                    var p = Vector3.Transform(new Vector3(pos[0].GetSingle(), pos[1].GetSingle(), pos[2].GetSingle()), _standingToRaw);
-                    var q = Quaternion.Normalize(_standingToRawRot *
-                        new Quaternion(rot[0].GetSingle(), rot[1].GetSingle(), rot[2].GetSingle(), rot[3].GetSingle()));
+                    // Aurora's body space back to raw tracking space (see BodySpace)
+                    var p = new Vector3(pos[0].GetSingle(), pos[1].GetSingle(), pos[2].GetSingle());
+                    var q = new Quaternion(rot[0].GetSingle(), rot[1].GetSingle(), rot[2].GetSingle(), rot[3].GetSingle());
+                    BodySpace.ToRaw(ref p, ref q);
                     _view.Write(at + 4, (double)p.X);
                     _view.Write(at + 12, (double)p.Y);
                     _view.Write(at + 20, (double)p.Z);

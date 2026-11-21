@@ -227,6 +227,8 @@ namespace VRCX
                     while (system.PollNextEvent(ref e, (uint)Marshal.SizeOf(e)))
                     {
                         var type = (EVREventType)e.eventType;
+                        if (type == EVREventType.VREvent_StandingZeroPoseReset)
+                            BodySpace.Reanchor();
                         if (type == EVREventType.VREvent_Quit)
                         {
                             active = false;
@@ -255,8 +257,8 @@ namespace VRCX
                             nextDeviceUpdate = DateTime.UtcNow.AddSeconds(0.1);
                         }
 
+                        BodySpace.Update(system);
                         SendPoses(system); // every loop: about 30 times a second, about 100 while body trackers are being sent
-                        _trackerFeed.UpdateTransform(system);
 
                         var overlay = OpenVR.Overlay;
                         if (overlay != null && heavy)
@@ -567,7 +569,8 @@ namespace VRCX
             try
             {
                 var poses = new TrackedDevicePose_t[OpenVR.k_unMaxTrackedDeviceCount];
-                system.GetDeviceToAbsoluteTrackingPose(ETrackingUniverseOrigin.TrackingUniverseStanding, 0, poses);
+                // raw poses in Aurora's body space, so moving the play space (space drag) does not look like walking
+                system.GetDeviceToAbsoluteTrackingPose(ETrackingUniverseOrigin.TrackingUniverseRawAndUncalibrated, 0, poses);
                 var parts = new List<string>();
                 for (var i = 0u; i < OpenVR.k_unMaxTrackedDeviceCount; ++i)
                 {
@@ -590,7 +593,7 @@ namespace VRCX
 
                     if (name == null)
                         continue;
-                    parts.Add($"\"{name}\":{PoseJson(poses[i].mDeviceToAbsoluteTracking)}");
+                    parts.Add($"\"{name}\":{PoseJson(BodySpace.ToBody(poses[i].mDeviceToAbsoluteTracking))}");
                 }
 
                 if (parts.Count == 0)

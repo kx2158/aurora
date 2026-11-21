@@ -9,7 +9,8 @@ export const defaultDragSettings = () => ({
     enabled: true,
     hand: 'left',
     multiplier: 1,
-    allowVertical: true,
+    // up and down dragging is off by default: pulling your hand down would lift you
+    vertical: false,
     comfort: false
 });
 
@@ -26,7 +27,7 @@ export function sanitizeDragSettings(input) {
         enabled: s.enabled === undefined ? d.enabled : s.enabled === true,
         hand: HANDS.includes(s.hand) ? s.hand : d.hand,
         multiplier: Math.min(hi, Math.max(lo, num(s.multiplier, d.multiplier))),
-        allowVertical: s.allowVertical === undefined ? d.allowVertical : s.allowVertical === true,
+        vertical: s.vertical === true,
         comfort: s.comfort === true
     };
 }

@@ -19,7 +19,8 @@ describe('adaptive joint smoothing', () => {
     test('hips catch up with a fast squat quickly', () => {
         const rows = drive((t) => [0, 1.65 - 0.5 * Math.min(1, Math.max(0, (t - 1) / 1)), 0], 4);
         const y0 = rows[0].hips.pos[1];
-        const yEnd = rows[rows.length - 1].hips.pos[1];
+        // the crouch level right after the head stops (later, sitting down settles the hips a few cm lower on purpose)
+        const yEnd = rows[Math.round(2.3 / D)].hips.pos[1];
         const i90 = rows.findIndex((r, i) => i * D > 1 && y0 - r.hips.pos[1] > 0.9 * (y0 - yEnd));
         // the head reaches 90 percent of its drop at 1.9 s; the hips must be within 50 ms of that
         expect(i90 * D - 1.9).toBeLessThan(0.05);

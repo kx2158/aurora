@@ -46,7 +46,7 @@
             </div>
 
             <label class="a-switch">
-                <input type="checkbox" :checked="dragSettings.allowVertical" @change="(e) => updateDragSettings({ allowVertical: e.target.checked })" />
+                <input type="checkbox" :checked="dragSettings.vertical" @change="(e) => updateDragSettings({ vertical: e.target.checked })" />
                 <span class="a-switch-track"><span class="a-switch-knob"></span></span>
                 <span class="flex-1">{{ t('view.space_drag.vertical') }}</span>
             </label>

@@ -23,6 +23,7 @@ import {
     vec,
     yawOfRotation
 } from './footEstimator.js';
+import { createInertia } from './bodyInertia.js';
 import { createInputGuard, createTrackerStabilizer } from './trackerStabilizer.js';
 
 const { add, sub, scale, dot, len, norm, clamp, lerp, wrap } = vec;
@@ -31,7 +32,8 @@ const perp = (v, axis) => sub(v, scale(axis, dot(v, axis)));
 
 export const BODY_DEFAULTS = {
     ...FOOT_DEFAULTS,
-    maxElbowSwivel: 1.2, // radians (about 70 degrees) the elbow may turn away from its reference direction
+    maxElbowSwivel: 1.2, // radians (about 70 degrees) the elbow turns away from its reference direction without effort
+    elbowSwivelLimit: 2.6, // the most it may turn when the body or the shoulder's range leaves no other choice
     elbowSwivelSpeed: 10, // radians per second the swivel may change at most
     chestYawShare: 0.5, // how much of the head-to-hips twist the chest takes
     maxChestTwist: 0.7,
@@ -99,9 +101,10 @@ export function solveArm(shoulder, hand, upper, fore, side, bodyYaw, prevSwivel 
     const to = sub(hand, shoulder);
     const axis = len(to) > 1e-6 ? norm(to) : [0, -1, 0];
     const ref = elbowReference(axis, bodyYaw, side);
-    const target = clamp(bias, -o.maxElbowSwivel, o.maxElbowSwivel);
+    const lim = Math.max(o.maxElbowSwivel, o.elbowSwivelLimit || 0);
+    const target = clamp(bias, -lim, lim);
     const maxStep = o.elbowSwivelSpeed * dt;
-    const swivel = clamp(prevSwivel + clamp(target - prevSwivel, -maxStep, maxStep), -o.maxElbowSwivel, o.maxElbowSwivel);
+    const swivel = clamp(prevSwivel + clamp(target - prevSwivel, -maxStep, maxStep), -lim, lim);
     const dir = rotateAbout(ref, axis, swivel);
     const elbow = solveKnee(shoulder, hand, upper, fore, dir);
     return { elbow, swivel, dir };
@@ -137,12 +140,32 @@ function nearestOnSegment(p, a, b) {
  */
 export function armPenetration(shoulder, elbow, body) {
     let pen = 0;
-    for (const t of [0.5, 1]) {
+    for (const t of [0.35, 0.6, 0.8, 1]) {
         const pt = lerp3(shoulder, elbow, t);
         pen += Math.max(0, body.headRadius - len(sub(pt, body.head)));
-        pen += Math.max(0, body.torsoRadius - nearestOnSegment(pt, body.hips, body.neck).d);
+        if (body.headBase) pen += Math.max(0, body.neckRadius - nearestOnSegment(pt, body.head, body.headBase).d);
+        if (t >= 0.6) pen += Math.max(0, body.torsoRadius - nearestOnSegment(pt, body.hips, body.neck).d);
     }
     return pen;
+}
+
+/**
+ * How far an upper arm direction is outside what a shoulder can do (0 means fine). Directions are in the chest's
+ * frame: out (away from the body on this side), up, forward. A shoulder cannot bring the elbow across in front of
+ * or behind the face when the arm is raised, and it only reaches back so far: about 55 degrees behind the body with
+ * the arm hanging down, much less with the arm raised.
+ */
+export function shoulderStrain(upperDir, out, up, fwd) {
+    const ex = dot(upperDir, out);
+    const ey = dot(upperDir, up);
+    const ez = dot(upperDir, fwd);
+    // across the body: more allowed in front (hugging), less the higher the arm is
+    const medial = -(0.2 + 0.7 * Math.max(0, ez)) * (1 - 0.65 * Math.max(0, ey));
+    let strain = Math.max(0, medial - ex);
+    // backward: about 55 degrees with the arm down, about 20 with it level or raised
+    const backMax = 0.35 + 0.5 * Math.max(0, -ey);
+    strain += Math.max(0, -ez - backMax);
+    return strain;
 }
 const lerp3 = (a, b, t) => [lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[2], b[2], t)];
 
@@ -151,18 +174,30 @@ const lerp3 = (a, b, t) => [lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[2],
  * arm through the head or torso, the closest swivel that does not is used instead, still inside the normal
  * limits. This is what keeps an arm raised beside the head or crossed over the chest looking like a real arm.
  */
-export function chooseSwivel(shoulder, hand, upper, fore, side, bodyYaw, body, options = {}) {
+export function chooseSwivel(shoulder, hand, upper, fore, side, bodyYaw, body, options = {}, prev = 0) {
     const o = { ...BODY_DEFAULTS, ...options };
     const to = sub(hand, shoulder);
     const axis = len(to) > 1e-6 ? norm(to) : [0, -1, 0];
     const ref = elbowReference(axis, bodyYaw, side);
+    const lim = Math.max(o.maxElbowSwivel, o.elbowSwivelLimit || 0);
+    const frame = body.chestFrame;
+    const outDir = frame ? scale(frame.right, side === 'left' ? -1 : 1) : null;
     let best = 0;
     let bestCost = Infinity;
-    const steps = 16;
+    const steps = 32;
     for (let i = 0; i <= steps; i++) {
-        const sv = ((i / steps) * 2 - 1) * o.maxElbowSwivel;
+        const sv = ((i / steps) * 2 - 1) * lim;
         const e = solveKnee(shoulder, hand, upper, fore, rotateAbout(ref, axis, sv));
-        const cost = armPenetration(shoulder, e, body) * 40 + Math.abs(sv) * 0.25;
+        const ud = norm(sub(e, shoulder));
+        const strain = frame ? shoulderStrain(ud, outDir, frame.up, frame.fwd) : 0;
+        // inside the body or past the shoulder's range costs most; then turning far from natural; then changing
+        // much from the last frame (so two equally good answers do not make the elbow hop back and forth)
+        const cost =
+            armPenetration(shoulder, e, body) * 40 +
+            strain * 8 +
+            Math.abs(sv) * 0.25 +
+            Math.max(0, Math.abs(sv) - o.maxElbowSwivel) * 0.8 +
+            Math.abs(sv - prev) * 0.12;
         if (cost < bestCost) {
             bestCost = cost;
             best = sv;
@@ -203,8 +238,8 @@ export function shoulderOffset(restShoulder, hand, chestFwd, chestUp, chestRight
 // per m/s (horizontal and vertical), vertical cutoff when still, and the same pair for rotation (per rad/s).
 // Vertical gets a higher floor so crouches and jumps are not compressed or stretched by the smoothing.
 const SMOOTH = {
-    hips: { fc: 0.5, beta: 4, fcY: 1.6, betaY: 10, fcR: 0.7, betaR: 1.0, lead: 0.04 },
-    chest: { fc: 0.5, beta: 4, fcY: 1.6, betaY: 10, fcR: 0.8, betaR: 1.0, lead: 0.04 },
+    hips: { fc: 0.5, beta: 4, fcY: 1.6, betaY: 24, fcR: 0.7, betaR: 1.0, lead: 0.05 },
+    chest: { fc: 0.5, beta: 4, fcY: 1.6, betaY: 24, fcR: 0.8, betaR: 1.0, lead: 0.05 },
     knee: { fc: 0.8, beta: 4, fcY: 2.0, betaY: 8, fcR: 0.9, betaR: 0.9, lead: 0.03 },
     elbow: { fc: 0.9, beta: 5, fcY: 2.2, betaY: 8, fcR: 1.0, betaR: 1.0, lead: 0.035 },
     foot: { fc: 0.8, beta: 6, fcY: 2.5, betaY: 9, fcR: 1.0, betaR: 1.2, lead: 0.02 }
@@ -340,12 +375,17 @@ function createBodyCore(options = {}) {
 
         // body volumes the arms must stay out of
         const k = eye / 1.65;
+        // the head's centre sits about 8 cm behind and 4 cm below the headset
+        const headCentre = add(input.head.pos, rotate(input.head.rot, [0, -0.04 * k, 0.08 * k]));
         const bodyVol = {
-            head: input.head.pos,
-            headRadius: 0.1 * k,
+            head: headCentre,
+            headRadius: 0.13 * k,
+            headBase: add(shoulderCenter, scale(upT, 0.03 * k)),
+            neckRadius: 0.08 * k,
             hips,
             neck: sub(shoulderCenter, scale(upT, 0.04 * k)),
-            torsoRadius: 0.13 * k
+            torsoRadius: 0.13 * k,
+            chestFrame: { right: rgtT, up: upT, fwd: fwdC }
         };
         const reachMax = arm.upper + arm.fore;
 
@@ -354,7 +394,7 @@ function createBodyCore(options = {}) {
             const sign = side === 'left' ? -1 : 1;
             const rest = add(shoulderCenter, scale(rgtT, sign * arm.shoulderHalf));
             const shoulder = add(rest, shoulderOffset(rest, hand.pos, fwdC, upT, rgtT, side, reachMax * 0.97, eye));
-            const want = chooseSwivel(shoulder, hand.pos, arm.upper, arm.fore, side, chestYaw, bodyVol, o);
+            const want = chooseSwivel(shoulder, hand.pos, arm.upper, arm.fore, side, chestYaw, bodyVol, o, swivels[side]);
             const r = solveArm(shoulder, hand.pos, arm.upper, arm.fore, side, chestYaw, swivels[side], dt, want, o);
             swivels[side] = r.swivel;
             return {
@@ -451,11 +491,15 @@ export function createBodyEstimator(options = {}) {
     // every preventive: bad input never reaches the solver, bad output never reaches SteamVR
     const guard = createInputGuard();
     const stabilizer = createTrackerStabilizer();
+    // springs on the skeleton: switches and jumps blend instead of snapping (see bodyInertia.js)
+    const inertia = createInertia();
+    const JOINTS = ['hips', 'chest', 'leftFoot', 'rightFoot', 'leftKnee', 'rightKnee', 'leftElbow', 'rightElbow'];
 
     function reset() {
         core.reset();
         guard.reset();
         stabilizer.reset();
+        inertia.reset();
     }
 
     function update(input, dt) {
@@ -467,6 +511,7 @@ export function createBodyEstimator(options = {}) {
         if (head.jumped) {
             core.reset();
             stabilizer.reset();
+            inertia.reset();
         }
         const inp = {
             ...input,
@@ -475,7 +520,28 @@ export function createBodyEstimator(options = {}) {
             rightHand: scalePose(rightHand.pose, inv),
             virtualVelocity: input.virtualVelocity ? [input.virtualVelocity[0] * inv, input.virtualVelocity[1] * inv] : input.virtualVelocity
         };
-        const out = stabilizer.apply(core.update(inp, dt), frame);
+        const raw = core.update(inp, dt);
+        // the shoulders ride on springs too, so an elbow kept at arm length from its shoulder cannot jump either
+        const withShoulders = {
+            ...raw,
+            leftShoulder: raw.leftElbow ? { pos: raw.leftElbow.shoulder } : null,
+            rightShoulder: raw.rightElbow ? { pos: raw.rightElbow.shoulder } : null
+        };
+        const sprung = inertia.apply(withShoulders, raw.gait.mode || 'stand', frame, [...JOINTS, 'leftShoulder', 'rightShoulder']);
+        for (const side of ['left', 'right']) {
+            const e = sprung[side + 'Elbow'];
+            const sh = sprung[side + 'Shoulder'];
+            if (e && sh) sprung[side + 'Elbow'] = { ...e, shoulder: sh.pos };
+            delete sprung[side + 'Shoulder'];
+        }
+        // a blended foot never dips into the floor (unless lying, where the body is on the surface)
+        if (!raw.gait.laying) {
+            for (const key of ['leftFoot', 'rightFoot']) {
+                const f = sprung[key];
+                if (f && f.pos[1] < 0) sprung[key] = { ...f, pos: [f.pos[0], 0, f.pos[2]] };
+            }
+        }
+        const out = stabilizer.apply(sprung, frame);
         // the stabilizer may hold an elbow back for a frame: a bone does not stretch, so keep it at arm length
         for (const key of ['leftElbow', 'rightElbow']) {
             const e = out[key];

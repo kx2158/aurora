@@ -13,8 +13,8 @@ describe('space drag settings', () => {
         expect(sanitizeDragSettings({ multiplier: NaN }).multiplier).toBe(1);
     });
     it('keeps valid values', () => {
-        const s = sanitizeDragSettings({ enabled: true, hand: 'left', multiplier: 2.5, allowVertical: false, comfort: true });
-        expect(s).toEqual({ enabled: true, hand: 'left', multiplier: 2.5, allowVertical: false, comfort: true });
+        const s = sanitizeDragSettings({ enabled: true, hand: 'left', multiplier: 2.5, vertical: false, comfort: true });
+        expect(s).toEqual({ enabled: true, hand: 'left', multiplier: 2.5, vertical: false, comfort: true });
     });
 });
 

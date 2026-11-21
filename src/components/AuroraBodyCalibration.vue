@@ -177,11 +177,6 @@
                     <span class="flex-1">{{ t('view.body_cal.driver_send') }}</span>
                     <span class="a-note">{{ t(`view.body_cal.driver_${driverState}`) }}</span>
                 </label>
-                <label class="flex items-center gap-3">
-                    <input type="checkbox" :checked="oscOut" @change="(e) => setOscOut(e.target.checked)" />
-                    <span class="flex-1">{{ t('view.body_cal.osc_send') }}</span>
-                </label>
-                <p class="a-note">{{ t('view.body_cal.osc_note') }}</p>
                 <p v-if="status" class="a-note" :class="{ bad: calStatus === 'failed' }" aria-live="polite">{{ status }}</p>
                 <p v-else class="a-note">{{ t('view.body_cal.no_source') }}</p>
             </div>
@@ -199,7 +194,7 @@
 
     import AuroraBodyPreview from './AuroraBodyPreview.vue';
     import AuroraIcon from './AuroraIcon.vue';
-    import { driverOut, oscOut, setDriverOut, setOscOut } from '../services/auroraBodyOutput';
+    import { driverOut, setDriverOut } from '../services/auroraBodyOutput';
     import { driverState } from '../services/auroraTrackerDriver';
     import { applyMeasure, calibrateNow, measure, measureFloor, measurePoint, setMeasureHand } from '../services/auroraMeasure';
     import { formatHeight } from '../services/auroraHeight';

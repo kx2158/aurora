@@ -11,6 +11,7 @@
 import { ref, watch } from 'vue';
 
 import { createBodyEstimator } from './bodyEstimator';
+import { currentXrHint } from './auroraBodyXr';
 import { enabledBody, estimatorOptions, sittingInput } from './auroraBodyCalibration';
 import { bodyUnlocked } from './auroraBodyLock';
 import { subscribePoses, wantPoses } from './auroraPoses';
@@ -33,7 +34,7 @@ function onPoses(poses, at) {
     const dt = lastAt ? Math.min(0.1, Math.max(0.001, (at - lastAt) / 1000)) : 1 / 30;
     lastAt = at;
     const body = estimator.update(
-        { head: poses.head, leftHand: poses.leftHand, rightHand: poses.rightHand, sitting: sittingInput() },
+        { head: poses.head, leftHand: poses.leftHand, rightHand: poses.rightHand, sitting: sittingInput(), xr: currentXrHint(poses.head) },
         dt
     );
     if (driverOut.value && at - driverSentAt >= 7) {

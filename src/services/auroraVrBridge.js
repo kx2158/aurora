@@ -27,6 +27,7 @@ import { backToNormal, height, initHeight, normalHeight, setHeight, setNormalHei
 import { initCalibration, sitMode, toggleTracker, trackerOn } from './auroraBodyCalibration';
 import { bodyUnlocked, initBodyLock } from './auroraBodyLock';
 import { driverOut, initBodyOutput, setDriverOut } from './auroraBodyOutput';
+import { initBodyXr } from './auroraBodyXr';
 import { applyMeasure, measure, measureFloor, measurePoint, setMeasureHand } from './auroraMeasure';
 import { autoDisable, initStandable, standableState } from './auroraStandable';
 import { useLocationStore } from '../stores/location';
@@ -368,6 +369,7 @@ export async function initVrBridge() {
     initHeight();
     initBodyLock();
     initBodyOutput();
+    initBodyXr();
     watch([bodyUnlocked, sitMode, autoDisable, standableState, trackerOn, measure, driverOut], pushState, { deep: true });
     // once unlocked, the body settings and the Standable check run in the background too
     watch(

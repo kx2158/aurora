@@ -133,3 +133,45 @@ describe('elbow never pops', () => {
         expect(worst).toBeLessThan(0.07);
     });
 });
+
+describe('Quest body hint', () => {
+    const yawQ = (a) => [0, Math.sin(a / 2), 0, Math.cos(a / 2)];
+    it('lines the headset joints up with the SteamVR head, whatever the yaw between the spaces', async () => {
+        const { buildXrHint } = await import('../bodyXrCore.js');
+        const make = (yaw) => {
+            // the same real elbow (0.1 right, 0.3 down, 0.05 back of the shoulder), seen from a space turned by yaw
+            const rot = (v) => {
+                const c = Math.cos(-yaw);
+                const s = Math.sin(-yaw);
+                return [v[0] * c + v[2] * s, v[1], -v[0] * s + v[2] * c];
+            };
+            const sh = rot([0.2, 1.4, 0]);
+            const el = rot([0.3, 1.1, 0.05]);
+            return { state: 5, ageMs: 10, confidence: 1, view: [0, 1.6, 0, ...yawQ(yaw)], joints: { rightShoulder: [...sh, 0, 0, 0, 1], rightElbow: [...el, 0, 0, 0, 1] } };
+        };
+        const a = buildXrHint(make(0), { rot: yawQ(0) }).rightElbow;
+        const b = buildXrHint(make(1.2), { rot: yawQ(0) }).rightElbow;
+        for (let i = 0; i < 3; i++) expect(Math.abs(a[i] - b[i])).toBeLessThan(1e-5);
+    });
+    it('ignores old or missing data', async () => {
+        const { buildXrHint } = await import('../bodyXrCore.js');
+        expect(buildXrHint(null, { rot: [0, 0, 0, 1] })).toBeNull();
+        expect(buildXrHint({ state: 4 }, { rot: [0, 0, 0, 1] })).toBeNull();
+        expect(buildXrHint({ state: 5, ageMs: 9999, view: [0, 0, 0, 0, 0, 0, 1], joints: {} }, { rot: [0, 0, 0, 1] })).toBeNull();
+    });
+    it('pulls the elbow toward the real one, and stays at arm length', () => {
+        const e = createBodyEstimator();
+        const hands = { head: pose(0, 1.65, 0), leftHand: pose(-0.2, 1.3, -0.5), rightHand: pose(0.2, 1.3, -0.5) };
+        let plain;
+        let hinted;
+        const e2 = createBodyEstimator();
+        for (let i = 0; i < 120; i++) {
+            plain = e.update(hands, dt);
+            hinted = e2.update({ ...hands, xr: { rightElbow: [0.3, 0.0, 0.0], leftElbow: [-0.3, 0.0, 0], weight: 0.8 } }, dt);
+        }
+        // the hint says the elbows point straight out to the sides, so they end up further out than without it
+        expect(hinted.rightElbow.pos[0]).toBeGreaterThan(plain.rightElbow.pos[0] + 0.01);
+        const d = Math.hypot(...hinted.rightElbow.pos.map((v, i) => v - hinted.rightElbow.shoulder[i]));
+        expect(Math.abs(d - e2.arm.upper)).toBeLessThan(1e-4);
+    });
+});

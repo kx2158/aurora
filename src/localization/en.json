@@ -1668,6 +1668,17 @@
             "tile_people": "People seen",
             "tile_people_sub": "{n} friends in your top list"
         },
+        "body_xr": {
+            "title": "Quest body tracking (experimental)",
+            "desc": "Uses the Quest's own body tracking, which sees your arms with the headset cameras, to help place your elbows. Needs a Quest 3 and the Meta runtime, and may not work while SteamVR runs. If it does not, nothing changes.",
+            "enable": "Use Quest body tracking for the elbows",
+            "state_off": "Off",
+            "state_missing": "Not in this build",
+            "state_starting": "Starting",
+            "state_waiting": "Waiting",
+            "state_tracking": "Tracking",
+            "state_failed": "Not available"
+        },
         "space_drag": {
             "title": "Space drag",
             "desc": "Grab the air with a controller and pull the whole play space around you. Walk across a world without walking, or move your play space to line up with a real chair or bed.",

@@ -58,6 +58,16 @@ jobs:
           mkdir -p build/Cef/SteamVRDriver
           cp -r Driver/build/out/aurora build/Cef/SteamVRDriver/aurora
 
+      # Quest body tracking helper (OpenXR, experimental). Built into the app folder next to the driver.
+      - name: Build the Quest body tracking helper
+        run: |
+          cmake -S BodyXr -B BodyXr/build -A x64
+          cmake --build BodyXr/build --config Release
+          EXE="$(find BodyXr/build -name Aurora.BodyXr.exe | head -n 1)"
+          test -n "$EXE"
+          mkdir -p build/Cef/BodyXr
+          cp "$EXE" build/Cef/BodyXr/Aurora.BodyXr.exe
+
       - name: Install NSIS
         run: choco install nsis -y
 

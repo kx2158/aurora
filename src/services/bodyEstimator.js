@@ -365,7 +365,24 @@ function createBodyCore(options = {}) {
             const sign = side === 'left' ? -1 : 1;
             const rest = add(shoulderCenter, scale(rgtT, sign * arm.shoulderHalf));
             const shoulder = add(rest, shoulderOffset(rest, hand.pos, fwdC, upT, rgtT, side, reachMax * 0.97, eye));
-            const want = chooseSwivel(shoulder, hand.pos, arm.upper, arm.fore, side, chestYaw, bodyVol, o);
+            let want = chooseSwivel(shoulder, hand.pos, arm.upper, arm.fore, side, chestYaw, bodyVol, o);
+            // optional hint from the headset's own body tracking: which way the real elbow points (see bodyXrCore.js)
+            const xrOff = input.xr && input.xr[side + 'Elbow'];
+            if (xrOff) {
+                const ax = sub(hand.pos, shoulder);
+                if (len(ax) > 1e-6) {
+                    const axis = norm(ax);
+                    const h = perp(xrOff, axis);
+                    const hl = len(h);
+                    if (hl > 0.02) {
+                        const hn = norm(h);
+                        const ref = elbowReference(axis, chestYaw, side);
+                        const ang = clamp(Math.atan2(dot(cross(ref, hn), axis), dot(ref, hn)), -o.maxElbowSwivel, o.maxElbowSwivel);
+                        const w = clamp(input.xr.weight, 0, 1) * clamp(hl / 0.06, 0, 1);
+                        want = want * (1 - w) + ang * w;
+                    }
+                }
+            }
             const r = solveArm(shoulder, hand.pos, arm.upper, arm.fore, side, chestYaw, swivels[side], dt, want, o, dirs[side]);
             swivels[side] = r.swivel;
             dirs[side] = r.dir;

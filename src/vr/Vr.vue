@@ -1371,6 +1371,35 @@
                         <span class="vr-tile-label">{{ m.label }}</span>
                     </button>
                 </div>
+                <div class="vr-group-title">Measure with a controller</div>
+                <div class="vr-grid">
+                    <button
+                        v-for="h in ['left', 'right']"
+                        :key="h"
+                        type="button"
+                        class="vr-tile"
+                        :class="{ on: neonState.bodyMeasure.hand === h }"
+                        @click="dashPress(`bodyMeasureHand:${h}`)">
+                        <span class="vr-tile-label">{{ h === 'left' ? 'Left hand' : 'Right hand' }}</span>
+                    </button>
+                    <button type="button" class="vr-tile" :class="{ on: neonState.bodyMeasure.floor }" @click="dashPress('bodyMeasureFloor')">
+                        <span class="vr-tile-label">1. Floor</span>
+                        <span class="vr-tile-state">{{ neonState.bodyMeasure.floor ? 'Set' : 'Touch it' }}</span>
+                    </button>
+                    <button type="button" class="vr-tile" @click="dashPress('bodyMeasurePoint')">
+                        <span class="vr-tile-label">2. Measure</span>
+                        <span class="vr-tile-state">{{ measureReadout }}</span>
+                    </button>
+                    <div class="vr-tile vr-info">
+                        <span class="vr-tile-label">{{ measureHelp }}</span>
+                    </div>
+                    <button type="button" class="vr-tile" @click="dashPress('bodyApplySeat')">
+                        <span class="vr-tile-label">Use as seat</span>
+                    </button>
+                    <button type="button" class="vr-tile" @click="dashPress('bodyApplyEye')">
+                        <span class="vr-tile-label">Use as eyes</span>
+                    </button>
+                </div>
                 <div class="vr-group-title">Standable</div>
                 <div class="vr-grid">
                     <button type="button" class="vr-tile" :class="{ on: neonState.bodyStandableOff }" @click="dashPress('bodyStandable')">
@@ -1632,7 +1661,7 @@
 
 
     // Aurora in the headset: a tiny synth blip for events, alarms and the quick controls.
-    const neonState = reactive({ accent: '#b4b4b4', mm: false, mmMuted: false, mmApp: '', mmVol: 80, song: '', artist: '', playing: false, chatbox: false, sounds: true, afk: false, music: false, preview: '', nextAlarm: '', watchAlert: null, height: 0, bodyUnlocked: false, bodySit: 'auto', bodyStandableOff: true, bodyStandable: 'unknown', bodyTrackers: {} });
+    const neonState = reactive({ accent: '#b4b4b4', mm: false, mmMuted: false, mmApp: '', mmVol: 80, song: '', artist: '', playing: false, chatbox: false, sounds: true, afk: false, music: false, preview: '', nextAlarm: '', watchAlert: null, height: 0, bodyUnlocked: false, bodySit: 'auto', bodyStandableOff: true, bodyStandable: 'unknown', bodyTrackers: {}, bodyMeasure: { hand: 'right', status: 'idle', step: '', floor: false, meters: null, message: '' } });
     // the dashboard has two pages: the main one and the body estimation one (shown once it is unlocked)
     const dashTab = ref('main');
     // ---- the wrist opening: the overlay host calls wristShown / wristHidden ----
@@ -1824,6 +1853,20 @@
         { key: 'leftElbow', label: 'Left elbow' },
         { key: 'rightElbow', label: 'Right elbow' }
     ];
+    const measureReadout = computed(() => {
+        const m = neonState.bodyMeasure.meters;
+        return m === null || m === undefined ? '-' : `${Math.round(m * 100)} cm`;
+    });
+    const measureHelp = computed(() => {
+        const b = neonState.bodyMeasure;
+        if (b.status === 'wait') return b.step === 'floor' ? 'Hold it on the floor... 3s' : 'Hold it on the spot... 3s';
+        if (b.status === 'failed') {
+            return (
+                { moving: 'Hold still', no_controller: 'Controller not found', no_floor: 'Do the floor first', too_low: 'That is the floor' }[b.message] || 'Failed'
+            );
+        }
+        return 'Tap, then hold the controller still for 3 seconds';
+    });
     const bodySitModes = [
         { mode: 'auto', icon: 'refresh', label: 'Auto' },
         { mode: 'sit', icon: 'arrow', label: 'Sit' },

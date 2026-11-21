@@ -119,6 +119,15 @@
                         </button>
                     </div>
                     <p class="a-note body-hint">{{ t('view.body_cal.seat_note') }}</p>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <button type="button" class="a-btn" :class="{ on: measure.hand === 'left' }" @click="setMeasureHand('left')">{{ t('view.body_cal.measure_left') }}</button>
+                        <button type="button" class="a-btn" :class="{ on: measure.hand === 'right' }" @click="setMeasureHand('right')">{{ t('view.body_cal.measure_right') }}</button>
+                        <button type="button" class="a-btn" :disabled="measure.status === 'wait'" @click="measureFloor">{{ t('view.body_cal.measure_floor') }}</button>
+                        <button type="button" class="a-btn" :disabled="measure.status === 'wait'" @click="measurePoint">{{ t('view.body_cal.measure_point') }}</button>
+                        <button type="button" class="a-btn" :disabled="measure.meters === null" @click="applyMeasure('seat')">{{ t('view.body_cal.measure_seat') }}</button>
+                        <button type="button" class="a-btn" :disabled="measure.meters === null" @click="applyMeasure('eye')">{{ t('view.body_cal.measure_eye') }}</button>
+                    </div>
+                    <p class="a-note body-hint">{{ measureText }}</p>
                 </div>
 
                 <!-- standable -->
@@ -163,6 +172,7 @@
 
     import AuroraBodyPreview from './AuroraBodyPreview.vue';
     import AuroraIcon from './AuroraIcon.vue';
+    import { applyMeasure, measure, measureFloor, measurePoint, setMeasureHand } from '../services/auroraMeasure';
     import { formatHeight } from '../services/auroraHeight';
     import { autoDisable, initStandable, standableError, standableState } from '../services/auroraStandable';
     import {
@@ -208,6 +218,12 @@
         initStandable();
     });
 
+    const measureText = computed(() => {
+        if (measure.status === 'wait') return t('view.body_cal.measure_wait');
+        if (measure.status === 'failed') return t(`view.body_cal.measure_${measure.message}`);
+        if (measure.meters !== null) return `${(measure.meters * 100).toFixed(1)} cm`;
+        return t('view.body_cal.measure_note');
+    });
     const running = computed(() => calStatus.value === 'stand' || calStatus.value === 'tpose');
     const sourceText = computed(() => t(`view.body_cal.from_${calibration.value.source}`));
 

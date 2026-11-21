@@ -1744,7 +1744,19 @@
             "fail_no_tpose": "Could not see a T pose. Hold both arms level and straight out.",
             "from_default": "Using average proportions.",
             "from_manual": "Set by hand.",
-            "from_vr": "Calibrated from VR."
+            "from_vr": "Calibrated from VR.",
+            "measure_left": "Left hand",
+            "measure_right": "Right hand",
+            "measure_floor": "1. Touch floor",
+            "measure_point": "2. Measure",
+            "measure_seat": "Use as seat height",
+            "measure_eye": "Use as eye height",
+            "measure_note": "Pick a hand, press Touch floor and hold that controller on the floor for 3 seconds. Then press Measure and hold it on the bed, chair or your eyes.",
+            "measure_wait": "Hold the controller still for 3 seconds...",
+            "measure_moving": "The controller moved. Hold it still and try again.",
+            "measure_no_controller": "No controller found. Is SteamVR running?",
+            "measure_no_floor": "Do the floor first.",
+            "measure_too_low": "That is the same height as the floor."
         },
         "desk": {
             "hint": "{key} to hide",

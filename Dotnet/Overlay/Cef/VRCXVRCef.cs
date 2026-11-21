@@ -239,6 +239,7 @@ namespace VRCX
                         {
                             overlayIndex = OpenVR.k_unTrackedDeviceIndexInvalid;
                             UpdateDevices(system, ref overlayIndex);
+                            SendPoses(system);
                             if (overlayIndex != OpenVR.k_unTrackedDeviceIndexInvalid)
                             {
                                 _nextOverlayUpdate = DateTime.UtcNow.AddSeconds(10);
@@ -539,6 +540,94 @@ namespace VRCX
                         }
                 }
             }
+        }
+
+        // Head and hand positions (SteamVR standing space, meters) for Aurora's body tools: measuring and calibration.
+        private void SendPoses(CVRSystem system)
+        {
+            try
+            {
+                var poses = new TrackedDevicePose_t[OpenVR.k_unMaxTrackedDeviceCount];
+                system.GetDeviceToAbsoluteTrackingPose(ETrackingUniverseOrigin.TrackingUniverseStanding, 0, poses);
+                var parts = new List<string>();
+                for (var i = 0u; i < OpenVR.k_unMaxTrackedDeviceCount; ++i)
+                {
+                    if (!poses[i].bPoseIsValid)
+                        continue;
+                    string name = null;
+                    var devClass = system.GetTrackedDeviceClass(i);
+                    if (devClass == ETrackedDeviceClass.HMD)
+                    {
+                        name = "head";
+                    }
+                    else if (devClass == ETrackedDeviceClass.Controller)
+                    {
+                        var role = system.GetControllerRoleForTrackedDeviceIndex(i);
+                        if (role == ETrackedControllerRole.LeftHand)
+                            name = "leftHand";
+                        else if (role == ETrackedControllerRole.RightHand)
+                            name = "rightHand";
+                    }
+
+                    if (name == null)
+                        continue;
+                    parts.Add($"\"{name}\":{PoseJson(poses[i].mDeviceToAbsoluteTracking)}");
+                }
+
+                if (parts.Count == 0)
+                    return;
+                OverlayClient.SendMessage(new OverlayMessage
+                {
+                    Type = OverlayMessageType.VrPoses,
+                    Data = "{" + string.Join(",", parts) + "}"
+                });
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex);
+            }
+        }
+
+        private static string PoseJson(HmdMatrix34_t m)
+        {
+            float x, y, z, w;
+            var trace = m.m0 + m.m5 + m.m10;
+            if (trace > 0f)
+            {
+                var s = (float)Math.Sqrt(trace + 1f) * 2f;
+                w = s / 4f;
+                x = (m.m9 - m.m6) / s;
+                y = (m.m2 - m.m8) / s;
+                z = (m.m4 - m.m1) / s;
+            }
+            else if (m.m0 > m.m5 && m.m0 > m.m10)
+            {
+                var s = (float)Math.Sqrt(1f + m.m0 - m.m5 - m.m10) * 2f;
+                w = (m.m9 - m.m6) / s;
+                x = s / 4f;
+                y = (m.m1 + m.m4) / s;
+                z = (m.m2 + m.m8) / s;
+            }
+            else if (m.m5 > m.m10)
+            {
+                var s = (float)Math.Sqrt(1f + m.m5 - m.m0 - m.m10) * 2f;
+                w = (m.m2 - m.m8) / s;
+                x = (m.m1 + m.m4) / s;
+                y = s / 4f;
+                z = (m.m6 + m.m9) / s;
+            }
+            else
+            {
+                var s = (float)Math.Sqrt(1f + m.m10 - m.m0 - m.m5) * 2f;
+                w = (m.m4 - m.m1) / s;
+                x = (m.m2 + m.m8) / s;
+                y = (m.m6 + m.m9) / s;
+                z = s / 4f;
+            }
+
+            var c = System.Globalization.CultureInfo.InvariantCulture;
+            return string.Format(c, "{{\"pos\":[{0:0.####},{1:0.####},{2:0.####}],\"rot\":[{3:0.####},{4:0.####},{5:0.####},{6:0.####}]}}",
+                m.m3, m.m7, m.m11, x, y, z, w);
         }
 
         internal EVROverlayError ProcessDashboard(CVROverlay overlay, ref ulong dashboardHandle, bool dashboardVisible)

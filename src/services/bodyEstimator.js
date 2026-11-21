@@ -23,6 +23,7 @@ import {
     vec,
     yawOfRotation
 } from './footEstimator.js';
+import { createInputGuard, createTrackerStabilizer } from './trackerStabilizer.js';
 
 const { add, sub, scale, dot, len, norm, clamp, lerp, wrap } = vec;
 const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
@@ -447,15 +448,42 @@ export function createBodyEstimator(options = {}) {
     const p = { ...core.proportions };
     for (const key of ['legLength', 'headToHips', 'hipWidth', 'ankleHeight', 'thigh', 'shin']) if (typeof p[key] === 'number') p[key] *= s;
 
+    // every preventive: bad input never reaches the solver, bad output never reaches SteamVR
+    const guard = createInputGuard();
+    const stabilizer = createTrackerStabilizer();
+
+    function reset() {
+        core.reset();
+        guard.reset();
+        stabilizer.reset();
+    }
+
     function update(input, dt) {
+        const frame = dt || 0.011;
+        const head = guard.clean('head', input.head, frame);
+        const leftHand = guard.clean('leftHand', input.leftHand, frame);
+        const rightHand = guard.clean('rightHand', input.rightHand, frame);
+        // the headset really jumped somewhere else (teleport, respawn): start the body over at the new place
+        if (head.jumped) {
+            core.reset();
+            stabilizer.reset();
+        }
         const inp = {
             ...input,
-            head: scalePose(input.head, inv),
-            leftHand: scalePose(input.leftHand, inv),
-            rightHand: scalePose(input.rightHand, inv),
+            head: scalePose(head.pose, inv),
+            leftHand: scalePose(leftHand.pose, inv),
+            rightHand: scalePose(rightHand.pose, inv),
             virtualVelocity: input.virtualVelocity ? [input.virtualVelocity[0] * inv, input.virtualVelocity[1] * inv] : input.virtualVelocity
         };
-        const out = core.update(inp, dt);
+        const out = stabilizer.apply(core.update(inp, dt), frame);
+        // the stabilizer may hold an elbow back for a frame: a bone does not stretch, so keep it at arm length
+        for (const key of ['leftElbow', 'rightElbow']) {
+            const e = out[key];
+            if (!e || !e.shoulder) continue;
+            const d = sub(e.pos, e.shoulder);
+            const l = len(d);
+            if (l > 1e-6) out[key] = { ...e, pos: add(e.shoulder, scale(d, core.arm.upper / l)) };
+        }
         if (s === 1) return out;
         return {
             ...out,
@@ -472,5 +500,5 @@ export function createBodyEstimator(options = {}) {
         };
     }
 
-    return { update, reset: core.reset, arm, proportions: p, scale: s };
+    return { update, reset, arm, proportions: p, scale: s };
 }

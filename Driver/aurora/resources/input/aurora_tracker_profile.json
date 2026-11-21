@@ -1,0 +1,15 @@
+{
+  "jsonid": "input_profile",
+  "controller_type": "aurora_tracker",
+  "device_class": "TrackedDeviceClass_GenericTracker",
+  "resource_root": "aurora",
+  "input_bindingui_mode": "controller_handed",
+  "input_source": {
+    "/input/system": {
+      "type": "button",
+      "click": true,
+      "order": 1
+    }
+  },
+  "legacy_binding": ""
+}

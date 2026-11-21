@@ -1,6 +1,6 @@
 // Aurora body trackers as a SteamVR driver.
 //
-// Eight virtual trackers (hips, chest, feet, knees, elbows) that SteamVR lists like Vive trackers, so every
+// Eight virtual trackers (hips, chest, feet, knees, elbows) that SteamVR lists as Aurora trackers, so every
 // SteamVR game sees them, not only VRChat. Aurora's body estimator writes the poses into shared memory
 // ("Local\AuroraTrackers"); this driver reads them and hands them to SteamVR. Poses are in SteamVR's raw
 // tracking space, Aurora converts from standing space before it writes them.
@@ -40,9 +40,6 @@ constexpr double kFollowSeconds = 0.02; // how long the shown pose takes to glid
 const char *const kRoles[ kTrackerCount ] = { "TrackerRole_Waist", "TrackerRole_Chest", "TrackerRole_LeftFoot",
 	"TrackerRole_RightFoot", "TrackerRole_LeftKnee", "TrackerRole_RightKnee", "TrackerRole_LeftElbow",
 	"TrackerRole_RightElbow" };
-const char *const kControllerTypes[ kTrackerCount ] = { "vive_tracker_waist", "vive_tracker_chest",
-	"vive_tracker_left_foot", "vive_tracker_right_foot", "vive_tracker_left_knee", "vive_tracker_right_knee",
-	"vive_tracker_left_elbow", "vive_tracker_right_elbow" };
 const char *const kNames[ kTrackerCount ] = { "hips", "chest", "left_foot", "right_foot", "left_knee", "right_knee",
 	"left_elbow", "right_elbow" };
 
@@ -132,9 +129,10 @@ public:
 		vr::VRProperties()->SetStringProperty( c, vr::Prop_ManufacturerName_String, "Aurora" );
 		vr::VRProperties()->SetStringProperty( c, vr::Prop_TrackingSystemName_String, "aurora" );
 		vr::VRProperties()->SetStringProperty( c, vr::Prop_SerialNumber_String, serial_.c_str() );
-		vr::VRProperties()->SetStringProperty( c, vr::Prop_RenderModelName_String, "{htc}vr_tracker_vive_1_0" );
-		vr::VRProperties()->SetStringProperty( c, vr::Prop_InputProfilePath_String, "{htc}/input/vive_tracker_profile.json" );
-		vr::VRProperties()->SetStringProperty( c, vr::Prop_ControllerType_String, kControllerTypes[ index_ ] );
+		// Aurora's own identity, nothing borrowed from Vive trackers. The role (hips, left foot ...) is set in the
+		// "trackers" settings below, which is what SteamVR and VRChat read.
+		vr::VRProperties()->SetStringProperty( c, vr::Prop_InputProfilePath_String, "{aurora}/input/aurora_tracker_profile.json" );
+		vr::VRProperties()->SetStringProperty( c, vr::Prop_ControllerType_String, "aurora_tracker" );
 		vr::VRProperties()->SetInt32Property( c, vr::Prop_ControllerRoleHint_Int32, vr::TrackedControllerRole_Invalid );
 		vr::VRProperties()->SetBoolProperty( c, vr::Prop_Identifiable_Bool, false );
 		vr::VRDriverInput()->CreateBooleanComponent( c, "/input/system/click", &systemClick_ );

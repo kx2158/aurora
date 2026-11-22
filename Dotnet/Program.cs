@@ -309,6 +309,7 @@ namespace VRCX
             IPCServer.Instance.Init();
             SQLite.Instance.Init();
             AppApiInstance = new AppApiCef();
+            AppApi.RemoveOldCimaBoxCopy();
 
             ProcessMonitor.Instance.Init();
             Discord.Instance.Init();

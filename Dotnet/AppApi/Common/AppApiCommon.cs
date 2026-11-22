@@ -17,11 +17,10 @@ namespace VRCX
 
         public void Init()
         {
-            RemoveOldCimaBoxCopy();
         }
 
         // an earlier Aurora could download CIMA Box into its own folder; that feature is gone, so clear the copy
-        private static void RemoveOldCimaBoxCopy()
+        public static void RemoveOldCimaBoxCopy()
         {
             try
             {

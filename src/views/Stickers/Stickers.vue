@@ -20,13 +20,13 @@
             <section class="a-card">
                 <div class="flex items-center gap-3">
                     <h2 class="a-h2 flex-1">{{ t('view.sticker_maker.library') }}</h2>
-                    <button type="button" class="a-btn" :disabled="galleryDialogStickersLoading" @click="refreshStickerTable">
+                    <button type="button" class="a-btn" :disabled="galleryDialogStickersLoading" @click="refreshAll">
                         {{ t('dialog.gallery_icons.refresh') }}
                     </button>
                 </div>
-                <p v-if="!stickerTable.length" class="a-note">{{ t('view.sticker_maker.library_empty') }}</p>
+                <p v-if="!library.length" class="a-note">{{ t('view.sticker_maker.library_empty') }}</p>
                 <div v-else class="st-grid">
-                    <div v-for="image in stickerTable" :key="image.id" class="st-tile">
+                    <div v-for="image in library" :key="image.id" class="st-tile">
                         <template v-if="fileUrl(image)">
                             <Emoji v-if="image.frames" :imageUrl="fileUrl(image)" class="st-pic" />
                             <img v-else :src="fileUrl(image)" loading="lazy" class="st-pic" />
@@ -51,7 +51,7 @@
 </template>
 
 <script setup>
-    import { onMounted, ref } from 'vue';
+    import { computed, onMounted, ref } from 'vue';
     import { storeToRefs } from 'pinia';
     import { Trash2 } from 'lucide-vue-next';
     import { toast } from 'vue-sonner';
@@ -67,8 +67,10 @@
     const { t } = useI18n();
     const router = useRouter();
     const galleryStore = useGalleryStore();
-    const { stickerTable, galleryDialogStickersLoading } = storeToRefs(galleryStore);
-    const { refreshStickerTable, handleStickerAdd } = galleryStore;
+    const { stickerTable, emojiTable, galleryDialogStickersLoading } = storeToRefs(galleryStore);
+    const { refreshStickerTable, refreshEmojiTable, handleStickerAdd } = galleryStore;
+    // animations live under VRChat's animated emoji tag, so they are listed beside the stickers
+    const library = computed(() => [...emojiTable.value.filter((e) => e.frames), ...stickerTable.value]);
     const { isLocalUserVrcPlusSupporter } = storeToRefs(useUserStore());
 
     // a file dropped on the Gallery's Stickers tab arrives here
@@ -76,17 +78,29 @@
 
     const fileUrl = (image) => image.versions?.[image.versions.length - 1]?.file?.url || '';
 
-    function onUploaded(args) {
-        handleStickerAdd(args);
-        // the list only shows the play settings once VRChat's own file record is read
+    function onUploaded(args, animated) {
+        if (animated) {
+            emojiTable.value.unshift(args.json);
+            refreshEmojiTable();
+        } else {
+            handleStickerAdd(args);
+            // the list only shows the play settings once VRChat's own file record is read
+            refreshStickerTable();
+        }
+    }
+
+    function refreshAll() {
         refreshStickerTable();
+        refreshEmojiTable();
     }
 
     async function remove(id) {
         try {
             await miscRequest.deleteFile(id);
-            const i = stickerTable.value.findIndex((s) => s.id === id);
-            if (i !== -1) stickerTable.value.splice(i, 1);
+            for (const table of [stickerTable.value, emojiTable.value]) {
+                const i = table.findIndex((s) => s.id === id);
+                if (i !== -1) table.splice(i, 1);
+            }
         } catch (err) {
             console.error('sticker delete failed', err);
             toast.error(t('message.upload.error'));
@@ -94,7 +108,7 @@
     }
 
     onMounted(() => {
-        if (isLocalUserVrcPlusSupporter.value || stickerTable.value.length === 0) refreshStickerTable();
+        if (isLocalUserVrcPlusSupporter.value || stickerTable.value.length === 0) refreshAll();
     });
 </script>
 

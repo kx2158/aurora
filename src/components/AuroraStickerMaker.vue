@@ -113,6 +113,7 @@
                 </Button>
             </div>
             <p v-if="source && !vrcPlus" class="a-note">{{ t('view.sticker_maker.needs_vrcplus') }}</p>
+            <p v-if="source" class="a-note">{{ t('view.sticker_maker.animated_note') }}</p>
     </div>
 </template>
 
@@ -132,7 +133,7 @@
     import { generateEmojiStyle } from '../shared/utils';
     import { readFileAsBase64, withUploadTimeout } from '../shared/utils/imageUpload';
     import { canvasBlob, openSource, renderSheet } from '../services/stickerFrames';
-    import { SHEET_SIZE, keptAnimation, planFrames, sheetFileName, stickerParams } from '../services/stickerSheet';
+    import { SHEET_SIZE, animatedParams, guessType, isVideoType, keptAnimation, planFrames, sheetFileName, stickerParams } from '../services/stickerSheet';
 
     const props = defineProps({
         vrcPlus: { type: Boolean, default: false },
@@ -141,7 +142,7 @@
     const emit = defineEmits(['uploaded']);
     const { t } = useI18n();
 
-    const ACCEPT = 'image/gif,image/webp,image/png,image/apng,image/jpeg,video/mp4,video/webm,video/quicktime';
+    const ACCEPT = 'image/gif,image/webp,image/png,image/apng,image/jpeg,video/mp4,video/webm,video/quicktime,.gif,.webp,.png,.apng,.jpg,.jpeg,.mp4,.m4v,.mov,.webm,.mkv,.avi,.wmv';
     const PREVIEW = 220;
 
     const inputRef = ref(null);
@@ -212,7 +213,8 @@
     }
 
     async function load(file) {
-        if (!/^(image|video)\//.test(file.type)) {
+        const kind = guessType(file.name, file.type);
+        if (!/^(image|video)\//.test(kind)) {
             toast.error(t('view.sticker_maker.not_supported'));
             return;
         }
@@ -238,7 +240,7 @@
             await render();
         } catch (err) {
             console.error('sticker maker: could not read', err);
-            toast.error(t('view.sticker_maker.not_supported'));
+            toast.error(t(isVideoType(kind) ? 'view.sticker_maker.video_failed' : 'view.sticker_maker.not_supported'));
             source.value = null;
         } finally {
             loading.value = false;
@@ -292,7 +294,10 @@
         let args;
         await withUploadTimeout(
             (async () => {
-                args = await vrcPlusImageRequest.uploadSticker(base64, params);
+                args =
+                    params.tag === 'sticker'
+                        ? await vrcPlusImageRequest.uploadSticker(base64, params)
+                        : await vrcPlusImageRequest.uploadEmoji(base64, params);
             })()
         );
         return args;
@@ -301,14 +306,18 @@
     async function uploadAnimated() {
         if (!sheetBlob.value) return;
         const p = shownPlan.value;
-        const params = stickerParams({ frames: p.count, fps: p.fps, pingpong: pingpong.value });
+        // a single frame has nothing to animate, so it goes up as a normal sticker
+        const params =
+            p.count > 1
+                ? animatedParams({ frames: p.count, fps: p.fps, pingpong: pingpong.value })
+                : stickerParams({ frames: 1, fps: 1 });
         uploading.value = true;
         result.value = null;
         try {
             const args = await upload(sheetBlob.value, params);
             if (keptAnimation(args.json, params)) {
                 result.value = { tone: 'ok', text: params.frames ? t('view.sticker_maker.kept') : t('view.sticker_maker.uploaded_still') };
-                emit('uploaded', args);
+                emit('uploaded', args, params.tag !== 'sticker');
                 toast.success(t('message.upload.success'));
             } else {
                 // VRChat stored it as a plain image: it would show the whole grid, so take it back out

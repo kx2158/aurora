@@ -1672,7 +1672,7 @@
             "title": "Animated sticker maker",
             "desc": "Turn a GIF, animated WebP or PNG, or a short video into a VRChat animated sticker. Aurora lays the frames out on VRChat's 1024 sheet (up to 64 frames) and uploads it with the play settings.",
             "drop": "Drop a GIF, WebP, APNG or video here, or click to pick one",
-            "formats": "GIF, WebP, APNG, PNG, JPG, MP4, WebM, MOV",
+            "formats": "GIF, WebP, APNG, PNG, JPG, MP4, MOV, WebM, MKV, AVI",
             "reading": "Reading frames...",
             "not_supported": "This file could not be read",
             "summary": "{frames} frames at {fps} fps, {seconds}s loop",
@@ -1689,11 +1689,11 @@
             "background": "Background",
             "other_file": "Other file",
             "save": "Save sheet",
-            "upload": "Upload animated sticker",
+            "upload": "Upload animated",
             "uploading": "Uploading...",
             "upload_still": "Upload as a still sticker",
             "needs_vrcplus": "Uploading stickers needs VRC+. You can still save the sheet.",
-            "kept": "Uploaded. VRChat kept the animation, so it plays in game.",
+            "kept": "Uploaded. It plays in game from your emoji.",
             "uploaded_still": "Uploaded as a still sticker.",
             "dropped": "VRChat took the upload but dropped the animation, so it would have shown the whole frame grid. Aurora removed it again. You can upload the first frame as a still sticker, or save the sheet.",
             "failed": "The upload failed. Nothing was added.",
@@ -1703,7 +1703,9 @@
             "frames_short": "frames",
             "still": "Still",
             "delete": "Delete",
-            "open": "Animated sticker"
+            "open": "Animated sticker",
+            "video_failed": "This video could not be read. Aurora asks Windows to decode MP4 and MOV; if that fails, try a WebM or GIF, or re-save the clip as a standard H.264 MP4.",
+            "animated_note": "VRChat only plays animation on animated emoji, not on stickers, so Aurora uploads animations that way. They show up in the Gallery Emoji tab and in your emoji menu in game."
         },
         "space_drag": {
             "title": "Space drag",

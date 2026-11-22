@@ -5,7 +5,8 @@
  * frame and its real duration come out without any extra library. Videos (mp4, webm, mov) are sampled by seeking
  * a hidden <video>. A still image becomes a single frame.
  */
-import { SHEET_SIZE, cellRect, fitRect, frameAt, planFrames, timeline } from './stickerSheet';
+import { readFileAsBase64 } from '../shared/utils/imageUpload';
+import { SHEET_SIZE, cellRect, extOf, fitRect, frameAt, guessType, isVideoType, planFrames, timeline } from './stickerSheet';
 
 /** Frames are kept at most this big; a cell on the sheet is at most 512. */
 const KEEP = 512;
@@ -17,8 +18,8 @@ function keepSize(w, h) {
     return { resizeWidth: Math.max(1, Math.round(w * s)), resizeHeight: Math.max(1, Math.round(h * s)), resizeQuality: 'high' };
 }
 
-async function decodeAnimated(file) {
-    const decoder = new ImageDecoder({ data: await file.arrayBuffer(), type: file.type });
+async function decodeAnimated(file, type) {
+    const decoder = new ImageDecoder({ data: await file.arrayBuffer(), type });
     await decoder.tracks.ready;
     const track = decoder.tracks.selectedTrack;
     const n = Math.min(track ? track.frameCount : 1, MAX_SOURCE_FRAMES);
@@ -82,18 +83,28 @@ async function decodeStill(file) {
     };
 }
 
-function waitFor(el, event) {
+function waitFor(el, event, timeoutMs = 0) {
     return new Promise((resolve, reject) => {
+        let timer = null;
         const ok = () => {
+            clearTimeout(timer);
             el.removeEventListener('error', bad);
             resolve();
         };
         const bad = () => {
+            clearTimeout(timer);
             el.removeEventListener(event, ok);
             reject(new Error('video could not be read'));
         };
         el.addEventListener(event, ok, { once: true });
         el.addEventListener('error', bad, { once: true });
+        if (timeoutMs) {
+            timer = setTimeout(() => {
+                el.removeEventListener(event, ok);
+                el.removeEventListener('error', bad);
+                reject(new Error('video timed out'));
+            }, timeoutMs);
+        }
     });
 }
 
@@ -104,7 +115,15 @@ async function decodeVideo(file) {
     video.playsInline = true;
     video.preload = 'auto';
     video.src = url;
-    await waitFor(video, 'loadeddata');
+    try {
+        // Aurora's browser engine has no H.264, so most MP4 and MOV files fail here; the caller then tries Windows
+        await waitFor(video, 'loadeddata', 8000);
+    } catch (err) {
+        video.removeAttribute('src');
+        video.load();
+        URL.revokeObjectURL(url);
+        throw err;
+    }
     const totalMs = Number.isFinite(video.duration) ? video.duration * 1000 : 1000;
     const width = video.videoWidth;
     const height = video.videoHeight;
@@ -137,15 +156,66 @@ async function decodeVideo(file) {
     };
 }
 
+const CHUNK = 3 * 1024 * 1024;
+
+function nativeApi() {
+    return typeof AppApi !== 'undefined' && typeof AppApi.VideoOpen === 'function' ? AppApi : null;
+}
+
+/** Videos the browser engine cannot play (H.264 in MP4 or MOV): Windows decodes them and hands back single frames. */
+async function decodeVideoNative(file) {
+    const api = nativeApi();
+    if (!api) throw new Error('no native video reader');
+    const token = Array.from(crypto.getRandomValues(new Uint8Array(12)), (b) => b.toString(16).padStart(2, '0')).join('');
+    const close = () => Promise.resolve(api.VideoClose(token)).catch(() => {});
+    try {
+        if (!(await api.VideoBegin(token))) throw new Error('could not start');
+        for (let at = 0; at < file.size; at += CHUNK) {
+            if (!(await api.VideoAppend(token, await readFileAsBase64(file.slice(at, at + CHUNK))))) throw new Error('send failed');
+        }
+        const info = JSON.parse(await api.VideoOpen(token, extOf(file.name) || 'mp4'));
+        if (info.error || !(info.durationMs > 0)) throw new Error(info.error || 'empty video');
+        let chain = Promise.resolve();
+        const grab = (t) =>
+            (chain = chain.then(async () => {
+                const b64 = await api.VideoFrame(token, t, KEEP);
+                if (!b64) throw new Error('frame failed');
+                const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+                return createImageBitmap(new Blob([bytes], { type: 'image/png' }));
+            }));
+        return {
+            kind: 'video',
+            width: info.width,
+            height: info.height,
+            totalMs: info.durationMs,
+            sourceFrames: null,
+            starts: null,
+            frames: null,
+            frameAt: grab,
+            dispose: close
+        };
+    } catch (err) {
+        close();
+        throw err;
+    }
+}
+
 /** Opens a file as a frame source. */
 export async function openSource(file) {
-    const type = file.type || '';
-    if (type.startsWith('video/')) return decodeVideo(file);
+    const type = guessType(file.name, file.type);
+    if (isVideoType(type)) {
+        try {
+            return await decodeVideo(file);
+        } catch (err) {
+            console.warn('sticker maker: the browser could not read this video, trying Windows', err);
+        }
+        return decodeVideoNative(file);
+    }
     if (typeof ImageDecoder !== 'undefined') {
         try {
-            if (await ImageDecoder.isTypeSupported(type)) return await decodeAnimated(file);
-        } catch {
-            // fall through to a still image
+            if (await ImageDecoder.isTypeSupported(type)) return await decodeAnimated(file, type);
+        } catch (err) {
+            console.warn('sticker maker: animated decode failed, using a still image', err);
         }
     }
     return decodeStill(file);

@@ -3,9 +3,13 @@ import { describe, expect, it } from 'vitest';
 import {
     SHEET_SIZE,
     cellRect,
+    extOf,
     fitRect,
+    guessType,
+    isVideoType,
     frameAt,
     gridFor,
+    animatedParams,
     keptAnimation,
     planFrames,
     sheetFileName,
@@ -120,5 +124,47 @@ describe('upload settings', () => {
     });
     it('names saved sheets so the emoji upload reads the settings back', () => {
         expect(sheetFileName('dance party.gif', 16, 12, false)).toBe('dance-party_16frames_12fps_linearloopStyle.png');
+    });
+});
+
+describe('animated upload settings', () => {
+    it('uses the animated emoji tag, which is the one VRChat keeps frames on', () => {
+        expect(animatedParams({ frames: 16, fps: 12, pingpong: true })).toEqual({
+            tag: 'emojianimated',
+            animationStyle: 'stop',
+            maskTag: 'square',
+            frames: 16,
+            framesOverTime: 12,
+            loopStyle: 'pingpong'
+        });
+    });
+    it('keeps frames and fps inside VRChat limits', () => {
+        const p = animatedParams({ frames: 200, fps: 500 });
+        expect(p.frames).toBe(64);
+        expect(p.framesOverTime).toBe(64);
+        expect('loopStyle' in p).toBe(false);
+        expect(keptAnimation({ frames: 64, framesOverTime: 64 }, p)).toBe(true);
+    });
+});
+
+describe('file types', () => {
+    it('fills in the type when the browser leaves it empty', () => {
+        expect(guessType('dance.GIF', '')).toBe('image/gif');
+        expect(guessType('clip.mp4', '')).toBe('video/mp4');
+        expect(guessType('clip.mov', 'application/octet-stream')).toBe('video/quicktime');
+        expect(guessType('clip.mkv', '')).toBe('video/x-matroska');
+    });
+    it('reads APNG as the PNG type the image decoder knows', () => {
+        expect(guessType('a.apng', 'image/apng')).toBe('image/png');
+        expect(guessType('a.apng', '')).toBe('image/png');
+    });
+    it('keeps a type the browser did give', () => {
+        expect(guessType('x.webm', 'video/webm')).toBe('video/webm');
+        expect(isVideoType('video/quicktime')).toBe(true);
+        expect(isVideoType('image/gif')).toBe(false);
+    });
+    it('reads extensions', () => {
+        expect(extOf('My Clip.final.MP4')).toBe('mp4');
+        expect(extOf('noext')).toBe('');
     });
 });

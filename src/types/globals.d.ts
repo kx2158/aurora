@@ -277,6 +277,11 @@ declare global {
         // Neon: window, music and system info (Windows build)
         GetNeonSystemInfo(): Promise<string>;
         ReadVrchatEyeHeight(timeoutMs: number): Promise<number>;
+        VideoBegin(token: string): Promise<boolean>;
+        VideoAppend(token: string, base64: string): Promise<boolean>;
+        VideoOpen(token: string, ext: string): Promise<string>;
+        VideoFrame(token: string, ms: number, maxSize: number): Promise<string>;
+        VideoClose(token: string): Promise<void>;
         NeonMediaControl(action: string): Promise<void>;
         GetNeonAudioDevices(): Promise<string>;
         GetNeonAudioApps(): Promise<string>;

@@ -17,16 +17,16 @@
                 <AuroraStickerMaker :vrc-plus="isLocalUserVrcPlusSupporter" :initial-file="initial" @uploaded="onUploaded" />
             </section>
 
-            <section class="a-card">
+            <section v-for="(group, gi) in groups" :key="group.key" class="a-card">
                 <div class="flex items-center gap-3">
-                    <h2 class="a-h2 flex-1">{{ t('view.sticker_maker.library') }}</h2>
-                    <button type="button" class="a-btn" :disabled="galleryDialogStickersLoading" @click="refreshAll">
+                    <h2 class="a-h2 flex-1">{{ t(group.title) }}</h2>
+                    <button v-if="gi === 0" type="button" class="a-btn" :disabled="galleryDialogStickersLoading" @click="refreshAll">
                         {{ t('dialog.gallery_icons.refresh') }}
                     </button>
                 </div>
-                <p v-if="!library.length" class="a-note">{{ t('view.sticker_maker.library_empty') }}</p>
+                <p v-if="!group.items.length" class="a-note">{{ t(group.empty) }}</p>
                 <div v-else class="st-grid">
-                    <div v-for="image in library" :key="image.id" class="st-tile">
+                    <div v-for="image in group.items" :key="image.id" class="st-tile">
                         <template v-if="fileUrl(image)">
                             <Emoji v-if="image.frames" :imageUrl="fileUrl(image)" class="st-pic" />
                             <img v-else :src="fileUrl(image)" loading="lazy" class="st-pic" />
@@ -131,7 +131,15 @@
     const { stickerTable, emojiTable, galleryDialogStickersLoading } = storeToRefs(galleryStore);
     const { refreshStickerTable, refreshEmojiTable, handleStickerAdd } = galleryStore;
     // animations live under VRChat's animated emoji tag, so they are listed beside the stickers
-    const library = computed(() => [...emojiTable.value.filter((e) => e.frames), ...stickerTable.value]);
+    const groups = computed(() => [
+        { key: 'stickers', title: 'view.sticker_maker.library', empty: 'view.sticker_maker.library_empty', items: stickerTable.value },
+        {
+            key: 'emoji',
+            title: 'view.sticker_maker.library_emoji',
+            empty: 'view.sticker_maker.library_emoji_empty',
+            items: emojiTable.value.filter((e) => e.frames)
+        }
+    ]);
     const { isLocalUserVrcPlusSupporter } = storeToRefs(useUserStore());
 
     // a file dropped on the Gallery's Stickers tab arrives here

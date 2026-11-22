@@ -1669,8 +1669,8 @@
             "tile_people_sub": "{n} friends in your top list"
         },
         "sticker_maker": {
-            "title": "Animated sticker maker",
-            "desc": "Turn a GIF, animated WebP or PNG, or a short video into a VRChat animated sticker. Aurora lays the frames out on VRChat's 1024 sheet (up to 64 frames) and uploads it with the play settings.",
+            "title": "Sticker and emoji maker",
+            "desc": "Turn a picture, GIF or short video into a VRChat sticker (one still picture) or an animated emoji (the kind VRChat animates). Fill crops to the square, fit shows all of it.",
             "drop": "Drop a GIF, WebP, APNG or video here, or click to pick one",
             "formats": "GIF, WebP, APNG, PNG, JPG, MP4, MOV, WebM, MKV, AVI",
             "reading": "Reading frames...",
@@ -1689,9 +1689,7 @@
             "background": "Background",
             "other_file": "Other file",
             "save": "Save sheet",
-            "upload": "Upload animated",
             "uploading": "Uploading...",
-            "upload_still": "Upload as a still sticker",
             "needs_vrcplus": "Uploading stickers needs VRC+. You can still save the sheet.",
             "kept": "Uploaded. It plays in game from your emoji.",
             "uploaded_still": "Uploaded as a still sticker.",
@@ -1705,7 +1703,7 @@
             "delete": "Delete",
             "open": "Animated sticker",
             "video_failed": "This video could not be read. Aurora asks Windows to decode MP4 and MOV; if that fails, try a WebM or GIF, or re-save the clip as a standard H.264 MP4.",
-            "animated_note": "VRChat only plays animation on animated emoji, not on stickers, so Aurora uploads animations that way. They show up in the Gallery Emoji tab and in your emoji menu in game.",
+            "animated_note": "Animations play in game from your emoji menu and show up in the Gallery Emoji tab.",
             "lock": "Lock: cannot be deleted here, and is uploaded again if it disappears",
             "unlock": "Unlock",
             "keep": "Keep a copy in Aurora",
@@ -1718,7 +1716,16 @@
             "on_account": "On account",
             "stored": "Stored only",
             "all_locked": "All slots are locked, so nothing can be swapped out. Unlock one first.",
-            "restored": "{n} locked sticker(s) were missing and have been uploaded again."
+            "restored": "{n} locked sticker(s) were missing and have been uploaded again.",
+            "mode_sticker": "Sticker",
+            "mode_emoji": "Animated emoji",
+            "mode_sticker_hint": "One still picture, placed on walls and surfaces.",
+            "mode_emoji_hint": "Moving frames on a sheet. VRChat only animates emoji, not stickers.",
+            "frame": "Frame",
+            "upload_sticker": "Upload sticker",
+            "upload_emoji": "Upload emoji",
+            "library_emoji": "Your animated emoji",
+            "library_emoji_empty": "No animated emoji yet. Switch the maker to Animated emoji and upload one."
         },
         "space_drag": {
             "title": "Space drag",

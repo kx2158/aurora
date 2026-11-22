@@ -102,6 +102,14 @@ const navDefinitions = [
         section: 'worlds'
     },
     {
+        key: 'friends-manager',
+        icon: 'a:people',
+        tooltip: 'nav_aurora.friends_manager',
+        labelKey: 'nav_aurora.friends_manager',
+        routeName: 'friends-manager',
+        section: 'people'
+    },
+    {
         key: 'insights',
         icon: 'a:chart',
         tooltip: 'nav_aurora.insights',

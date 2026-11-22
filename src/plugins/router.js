@@ -51,6 +51,11 @@ const routes = [
                 name: 'insights',
                 component: () => import('./../views/Insights/Insights.vue')
             },
+            {
+                path: 'friends-manager',
+                name: 'friends-manager',
+                component: () => import('./../views/FriendsManager/FriendsManager.vue')
+            },
             { path: 'chatbox', name: 'chatbox', component: Chatbox },
             {
                 path: 'friends-locations',

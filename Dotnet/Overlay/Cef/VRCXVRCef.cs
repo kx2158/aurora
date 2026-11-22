@@ -27,7 +27,6 @@ namespace VRCX
         private static readonly float[] _rotationRight = { -90f * (float)(Math.PI / 180f), -90f * (float)(Math.PI / 180f), -90f * (float)(Math.PI / 180f) };
 
         private static OffScreenBrowser _sharedOverlay;
-        private readonly TrackerDriverFeed _trackerFeed = new();
         private readonly List<string[]> _deviceList;
         private readonly ReaderWriterLockSlim _deviceListLock;
         private readonly bool _isLegacy;
@@ -186,9 +185,6 @@ namespace VRCX
             var nextHeavy = DateTime.MinValue;
             while (_thread != null)
             {
-                // The overlays and the dashboard only need about 30 updates a second. While body trackers are being sent
-                // the loop turns faster (about 100 times a second), only for the poses: stepping trackers at 30 Hz
-                // looks choppy, and the faster loop feeds the tracker driver a pose every few milliseconds.
                 var heavy = DateTime.UtcNow.CompareTo(nextHeavy) >= 0;
                 if (heavy)
                     nextHeavy = DateTime.UtcNow.AddMilliseconds(30);
@@ -196,7 +192,7 @@ namespace VRCX
                     _sharedOverlay.RenderToTexture(_deviceContext, _sharedTexture);
                 try
                 {
-                    Thread.Sleep(Environment.TickCount64 - Interlocked.Read(ref _lastTrackerWrite) < 2000 ? 8 : 32);
+                    Thread.Sleep(32);
                 }
                 catch (ThreadInterruptedException)
                 {
@@ -254,9 +250,6 @@ namespace VRCX
 
                             nextDeviceUpdate = DateTime.UtcNow.AddSeconds(0.1);
                         }
-
-                        SendPoses(system); // every loop: about 30 times a second, about 100 while body trackers are being sent
-                        _trackerFeed.UpdateTransform(system);
 
                         var overlay = OpenVR.Overlay;
                         if (overlay != null && heavy)
@@ -320,7 +313,6 @@ namespace VRCX
             _adapter.Dispose();
             _factory.Dispose();
 
-            _trackerFeed.Close();
             _sharedOverlay?.Dispose();
             _sharedOverlay = null;
             _sharedTexture.Dispose();
@@ -329,14 +321,6 @@ namespace VRCX
             _multithread.Dispose();
             _dxgi?.Dispose();
             _d3d11?.Dispose();
-        }
-
-        private long _lastTrackerWrite = long.MinValue / 2;
-
-        public override void SetTrackerPoses(string json)
-        {
-            Interlocked.Exchange(ref _lastTrackerWrite, Environment.TickCount64);
-            _trackerFeed.Write(json);
         }
 
         public override void SetActive(bool active, bool hmdOverlay, bool wristOverlay, bool menuButton, int overlayHand)
@@ -559,94 +543,6 @@ namespace VRCX
                         }
                 }
             }
-        }
-
-        // Head and hand positions (SteamVR standing space, meters) for Aurora's body tools: measuring and calibration.
-        private void SendPoses(CVRSystem system)
-        {
-            try
-            {
-                var poses = new TrackedDevicePose_t[OpenVR.k_unMaxTrackedDeviceCount];
-                system.GetDeviceToAbsoluteTrackingPose(ETrackingUniverseOrigin.TrackingUniverseStanding, 0, poses);
-                var parts = new List<string>();
-                for (var i = 0u; i < OpenVR.k_unMaxTrackedDeviceCount; ++i)
-                {
-                    if (!poses[i].bPoseIsValid)
-                        continue;
-                    string name = null;
-                    var devClass = system.GetTrackedDeviceClass(i);
-                    if (devClass == ETrackedDeviceClass.HMD)
-                    {
-                        name = "head";
-                    }
-                    else if (devClass == ETrackedDeviceClass.Controller)
-                    {
-                        var role = system.GetControllerRoleForTrackedDeviceIndex(i);
-                        if (role == ETrackedControllerRole.LeftHand)
-                            name = "leftHand";
-                        else if (role == ETrackedControllerRole.RightHand)
-                            name = "rightHand";
-                    }
-
-                    if (name == null)
-                        continue;
-                    parts.Add($"\"{name}\":{PoseJson(poses[i].mDeviceToAbsoluteTracking)}");
-                }
-
-                if (parts.Count == 0)
-                    return;
-                OverlayClient.SendMessage(new OverlayMessage
-                {
-                    Type = OverlayMessageType.VrPoses,
-                    Data = "{" + string.Join(",", parts) + "}"
-                });
-            }
-            catch (Exception ex)
-            {
-                logger.Error(ex);
-            }
-        }
-
-        private static string PoseJson(HmdMatrix34_t m)
-        {
-            float x, y, z, w;
-            var trace = m.m0 + m.m5 + m.m10;
-            if (trace > 0f)
-            {
-                var s = (float)Math.Sqrt(trace + 1f) * 2f;
-                w = s / 4f;
-                x = (m.m9 - m.m6) / s;
-                y = (m.m2 - m.m8) / s;
-                z = (m.m4 - m.m1) / s;
-            }
-            else if (m.m0 > m.m5 && m.m0 > m.m10)
-            {
-                var s = (float)Math.Sqrt(1f + m.m0 - m.m5 - m.m10) * 2f;
-                w = (m.m9 - m.m6) / s;
-                x = s / 4f;
-                y = (m.m1 + m.m4) / s;
-                z = (m.m2 + m.m8) / s;
-            }
-            else if (m.m5 > m.m10)
-            {
-                var s = (float)Math.Sqrt(1f + m.m5 - m.m0 - m.m10) * 2f;
-                w = (m.m2 - m.m8) / s;
-                x = (m.m1 + m.m4) / s;
-                y = s / 4f;
-                z = (m.m6 + m.m9) / s;
-            }
-            else
-            {
-                var s = (float)Math.Sqrt(1f + m.m10 - m.m0 - m.m5) * 2f;
-                w = (m.m4 - m.m1) / s;
-                x = (m.m2 + m.m8) / s;
-                y = (m.m6 + m.m9) / s;
-                z = s / 4f;
-            }
-
-            var c = System.Globalization.CultureInfo.InvariantCulture;
-            return string.Format(c, "{{\"pos\":[{0:0.####},{1:0.####},{2:0.####}],\"rot\":[{3:0.####},{4:0.####},{5:0.####},{6:0.####}]}}",
-                m.m3, m.m7, m.m11, x, y, z, w);
         }
 
         internal EVROverlayError ProcessDashboard(CVROverlay overlay, ref ulong dashboardHandle, bool dashboardVisible)

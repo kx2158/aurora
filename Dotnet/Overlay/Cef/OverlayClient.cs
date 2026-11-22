@@ -85,10 +85,6 @@ public static class OverlayClient
                 OverlayProgram.VRCXVRInstance.ExecuteVrOverlayFunction(message.FunctionName, message.Data);
                 break;
 
-            case OverlayMessageType.TrackerPoses:
-                OverlayProgram.VRCXVRInstance.SetTrackerPoses(message.Data);
-                break;
-
             case OverlayMessageType.UpdateVars:
                 var overlayVars = message.OverlayVars;
                 if (overlayVars == null)

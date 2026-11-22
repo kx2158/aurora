@@ -41,7 +41,6 @@
     import { initAccent } from './services/auroraAccent';
     import { forgetOldAssistant } from './services/auroraLegacy';
     import { initAlarms } from './services/auroraAlarms';
-    import { onVrPoses } from './services/auroraPoses';
     import { deskCommand, initVrBridge, neonCommand } from './services/auroraVrBridge';
     import { initInstanceWatch } from './services/auroraWatch';
     import { initIntegrations } from './services/auroraIntegrations';
@@ -86,7 +85,6 @@
             updateIsHmdAfk: runUpdateIsHmdAfkFlow,
             neonCommand,
             deskCommand,
-            vrPoses: onVrPoses,
             addGameLogEvent
         };
     }

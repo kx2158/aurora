@@ -7,6 +7,7 @@ import FavoritesWorld from './../views/Favorites/FavoritesWorld.vue';
 import Chatbox from './../views/Chatbox/Chatbox.vue';
 import Mic from './../views/Mic/Mic.vue';
 import Automations from './../views/Automations/Automations.vue';
+import Stickers from './../views/Stickers/Stickers.vue';
 import Home from './../views/Home/Home.vue';
 import Feed from './../views/Feed/Feed.vue';
 import FriendList from './../views/FriendList/FriendList.vue';
@@ -43,6 +44,7 @@ const routes = [
             { path: 'neon', name: 'neon', redirect: { name: 'mic' } },
             { path: 'mic', name: 'mic', component: Mic },
             { path: 'automations', name: 'automations', component: Automations },
+            { path: 'stickers', name: 'stickers', component: Stickers },
             {
                 path: 'insights',
                 name: 'insights',

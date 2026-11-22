@@ -365,6 +365,10 @@
                             <Upload />
                             {{ t('dialog.gallery_icons.upload') }}
                         </Button>
+                        <Button variant="outline" size="sm" :disabled="isUploading" @click="openStickerMaker()">
+                            <Sparkles />
+                            {{ t('view.sticker_maker.open') }}
+                        </Button>
                     </ButtonGroup>
                     <ItemGroup
                         class="grid gap-3 mt-3"
@@ -388,11 +392,25 @@
                                     @click="
                                         showFullscreenImageDialog(image.versions[image.versions.length - 1].file.url)
                                     ">
+                                    <Emoji
+                                        v-if="image.frames"
+                                        :imageUrl="image.versions[image.versions.length - 1].file.url"
+                                        class="aspect-square w-full rounded-t-md" />
                                     <img
+                                        v-else
                                         :src="image.versions[image.versions.length - 1].file.url"
                                         loading="lazy"
                                         class="aspect-square w-full rounded-t-md object-cover" />
                                 </ItemHeader>
+                                <ItemContent v-if="image.frames" class="min-w-0 px-2.5 pt-1.5 pb-0">
+                                    <ItemDescription class="text-xs flex items-center gap-1 flex-wrap">
+                                        <span v-if="image.loopStyle === 'pingpong'">
+                                            <RefreshCw class="size-3" />
+                                        </span>
+                                        <span>{{ image.framesOverTime }}fps</span>
+                                        <span>{{ image.frames }}frames</span>
+                                    </ItemDescription>
+                                </ItemContent>
                                 <ItemFooter class="p-2 gap-1">
                                     <Button
                                         size="icon-sm"
@@ -592,7 +610,7 @@
 </template>
 
 <script setup>
-    import { ArrowLeft, Check, Gift, RefreshCw, Trash2, Upload, X, Star } from 'lucide-vue-next';
+    import { ArrowLeft, Check, Gift, RefreshCw, Sparkles, Trash2, Upload, X, Star } from 'lucide-vue-next';
     import {
         NumberField,
         NumberFieldContent,
@@ -637,6 +655,7 @@
     import { AppDebug } from '../../services/appConfig';
 
     import Emoji from '../../components/Emoji.vue';
+    import { pendingStickerFile } from '../../services/stickerHandoff';
     import ImageCropDialog from '../../components/dialogs/ImageCropDialog.vue';
     import { database } from '../../services/database';
 
@@ -1064,6 +1083,12 @@
      * @param e
      */
     function onFileChangeSticker(e) {
+        const picked = e.target?.files?.[0];
+        if (picked && isAnimatedCandidate(picked)) {
+            e.target.value = '';
+            openStickerMaker(picked);
+            return;
+        }
         openImageUploadFlow(e, {
             inputSelector: '#StickerUploadButton',
             aspectRatio: 1 / 1,
@@ -1167,9 +1192,26 @@
         }
     }
 
+    /** Opens the animated sticker maker page, optionally with a file already in it. */
+    function openStickerMaker(file = null) {
+        pendingStickerFile.value = file;
+        router.push({ name: 'stickers' });
+    }
+
+    /** GIFs, animated WebP/PNG and videos go to the sticker maker instead of being uploaded flat. */
+    function isAnimatedCandidate(file) {
+        return /^video\//.test(file.type) || /^image\/(gif|webp|apng)$/.test(file.type);
+    }
+
     async function handleDropSticker(event) {
         event.preventDefault();
-        for (const file of event.dataTransfer.files) {
+        const files = [...event.dataTransfer.files];
+        const animated = files.find(isAnimatedCandidate);
+        if (animated) {
+            openStickerMaker(animated);
+            return;
+        }
+        for (const file of files) {
             const b64str = await readFileToBase64Str(file);
             await uploadSticker(b64str);
         }

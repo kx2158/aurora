@@ -22,6 +22,8 @@ jobs:
         run: npm install --no-audit --no-fund
       - name: Build the app UI
         run: npx vite build src
+      - name: Unit tests (animated stickers)
+        run: npx vitest run src/services/__tests__/stickerSheet
       - name: Lint (report only)
         run: npx oxlint src --quiet || true
 

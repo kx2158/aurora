@@ -116,6 +116,22 @@
                     @click="uploadStickerTest">
                     {{ t('view.sticker_maker.try_sticker') }}
                 </Button>
+                <Button
+                    v-if="source && plan.count > 1"
+                    variant="outline"
+                    size="sm"
+                    :disabled="busy || !sheetBlob || !vrcPlus"
+                    @click="uploadRawApng">
+                    {{ t('view.sticker_maker.try_raw_btn') }}
+                </Button>
+                <Button
+                    v-if="source && plan.count > 1"
+                    variant="outline"
+                    size="sm"
+                    :disabled="busy || !sheetBlob || !vrcPlus"
+                    @click="uploadSwap">
+                    {{ t('view.sticker_maker.try_swap_btn') }}
+                </Button>
                 <Button v-if="source" size="sm" :disabled="busy || !sheetBlob || !vrcPlus" @click="uploadAnimated">
                     <Upload /> {{ uploading ? t('view.sticker_maker.uploading') : t('view.sticker_maker.upload') }}
                 </Button>
@@ -141,6 +157,8 @@
     import { generateEmojiStyle } from '../shared/utils';
     import { readFileAsBase64, withUploadTimeout } from '../shared/utils/imageUpload';
     import { canvasBlob, openSource, renderSheet } from '../services/stickerFrames';
+    import { sheetToApng } from '../services/apng';
+    import { swapVersion } from '../services/stickerSwap';
     import { SHEET_SIZE, animatedParams, guessType, isVideoType, keptAnimation, planFrames, sheetFileName, stickerParams } from '../services/stickerSheet';
 
     const props = defineProps({
@@ -297,14 +315,14 @@
     watch([range, count, speed, zoom, offX, offY, fit, background], scheduleRender, { deep: true });
     watch(pingpong, () => previewKey.value++);
 
-    async function upload(blob, params, name) {
+    async function upload(blob, params, name, raw = false) {
         const base64 = await readFileAsBase64(blob);
         let args;
         await withUploadTimeout(
             (async () => {
                 args =
                     params.tag === 'sticker'
-                        ? await vrcPlusImageRequest.uploadSticker(base64, params, name)
+                        ? await vrcPlusImageRequest.uploadSticker(base64, params, name, raw)
                         : await vrcPlusImageRequest.uploadEmoji(base64, params);
             })()
         );
@@ -363,6 +381,53 @@
             result.value = { tone: 'ok', text: t(echoed ? 'view.sticker_maker.try_kept' : 'view.sticker_maker.try_unknown') };
         } catch (err) {
             console.error('sticker maker: sticker test failed', err);
+            result.value = { tone: 'bad', text: t('view.sticker_maker.failed') };
+        } finally {
+            uploading.value = false;
+        }
+    }
+
+    // Experiment: send the frames as one animated PNG without Aurora flattening it first
+    async function uploadRawApng() {
+        if (!sheetBlob.value) return;
+        const p = shownPlan.value;
+        uploading.value = true;
+        result.value = null;
+        try {
+            const apng = await sheetToApng(sheetBlob.value, p.count, p.fps);
+            const args = await upload(apng, stickerParams({ frames: 1, fps: 1 }), 'animated.png', true);
+            console.log('sticker maker: raw apng reply', JSON.stringify(args.json));
+            emit('uploaded', args, false);
+            result.value = { tone: 'ok', text: t('view.sticker_maker.try_raw') };
+        } catch (err) {
+            console.error('sticker maker: raw apng failed', err);
+            result.value = { tone: 'bad', text: t('view.sticker_maker.failed') };
+        } finally {
+            uploading.value = false;
+        }
+    }
+
+    // Experiment: upload the first frame as a normal sticker, then add the animated PNG to that same file
+    async function uploadSwap() {
+        if (!sheetBlob.value) return;
+        const p = shownPlan.value;
+        uploading.value = true;
+        result.value = null;
+        try {
+            const bitmap = await createImageBitmap(sheetBlob.value);
+            const still = document.createElement('canvas');
+            still.width = SHEET_SIZE;
+            still.height = SHEET_SIZE;
+            const cell = SHEET_SIZE / (p.count > 16 ? 8 : p.count > 4 ? 4 : 2);
+            still.getContext('2d').drawImage(bitmap, 0, 0, cell, cell, 0, 0, SHEET_SIZE, SHEET_SIZE);
+            const args = await upload(await canvasBlob(still), stickerParams({ frames: 1, fps: 1 }));
+            const apng = await sheetToApng(sheetBlob.value, p.count, p.fps);
+            const base64 = await readFileAsBase64(apng);
+            await swapVersion(args.json.id, base64, apng.size);
+            emit('uploaded', args, false);
+            result.value = { tone: 'ok', text: t('view.sticker_maker.try_swap') };
+        } catch (err) {
+            console.error('sticker maker: swap failed', err);
             result.value = { tone: 'bad', text: t('view.sticker_maker.failed') };
         } finally {
             uploading.value = false;

@@ -140,6 +140,7 @@ export interface RequestOptions {
     uploadFilePUT?: boolean;
     imageData?: string;
     fileName?: string;
+    raw?: boolean;
     postData?: string;
     matchingDimensions?: boolean;
     cropWhiteBorder?: boolean;

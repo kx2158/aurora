@@ -41,14 +41,16 @@ const vrcPlusImageReq = {
     uploadSticker(
         imageData: string,
         params: Omit<NonNullable<UploadImage['body']>, 'file'>,
-        fileName?: string
+        fileName?: string,
+        raw?: boolean
     ): Promise<{ json: Json<File>; params: Omit<NonNullable<UploadImage['body']>, 'file'> }> {
         return request('file/image', {
             uploadImage: true,
             matchingDimensions: true,
             postData: JSON.stringify(params),
             imageData,
-            fileName
+            fileName,
+            raw
         }).then((json) => {
             const args = {
                 json,

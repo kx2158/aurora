@@ -22,14 +22,32 @@
                         </div>
                         <Spinner v-if="rendering" class="sm-spin" />
                     </div>
-                    <div class="text-xs text-muted-foreground text-center">
+                    <div v-if="mode === 'emoji'" class="text-xs text-muted-foreground text-center">
                         {{ t('view.sticker_maker.summary', { frames: plan.count, fps: plan.fps, seconds: (plan.spanMs / 1000).toFixed(2) }) }}
                     </div>
                     <div class="text-xs text-muted-foreground text-center truncate">{{ fileName }}</div>
                 </div>
 
                 <div class="sm-controls">
-                    <div v-if="source.totalMs > 120 && source.kind !== 'still'" class="sm-row">
+                    <div class="sm-row">
+                        <ToggleGroup v-model="mode" type="single" variant="outline" size="sm">
+                            <ToggleGroupItem value="sticker">{{ t('view.sticker_maker.mode_sticker') }}</ToggleGroupItem>
+                            <ToggleGroupItem value="emoji">{{ t('view.sticker_maker.mode_emoji') }}</ToggleGroupItem>
+                        </ToggleGroup>
+                        <div class="text-xs text-muted-foreground mt-1">
+                            {{ t(mode === 'sticker' ? 'view.sticker_maker.mode_sticker_hint' : 'view.sticker_maker.mode_emoji_hint') }}
+                        </div>
+                    </div>
+
+                    <div v-if="mode === 'sticker' && source.totalMs > 120 && source.kind !== 'still'" class="sm-row">
+                        <div class="sm-label">
+                            <span>{{ t('view.sticker_maker.frame') }}</span>
+                            <span>{{ fmt(range[0]) }}</span>
+                        </div>
+                        <Slider v-model="stillAt" :min="0" :max="Math.round(source.totalMs)" :step="10" />
+                    </div>
+
+                    <div v-if="mode === 'emoji' && source.totalMs > 120 && source.kind !== 'still'" class="sm-row">
                         <div class="sm-label">
                             <span>{{ t('view.sticker_maker.part') }}</span>
                             <span>{{ fmt(range[0]) }} - {{ fmt(range[1]) }}</span>
@@ -37,7 +55,7 @@
                         <Slider v-model="range" :min="0" :max="Math.round(source.totalMs)" :step="10" />
                     </div>
 
-                    <div class="sm-row">
+                    <div v-if="mode === 'emoji'" class="sm-row">
                         <div class="sm-label">
                             <span>{{ t('view.sticker_maker.frames') }}</span>
                             <span>{{ count[0] ? count[0] : t('view.sticker_maker.auto', { n: plan.count }) }}</span>
@@ -45,7 +63,7 @@
                         <Slider v-model="count" :min="0" :max="64" :step="1" />
                     </div>
 
-                    <div class="sm-row">
+                    <div v-if="mode === 'emoji'" class="sm-row">
                         <div class="sm-label">
                             <span>{{ t('view.sticker_maker.speed') }}</span>
                             <span>{{ speed[0].toFixed(2) }}x</span>
@@ -77,7 +95,7 @@
                             <ToggleGroupItem value="cover">{{ t('view.sticker_maker.fill') }}</ToggleGroupItem>
                             <ToggleGroupItem value="contain">{{ t('view.sticker_maker.fit') }}</ToggleGroupItem>
                         </ToggleGroup>
-                        <label class="sm-switch">
+                        <label v-if="mode === 'emoji'" class="sm-switch">
                             <Switch v-model="pingpong" />
                             <span>{{ t('view.sticker_maker.pingpong') }}</span>
                         </label>
@@ -86,6 +104,27 @@
                             <span>{{ t('view.sticker_maker.background') }}</span>
                         </label>
                         <input v-if="background" v-model="background" type="color" class="sm-color" />
+                    </div>
+
+                    <div v-if="mode === 'emoji'" class="sm-row">
+                        <div class="sm-label">
+                            <span>{{ t('view.sticker_maker.style') }}</span>
+                            <span>{{ style }}</span>
+                        </div>
+                        <div class="sm-styles">
+                            <button
+                                v-for="(file, name) in emojiAnimationStyleList"
+                                :key="name"
+                                type="button"
+                                class="sm-style"
+                                :class="{ on: style === name }"
+                                :title="name"
+                                @click="style = name">
+                                <img :src="`${emojiAnimationStyleUrl}${file}`" loading="lazy" alt="" />
+                                <span>{{ name }}</span>
+                            </button>
+                        </div>
+                        <div class="text-xs text-muted-foreground mt-1">{{ t('view.sticker_maker.style_hint') }}</div>
                     </div>
 
                     <div v-if="result" class="sm-result" :class="result.tone">{{ result.text }}</div>
@@ -97,53 +136,22 @@
                     <RotateCcw /> {{ t('view.sticker_maker.other_file') }}
                 </Button>
                 <div class="flex-1"></div>
-                <Button v-if="source" variant="outline" size="sm" :disabled="busy || !sheetBlob" @click="saveSheet">
+                <Button v-if="source && mode === 'emoji'" variant="outline" size="sm" :disabled="busy || !sheetBlob" @click="saveSheet">
                     <Download /> {{ t('view.sticker_maker.save') }}
                 </Button>
-                <Button
-                    v-if="result && result.dropped"
-                    variant="outline"
-                    size="sm"
-                    :disabled="busy || !vrcPlus"
-                    @click="uploadStill">
-                    <Image /> {{ t('view.sticker_maker.upload_still') }}
-                </Button>
-                <Button
-                    v-if="source && plan.count > 1"
-                    variant="outline"
-                    size="sm"
-                    :disabled="busy || !sheetBlob || !vrcPlus"
-                    @click="uploadStickerTest">
-                    {{ t('view.sticker_maker.try_sticker') }}
-                </Button>
-                <Button
-                    v-if="source && plan.count > 1"
-                    variant="outline"
-                    size="sm"
-                    :disabled="busy || !sheetBlob || !vrcPlus"
-                    @click="uploadRawApng">
-                    {{ t('view.sticker_maker.try_raw_btn') }}
-                </Button>
-                <Button
-                    v-if="source && plan.count > 1"
-                    variant="outline"
-                    size="sm"
-                    :disabled="busy || !sheetBlob || !vrcPlus"
-                    @click="uploadSwap">
-                    {{ t('view.sticker_maker.try_swap_btn') }}
-                </Button>
-                <Button v-if="source" size="sm" :disabled="busy || !sheetBlob || !vrcPlus" @click="uploadAnimated">
-                    <Upload /> {{ uploading ? t('view.sticker_maker.uploading') : t('view.sticker_maker.upload') }}
+                <Button v-if="source" size="sm" :disabled="busy || !sheetBlob || !vrcPlus" @click="mode === 'emoji' ? uploadEmoji() : uploadSticker()">
+                    <Upload />
+                    {{ uploading ? t('view.sticker_maker.uploading') : t(mode === 'emoji' ? 'view.sticker_maker.upload_emoji' : 'view.sticker_maker.upload_sticker') }}
                 </Button>
             </div>
             <p v-if="source && !vrcPlus" class="a-note">{{ t('view.sticker_maker.needs_vrcplus') }}</p>
-            <p v-if="source" class="a-note">{{ t('view.sticker_maker.animated_note') }}</p>
+            <p v-if="source && mode === 'emoji'" class="a-note">{{ t('view.sticker_maker.animated_note') }}</p>
     </div>
 </template>
 
 <script setup>
     import { computed, onBeforeUnmount, ref, watch } from 'vue';
-    import { Download, Image, RotateCcw, Sparkles, Upload } from 'lucide-vue-next';
+    import { Download, RotateCcw, Sparkles, Upload } from 'lucide-vue-next';
     import { toast } from 'vue-sonner';
     import { useI18n } from 'vue-i18n';
 
@@ -154,11 +162,10 @@
     import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 
     import { miscRequest, vrcPlusImageRequest } from '../api';
+    import { emojiAnimationStyleList, emojiAnimationStyleUrl } from '../shared/constants';
     import { generateEmojiStyle } from '../shared/utils';
     import { readFileAsBase64, withUploadTimeout } from '../shared/utils/imageUpload';
     import { canvasBlob, openSource, renderSheet } from '../services/stickerFrames';
-    import { sheetToApng } from '../services/apng';
-    import { swapVersion } from '../services/stickerSwap';
     import { SHEET_SIZE, animatedParams, guessType, isVideoType, keptAnimation, planFrames, sheetFileName, stickerParams } from '../services/stickerSheet';
 
     const props = defineProps({
@@ -185,6 +192,15 @@
     const offY = ref([0]);
     const fit = ref('cover');
     const pingpong = ref(false);
+    // stickers are one still picture, emoji are the ones VRChat animates
+    const mode = ref('sticker');
+    const style = ref('Stop');
+    const stillAt = computed({
+        get: () => [range.value[0]],
+        set: (v) => {
+            range.value = [v[0], Math.max(v[0] + 1, range.value[1])];
+        }
+    });
     const background = ref('');
 
     const rendering = ref(false);
@@ -258,6 +274,7 @@
             range.value = [0, Math.round(src.totalMs)];
             // a long video would make a slideshow; start with its first three seconds
             if (src.kind === 'video' && src.totalMs > 3000) range.value = [0, 3000];
+            mode.value = src.kind === 'still' ? 'sticker' : 'emoji';
             count.value = [0];
             speed.value = [1];
             zoom.value = [1];
@@ -289,8 +306,8 @@
         try {
             const { canvas, plan: p } = await renderSheet(source.value, {
                 startMs: range.value[0],
-                endMs: range.value[1],
-                count: count.value[0],
+                endMs: mode.value === 'sticker' ? range.value[0] + 1 : range.value[1],
+                count: mode.value === 'sticker' ? 1 : count.value[0],
                 speed: speed.value[0],
                 fit: fit.value,
                 zoom: zoom.value[0],
@@ -312,7 +329,7 @@
         }
     }
 
-    watch([range, count, speed, zoom, offX, offY, fit, background], scheduleRender, { deep: true });
+    watch([range, count, speed, zoom, offX, offY, fit, background, mode], scheduleRender, { deep: true });
     watch(pingpong, () => previewKey.value++);
 
     async function upload(blob, params, name, raw = false) {
@@ -329,31 +346,43 @@
         return args;
     }
 
-    async function uploadAnimated() {
-        if (!sheetBlob.value) return;
-        const p = shownPlan.value;
-        // a single frame has nothing to animate, so it goes up as a normal sticker
-        const params =
-            p.count > 1
-                ? animatedParams({ frames: p.count, fps: p.fps, pingpong: pingpong.value })
-                : stickerParams({ frames: 1, fps: 1 });
+    // one frame at full size, cut from the top left quarter of a single-frame sheet
+    async function singleFrame() {
+        const { canvas } = await renderSheet(source.value, {
+            startMs: range.value[0],
+            endMs: range.value[0] + 1,
+            count: 1,
+            fit: fit.value,
+            zoom: zoom.value[0],
+            offX: offX.value[0],
+            offY: offY.value[0],
+            background: background.value
+        });
+        const still = document.createElement('canvas');
+        still.width = SHEET_SIZE;
+        still.height = SHEET_SIZE;
+        still.getContext('2d').drawImage(canvas, 0, 0, SHEET_SIZE / 2, SHEET_SIZE / 2, 0, 0, SHEET_SIZE, SHEET_SIZE);
+        return canvasBlob(still);
+    }
+
+    async function send(blob, params, animated) {
         uploading.value = true;
         result.value = null;
         try {
-            const args = await upload(sheetBlob.value, params);
-            if (keptAnimation(args.json, params)) {
-                result.value = { tone: 'ok', text: params.frames ? t('view.sticker_maker.kept') : t('view.sticker_maker.uploaded_still') };
-                emit('uploaded', args, params.tag !== 'sticker');
-                toast.success(t('message.upload.success'));
-            } else {
-                // VRChat stored it as a plain image: it would show the whole grid, so take it back out
+            const args = await upload(blob, params);
+            if (animated && !keptAnimation(args.json, params)) {
+                // stored as a plain image it would show the whole grid, so take it back out
                 try {
                     await miscRequest.deleteFile(args.json.id);
                 } catch (err) {
                     console.error('sticker maker: could not remove the flat upload', err);
                 }
-                result.value = { tone: 'bad', dropped: true, text: t('view.sticker_maker.dropped') };
+                result.value = { tone: 'bad', text: t('view.sticker_maker.dropped') };
+                return;
             }
+            emit('uploaded', args, params.tag !== 'sticker');
+            result.value = { tone: 'ok', text: t(animated ? 'view.sticker_maker.kept' : 'view.sticker_maker.uploaded_still') };
+            toast.success(t('message.upload.success'));
         } catch (err) {
             console.error('sticker maker: upload failed', err);
             result.value = { tone: 'bad', text: t('view.sticker_maker.failed') };
@@ -363,105 +392,21 @@
         }
     }
 
-    // Experiment: send the sheet as a real sticker with the play settings and keep it, whatever the
-    // upload reply says, so it can be placed in game to see if VRChat animates it there
-    async function uploadStickerTest() {
-        if (!sheetBlob.value) return;
-        const p = shownPlan.value;
-        const params = stickerParams({ frames: p.count, fps: p.fps, pingpong: pingpong.value });
-        // the frame count and fps also go in the file name, the way VRChat's own sheets are named
-        const name = sheetFileName(fileName.value, p.count, p.fps, pingpong.value);
-        uploading.value = true;
-        result.value = null;
-        try {
-            const args = await upload(sheetBlob.value, params, name);
-            console.log('sticker maker: sticker test reply', JSON.stringify(args.json));
-            emit('uploaded', args, false);
-            const echoed = keptAnimation(args.json, params);
-            result.value = { tone: 'ok', text: t(echoed ? 'view.sticker_maker.try_kept' : 'view.sticker_maker.try_unknown') };
-        } catch (err) {
-            console.error('sticker maker: sticker test failed', err);
-            result.value = { tone: 'bad', text: t('view.sticker_maker.failed') };
-        } finally {
-            uploading.value = false;
-        }
-    }
-
-    // Experiment: send the frames as one animated PNG without Aurora flattening it first
-    async function uploadRawApng() {
-        if (!sheetBlob.value) return;
-        const p = shownPlan.value;
-        uploading.value = true;
-        result.value = null;
-        try {
-            const apng = await sheetToApng(sheetBlob.value, p.count, p.fps);
-            const args = await upload(apng, stickerParams({ frames: 1, fps: 1 }), 'animated.png', true);
-            console.log('sticker maker: raw apng reply', JSON.stringify(args.json));
-            emit('uploaded', args, false);
-            result.value = { tone: 'ok', text: t('view.sticker_maker.try_raw') };
-        } catch (err) {
-            console.error('sticker maker: raw apng failed', err);
-            result.value = { tone: 'bad', text: t('view.sticker_maker.failed') };
-        } finally {
-            uploading.value = false;
-        }
-    }
-
-    // Experiment: upload the first frame as a normal sticker, then add the animated PNG to that same file
-    async function uploadSwap() {
-        if (!sheetBlob.value) return;
-        const p = shownPlan.value;
-        uploading.value = true;
-        result.value = null;
-        try {
-            const bitmap = await createImageBitmap(sheetBlob.value);
-            const still = document.createElement('canvas');
-            still.width = SHEET_SIZE;
-            still.height = SHEET_SIZE;
-            const cell = SHEET_SIZE / (p.count > 16 ? 8 : p.count > 4 ? 4 : 2);
-            still.getContext('2d').drawImage(bitmap, 0, 0, cell, cell, 0, 0, SHEET_SIZE, SHEET_SIZE);
-            const args = await upload(await canvasBlob(still), stickerParams({ frames: 1, fps: 1 }));
-            const apng = await sheetToApng(sheetBlob.value, p.count, p.fps);
-            const base64 = await readFileAsBase64(apng);
-            await swapVersion(args.json.id, base64, apng.size);
-            emit('uploaded', args, false);
-            result.value = { tone: 'ok', text: t('view.sticker_maker.try_swap') };
-        } catch (err) {
-            console.error('sticker maker: swap failed', err);
-            result.value = { tone: 'bad', text: t('view.sticker_maker.failed') };
-        } finally {
-            uploading.value = false;
-        }
-    }
-
-    async function uploadStill() {
+    // a still picture, as a sticker
+    async function uploadSticker() {
         if (!source.value) return;
-        uploading.value = true;
-        try {
-            const { canvas } = await renderSheet(source.value, {
-                startMs: range.value[0],
-                endMs: range.value[0] + 1,
-                count: 1,
-                fit: fit.value,
-                zoom: zoom.value[0],
-                offX: offX.value[0],
-                offY: offY.value[0],
-                background: background.value
-            });
-            // a single frame sits in the top left quarter; cut it out at full size
-            const still = document.createElement('canvas');
-            still.width = SHEET_SIZE;
-            still.height = SHEET_SIZE;
-            still.getContext('2d').drawImage(canvas, 0, 0, SHEET_SIZE / 2, SHEET_SIZE / 2, 0, 0, SHEET_SIZE, SHEET_SIZE);
-            const args = await upload(await canvasBlob(still), stickerParams({ frames: 1, fps: 1 }));
-            emit('uploaded', args);
-            result.value = { tone: 'ok', text: t('view.sticker_maker.uploaded_still') };
-            toast.success(t('message.upload.success'));
-        } catch (err) {
-            console.error('sticker maker: still upload failed', err);
-            toast.error(t('message.upload.error'));
-        } finally {
-            uploading.value = false;
+        await send(await singleFrame(), stickerParams({ frames: 1, fps: 1 }), false);
+    }
+
+    // frames as an animated emoji (a single frame goes up as a plain emoji)
+    async function uploadEmoji() {
+        if (!source.value) return;
+        const p = shownPlan.value;
+        if (p.count > 1) {
+            if (!sheetBlob.value) return;
+            await send(sheetBlob.value, animatedParams({ frames: p.count, fps: p.fps, pingpong: pingpong.value, style: style.value.toLowerCase() }), true);
+        } else {
+            await send(await singleFrame(), { tag: 'emoji', animationStyle: style.value.toLowerCase(), maskTag: 'square' }, false);
         }
     }
 
@@ -651,5 +596,34 @@
         .sm-body {
             grid-template-columns: 1fr;
         }
+    }
+    .sm-styles {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+        gap: 6px;
+        max-height: 220px;
+        overflow: auto;
+        margin-top: 6px;
+    }
+    .sm-style {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+        padding: 4px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        font-size: 11px;
+        background: transparent;
+    }
+    .sm-style img {
+        width: 100%;
+        aspect-ratio: 1;
+        object-fit: cover;
+        border-radius: 8px;
+    }
+    .sm-style.on {
+        border-color: var(--primary, #8b5cf6);
+        box-shadow: 0 0 0 1px var(--primary, #8b5cf6);
     }
 </style>

@@ -110,6 +110,22 @@ export function stickerParams({ frames, fps, pingpong = false }) {
     return params;
 }
 
+/**
+ * Upload settings for an animated sheet. VRChat's sticker tag ignores frames and fps, so an
+ * animation that has to play goes up under the animated emoji tag, which keeps them.
+ */
+export function animatedParams({ frames, fps, pingpong = false, style = 'stop' }) {
+    const params = {
+        tag: 'emojianimated',
+        animationStyle: style,
+        maskTag: 'square',
+        frames: clamp(Math.round(frames), 2, MAX_FRAMES),
+        framesOverTime: clamp(Math.round(fps), 1, MAX_FPS)
+    };
+    if (pingpong) params.loopStyle = 'pingpong';
+    return params;
+}
+
 /** Whether the file VRChat sent back still has the animation we asked for. */
 export function keptAnimation(file, params) {
     if (!params.frames) return true;
@@ -121,3 +137,38 @@ export function sheetFileName(name, frames, fps, pingpong) {
     const base = (name || 'sticker').replace(/\.[^/.]+$/, '').replace(/[^\w-]+/g, '-').slice(0, 40) || 'sticker';
     return `${base}_${frames}frames_${fps}fps_${pingpong ? 'pingpong' : 'linear'}loopStyle.png`;
 }
+
+const TYPES = {
+    gif: 'image/gif',
+    webp: 'image/webp',
+    png: 'image/png',
+    apng: 'image/png',
+    jpg: 'image/jpeg',
+    jpeg: 'image/jpeg',
+    mp4: 'video/mp4',
+    m4v: 'video/mp4',
+    mov: 'video/quicktime',
+    webm: 'video/webm',
+    mkv: 'video/x-matroska',
+    avi: 'video/x-msvideo',
+    wmv: 'video/x-ms-wmv'
+};
+
+/** File extension without the dot, lower case. */
+export function extOf(name) {
+    const m = /\.([A-Za-z0-9]+)$/.exec(name || '');
+    return m ? m[1].toLowerCase() : '';
+}
+
+/**
+ * The type to treat a file as. Browsers leave the type empty for some files and call APNG 'image/apng', which the
+ * image decoder does not know under that name (it reads animated PNG as image/png).
+ */
+export function guessType(name, type) {
+    if (type === 'image/apng') return 'image/png';
+    if (type && type !== 'application/octet-stream') return type;
+    return TYPES[extOf(name)] || type || '';
+}
+
+export const isVideoType = (type) => String(type || '').startsWith('video/');
+export const isAnimatedKind = (type) => isVideoType(type) || type === 'image/gif' || type === 'image/webp' || type === 'image/png';

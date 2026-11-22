@@ -139,6 +139,7 @@ export interface RequestOptions {
     uploadImagePrint?: boolean;
     uploadFilePUT?: boolean;
     imageData?: string;
+    fileName?: string;
     postData?: string;
     matchingDimensions?: boolean;
     cropWhiteBorder?: boolean;

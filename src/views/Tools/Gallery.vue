@@ -656,6 +656,7 @@
 
     import Emoji from '../../components/Emoji.vue';
     import { pendingStickerFile } from '../../services/stickerHandoff';
+    import { guessType, isVideoType } from '../../services/stickerSheet';
     import ImageCropDialog from '../../components/dialogs/ImageCropDialog.vue';
     import { database } from '../../services/database';
 
@@ -1200,7 +1201,8 @@
 
     /** GIFs, animated WebP/PNG and videos go to the sticker maker instead of being uploaded flat. */
     function isAnimatedCandidate(file) {
-        return /^video\//.test(file.type) || /^image\/(gif|webp|apng)$/.test(file.type);
+        const type = guessType(file.name, file.type);
+        return isVideoType(type) || type === 'image/gif' || type === 'image/webp' || /\.apng$/i.test(file.name);
     }
 
     async function handleDropSticker(event) {

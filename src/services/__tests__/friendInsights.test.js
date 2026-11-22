@@ -1,0 +1,100 @@
+import { describe, expect, it } from 'vitest';
+
+import {
+    DAY,
+    buildRows,
+    filterRows,
+    hangoutBucket,
+    hangoutCounts,
+    languageCounts,
+    languagesOf,
+    mutualBucket,
+    suggestUnfriend,
+    unfriendScore
+} from '../friendInsights';
+
+const NOW = Date.parse('2026-11-22T12:00:00Z');
+const ago = (days) => new Date(NOW - days * DAY).toISOString();
+
+function ctx(id, ref, extra = {}) {
+    return { id, ref: { displayName: id, ...ref }, ...extra };
+}
+
+describe('friendInsights', () => {
+    it('reads languages from $languages or tags', () => {
+        expect(languagesOf({ $languages: [{ key: 'eng' }, { key: 'slk' }] })).toEqual(['eng', 'slk']);
+        expect(languagesOf({ tags: ['language_deu', 'x'] })).toEqual(['deu']);
+        expect(languagesOf({})).toEqual([]);
+    });
+
+    it('builds rows and hides mutuals for opted out friends', () => {
+        const rows = buildRows(
+            [
+                ctx('a', { $lastSeen: ago(2), $mutualCount: 7, $timeSpent: 1000 }),
+                ctx('b', { $lastSeen: ago(2), $mutualCount: 7, $mutualOptedOut: true }),
+                { id: 'c' }
+            ],
+            { now: NOW }
+        );
+        expect(rows).toHaveLength(2);
+        expect(rows[0].mutual).toBe(7);
+        expect(rows[1].mutual).toBeNull();
+        expect(mutualBucket(rows[1])).toBe('hidden');
+        expect(rows[0].daysAway).toBe(2);
+    });
+
+    it('buckets by last hangout', () => {
+        expect(hangoutBucket({ lastSeen: NOW - 3 * DAY }, NOW)).toBe('week');
+        expect(hangoutBucket({ lastSeen: NOW - 20 * DAY }, NOW)).toBe('month');
+        expect(hangoutBucket({ lastSeen: NOW - 400 * DAY }, NOW)).toBe('old');
+        expect(hangoutBucket({ lastSeen: 0 }, NOW)).toBe('old');
+    });
+
+    it('buckets by mutual count', () => {
+        expect(mutualBucket({ mutual: 0 })).toBe('none');
+        expect(mutualBucket({ mutual: 3 })).toBe('few');
+        expect(mutualBucket({ mutual: 10 })).toBe('some');
+        expect(mutualBucket({ mutual: 40 })).toBe('many');
+    });
+
+    it('scores a long gone stranger high and protects favorites', () => {
+        const base = { lastSeen: NOW - 500 * DAY, timeSpent: 0, joinCount: 0, mutual: 0, since: NOW - 800 * DAY };
+        const r = unfriendScore(base, NOW);
+        expect(r.score).toBeGreaterThanOrEqual(90);
+        expect(r.reasons).toContain('inactive_year');
+        expect(unfriendScore({ ...base, favorite: true }, NOW).score).toBe(0);
+        expect(unfriendScore({ ...base, hasMemo: true }, NOW).score).toBe(0);
+        expect(unfriendScore({ ...base, since: NOW - 5 * DAY }, NOW).score).toBe(0);
+    });
+
+    it('does not suggest an active friend', () => {
+        const rows = buildRows(
+            [
+                ctx('close', { $lastSeen: ago(1), $timeSpent: 50 * 3600000, $joinCount: 90, $mutualCount: 30 }),
+                ctx('gone', { $lastSeen: ago(600), $timeSpent: 0, $mutualCount: 0, date_joined: '2020-01-01' })
+            ],
+            { now: NOW }
+        );
+        const out = suggestUnfriend(rows, { now: NOW });
+        expect(out.map((x) => x.row.id)).toEqual(['gone']);
+    });
+
+    it('filters and sorts', () => {
+        const rows = buildRows(
+            [
+                ctx('anna', { $lastSeen: ago(2), $languages: [{ key: 'eng' }], $mutualCount: 20 }),
+                ctx('bob', { $lastSeen: ago(200), $languages: [{ key: 'deu' }], $mutualCount: 0 }),
+                ctx('cy', { $lastSeen: ago(10), $mutualCount: 3 })
+            ],
+            { now: NOW }
+        );
+        expect(filterRows(rows, { now: NOW }).map((r) => r.id)).toEqual(['anna', 'cy', 'bob']);
+        expect(filterRows(rows, { language: 'deu', now: NOW }).map((r) => r.id)).toEqual(['bob']);
+        expect(filterRows(rows, { language: 'none', now: NOW }).map((r) => r.id)).toEqual(['cy']);
+        expect(filterRows(rows, { mutual: 'none', now: NOW }).map((r) => r.id)).toEqual(['bob']);
+        expect(filterRows(rows, { search: 'AN', now: NOW }).map((r) => r.id)).toEqual(['anna']);
+        expect(filterRows(rows, { sort: 'mutual', now: NOW })[0].id).toBe('anna');
+        expect(hangoutCounts(rows, NOW).week).toBe(1);
+        expect(languageCounts(rows)[0].count).toBe(1);
+    });
+});

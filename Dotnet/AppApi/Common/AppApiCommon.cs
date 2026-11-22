@@ -19,6 +19,27 @@ namespace VRCX
         {
         }
 
+        // an earlier Aurora could download CIMA Box into its own folder; that feature is gone, so clear the copy
+        public static void RemoveOldCimaBoxCopy()
+        {
+            try
+            {
+                var dir = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Aurora", "CimaBox");
+                if (!Directory.Exists(dir)) return;
+                foreach (var file in Directory.GetFileSystemEntries(dir))
+                {
+                    var name = Path.GetFileName(file);
+                    if (name != "CIMABox.exe" && name != "CIMABox.exe.download") return; // something else lives here, leave it
+                }
+                Directory.Delete(dir, true);
+                logger.Info("Removed the old CIMA Box copy");
+            }
+            catch (Exception ex)
+            {
+                logger.Warn(ex, "Could not remove the old CIMA Box copy");
+            }
+        }
+
         public JsonSerializerSettings JsonSerializerSettings = new JsonSerializerSettings
         {
             Error = delegate (object _, Newtonsoft.Json.Serialization.ErrorEventArgs args)

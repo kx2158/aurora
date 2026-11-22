@@ -158,11 +158,11 @@ const navDefinitions = [
         section: 'aurora'
     },
     {
-        key: 'cimabox',
-        icon: 'a:mic',
-        tooltip: 'nav_aurora.cimabox',
-        labelKey: 'nav_aurora.cimabox',
-        routeName: 'cimabox',
+        key: 'emoji',
+        icon: 'a:emoji',
+        tooltip: 'nav_aurora.emoji',
+        labelKey: 'nav_aurora.emoji',
+        routeName: 'emoji',
         section: 'aurora'
     },
     {

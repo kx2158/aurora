@@ -1669,8 +1669,6 @@
             "tile_people_sub": "{n} friends in your top list"
         },
         "sticker_maker": {
-            "title": "Sticker and emoji maker",
-            "desc": "Turn a picture, GIF or short video into a VRChat sticker (one still picture) or an animated emoji (the kind VRChat animates). Fill crops to the square, fit shows all of it.",
             "drop": "Drop a GIF, WebP, APNG or video here, or click to pick one",
             "formats": "GIF, WebP, APNG, PNG, JPG, MP4, MOV, WebM, MKV, AVI",
             "reading": "Reading frames...",
@@ -1727,7 +1725,11 @@
             "library_emoji": "Your animated emoji",
             "library_emoji_empty": "No animated emoji yet. Switch the maker to Animated emoji and upload one.",
             "style": "Animation",
-            "style_hint": "VRChat's own previews of each effect. The effect is applied in game around your emoji, so it can't be shown on your own picture here."
+            "style_hint": "VRChat's own previews of each effect. The effect is applied in game around your emoji, so it can't be shown on your own picture here.",
+            "title_sticker": "Stickers",
+            "desc_sticker": "Turn a picture, GIF or short video into a VRChat sticker: one still picture you place on walls and surfaces. Fill crops to the square, fit shows all of it.",
+            "title_emoji": "Animated emoji",
+            "desc_emoji": "Turn a GIF or short video into a VRChat animated emoji. VRChat only animates emoji, not stickers, so animations live here."
         },
         "space_drag": {
             "title": "Space drag",
@@ -1805,29 +1807,6 @@
             "open_app": "Open Aurora",
             "quit_game": "Hold to crash VRChat",
             "quit_holding": "Crashing VRChat..."
-        },
-        "cimabox": {
-            "desc": "Live voice changer, translation and captions for games and voice chat. A separate app by Aye7even that Aurora installs and keeps up to date for you.",
-            "repo": "GitHub page",
-            "check": "Check for updates",
-            "installed": "Installed",
-            "latest": "Latest",
-            "not_installed": "Not installed",
-            "offline": "Could not reach GitHub",
-            "update_ready": "Update available",
-            "current": "Up to date",
-            "install": "Install CIMA Box",
-            "update": "Update",
-            "working": "Working...",
-            "launch": "Open CIMA Box",
-            "running": "Running",
-            "folder": "Open folder",
-            "auto": "Keep it updated automatically",
-            "close_first": "Close CIMA Box first, then update. It can also update itself.",
-            "source": "Aurora downloads the official CIMABox.exe from the project's GitHub releases. The app and its code belong to its author.",
-            "whats_new": "What's new",
-            "failed": "That did not work.",
-            "installed_ok": "Installed version {v}."
         }
     },
     "dialog": {
@@ -4128,6 +4107,6 @@
         "section_insights": "Insights",
         "section_aurora": "Aurora",
         "stickers": "Stickers",
-        "cimabox": "CIMA Box"
+        "emoji": "Emoji"
     }
 }

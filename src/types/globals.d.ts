@@ -282,10 +282,6 @@ declare global {
         VideoOpen(token: string, ext: string): Promise<string>;
         VideoFrame(token: string, ms: number, maxSize: number): Promise<string>;
         VideoClose(token: string): Promise<void>;
-        CimaBoxStatus(): Promise<string>;
-        CimaBoxInstall(): Promise<string>;
-        CimaBoxLaunch(): Promise<string>;
-        CimaBoxOpenFolder(): Promise<void>;
         NeonMediaControl(action: string): Promise<void>;
         GetNeonAudioDevices(): Promise<string>;
         GetNeonAudioApps(): Promise<string>;

@@ -150,6 +150,14 @@ const navDefinitions = [
         section: 'aurora'
     },
     {
+        key: 'stickers',
+        icon: 'a:sticker',
+        tooltip: 'nav_aurora.stickers',
+        labelKey: 'nav_aurora.stickers',
+        routeName: 'stickers',
+        section: 'aurora'
+    },
+    {
         key: 'automations',
         icon: 'a:bolt',
         tooltip: 'nav_aurora.automations',

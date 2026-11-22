@@ -13,8 +13,6 @@ public abstract class VRCXVRInterface
     public abstract void SetActive(bool active, bool hmdOverlay, bool wristOverlay, bool menuButton, int overlayHand);
     public abstract bool IsActive();
     public abstract string[][] GetDevices();
-    /// <summary>Tracker poses from the body estimator (standing space) for the SteamVR driver. Only the CEF build uses them.</summary>
-    public virtual void SetTrackerPoses(string json) { }
     public abstract void ExecuteVrOverlayFunction(string function, string json);
     public abstract ConcurrentQueue<KeyValuePair<string, string>> GetExecuteVrOverlayFunctionQueue();
 }

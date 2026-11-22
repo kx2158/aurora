@@ -115,16 +115,6 @@ namespace VRCX
             return File.Exists(Path.Join(Program.AppDataDirectory, "update.exe"));
         }
 
-        /// <summary>Aurora body tracker poses (standing space) on their way to the SteamVR driver, through the overlay process.</summary>
-        public void SendTrackerPoses(string json)
-        {
-            OverlayServer.Instance.SendMessage(new OverlayMessage
-            {
-                Type = OverlayMessageType.TrackerPoses,
-                Data = json
-            });
-        }
-
         public override void ExecuteVrOverlayFunction(string function, string json)
         {
             var message = new OverlayMessage

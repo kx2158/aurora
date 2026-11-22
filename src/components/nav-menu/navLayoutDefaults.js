@@ -12,6 +12,7 @@ export function createBaseDefaultNavLayout(t) {
         { type: 'item', key: 'mic' },
         { type: 'item', key: 'chatbox' },
         { type: 'item', key: 'automations' },
+        { type: 'item', key: 'stickers' },
         { type: 'item', key: 'tools' },
         { type: 'item', key: 'friend-list' },
         { type: 'item', key: 'friend-log' },

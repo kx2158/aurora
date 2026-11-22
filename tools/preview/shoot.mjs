@@ -277,24 +277,20 @@ try {
     logs.push('[vr close] ' + e.message);
 }
 
-// the animated sticker maker, with a small animated GIF loaded
+// the Stickers page, with a small animated GIF loaded into the maker
 try {
     await page.bringToFront();
     await page.keyboard.press('Escape');
-    await page.evaluate(() => (window.location.hash = '#/tools/gallery?tab=stickers'));
+    await page.evaluate(() => (window.location.hash = '#/stickers'));
     await page.waitForTimeout(2000);
-    await page.locator('button:has-text("Animated sticker")').first().click();
-    await page.waitForTimeout(600);
-    await page.screenshot({ path: `${out}/sticker-maker-empty.jpg`, type: 'jpeg', quality: 82 });
-    await page.locator('[role="dialog"] input[type="file"]').setInputFiles(new URL('./fixtures/sticker-test.gif', import.meta.url).pathname);
+    await page.screenshot({ path: `${out}/stickers-empty.jpg`, type: 'jpeg', quality: 82 });
+    await page.locator('.sm-drop input[type="file"]').setInputFiles(new URL('./fixtures/sticker-test.gif', import.meta.url).pathname);
     await page.waitForTimeout(2500);
-    await page.screenshot({ path: `${out}/sticker-maker.jpg`, type: 'jpeg', quality: 82 });
-    await page.waitForTimeout(170);
-    await page.screenshot({ path: `${out}/sticker-maker-b.jpg`, type: 'jpeg', quality: 82 });
-    const info = await page.evaluate(() => document.querySelector('[role="dialog"] .sm-preview-col')?.innerText || 'no preview');
-    logs.push('[sticker maker] ' + info.replace(/\n/g, ' | '));
+    await page.screenshot({ path: `${out}/stickers.jpg`, type: 'jpeg', quality: 82 });
+    const info = await page.evaluate(() => document.querySelector('.sm-preview-col')?.innerText || 'no preview');
+    logs.push('[stickers] ' + info.replace(/\n/g, ' | '));
 } catch (e) {
-    logs.push('[sticker maker] ' + e.message);
+    logs.push('[stickers] ' + e.message);
 }
 
 fs.writeFileSync(`${out}/console.txt`, logs.join('\n'));

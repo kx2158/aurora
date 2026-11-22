@@ -6,7 +6,5 @@ public enum OverlayMessageType
     JsFunctionCall,
     UpdateVars,
     IsHmdAfk,
-    NeonCommand,
-    VrPoses,
-    TrackerPoses
+    NeonCommand
 }

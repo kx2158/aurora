@@ -276,14 +276,7 @@ declare global {
 
         // Neon: window, music and system info (Windows build)
         GetNeonSystemInfo(): Promise<string>;
-        GetStandableStatus(): Promise<string>;
-        DisableStandable(): Promise<string>;
         ReadVrchatEyeHeight(timeoutMs: number): Promise<number>;
-        EnsureAuroraTrackerDriver(): Promise<string>;
-        SendTrackerPoses(json: string): Promise<void>;
-        StartBodyXr(): Promise<boolean>;
-        StopBodyXr(): Promise<boolean>;
-        ReadBodyXr(): Promise<string>;
         NeonMediaControl(action: string): Promise<void>;
         GetNeonAudioDevices(): Promise<string>;
         GetNeonAudioApps(): Promise<string>;

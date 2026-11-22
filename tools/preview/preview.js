@@ -282,13 +282,6 @@ try {
 } catch (e) {
     console.warn('[preview] medialink', e);
 }
-// the body card is password locked in the app; open it here so the preview can show it
-try {
-    const lock = await import('./services/auroraBodyLock.js');
-    lock.bodyUnlocked.value = true;
-} catch (e) {
-    console.warn('[preview] body lock', e);
-}
 // a voice effect picked, so the Mic page shows its controls
 try {
     const m = await import('./services/auroraMusicMic.js');

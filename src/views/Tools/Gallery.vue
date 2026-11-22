@@ -599,12 +599,6 @@
             </template>
         </TabsUnderline>
 
-        <AuroraStickerMaker
-            v-model:open="stickerMakerOpen"
-            :vrc-plus="isLocalUserVrcPlusSupporter"
-            :initial-file="stickerMakerFile"
-            @uploaded="onStickerMade" />
-
         <ImageCropDialog
             :open="cropDialogOpen"
             :title="cropDialogTitle"
@@ -661,7 +655,7 @@
     import { AppDebug } from '../../services/appConfig';
 
     import Emoji from '../../components/Emoji.vue';
-    import AuroraStickerMaker from '../../components/AuroraStickerMaker.vue';
+    import { pendingStickerFile } from '../../services/stickerHandoff';
     import ImageCropDialog from '../../components/dialogs/ImageCropDialog.vue';
     import { database } from '../../services/database';
 
@@ -1198,19 +1192,10 @@
         }
     }
 
-    const stickerMakerOpen = ref(false);
-    const stickerMakerFile = ref(null);
-
-    /** Opens the animated sticker maker, optionally with a file already in it. */
+    /** Opens the animated sticker maker page, optionally with a file already in it. */
     function openStickerMaker(file = null) {
-        stickerMakerFile.value = file;
-        stickerMakerOpen.value = true;
-    }
-
-    function onStickerMade(args) {
-        handleStickerAdd(args);
-        // the list only shows the play settings once VRChat's own file record is read
-        refreshStickerTable();
+        pendingStickerFile.value = file;
+        router.push({ name: 'stickers' });
     }
 
     /** GIFs, animated WebP/PNG and videos go to the sticker maker instead of being uploaded flat. */

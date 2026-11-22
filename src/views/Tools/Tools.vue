@@ -6,10 +6,6 @@
             <div class="mt-5 px-5">
                 <AuroraHeight class="mb-6" />
                 <AuroraSpaceDrag class="mb-6" />
-                <AuroraBodyXr class="mb-6" />
-                <AuroraBodyGate class="mb-6">
-                    <AuroraBodyCalibration />
-                </AuroraBodyGate>
                 <div v-for="category in categories" :key="category.key" class="mb-6">
                     <div
                         class="cursor-pointer flex items-center p-2 px-3 rounded-lg mb-3 transition-all duration-200 ease-in-out"
@@ -92,10 +88,7 @@
     import { Button } from '@/components/ui/button';
     import { TooltipWrapper } from '@/components/ui/tooltip';
     import ToolItem from './components/ToolItem.vue';
-    import AuroraBodyCalibration from '../../components/AuroraBodyCalibration.vue';
-    import AuroraBodyGate from '../../components/AuroraBodyGate.vue';
     import AuroraHeight from '../../components/AuroraHeight.vue';
-    import AuroraBodyXr from '../../components/AuroraBodyXr.vue';
     import AuroraSpaceDrag from '../../components/AuroraSpaceDrag.vue';
     import { useToolActions } from '../../composables/useToolActions';
     import { useToolNavPinning } from '../../composables/useToolNavPinning';

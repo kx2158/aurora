@@ -1336,92 +1336,7 @@
                 <span>{{ clock.day }}, {{ clock.date }}</span>
                 <span v-if="neonState.nextAlarm">Next alarm {{ neonState.nextAlarm }}</span>
             </div>
-            <div v-if="neonState.bodyUnlocked" class="vr-tabs">
-                <button type="button" class="vr-tab" :class="{ on: dashTab === 'main' }" @click="dashTab = 'main'">Main</button>
-                <button type="button" class="vr-tab" :class="{ on: dashTab === 'body' }" @click="dashTab = 'body'">Body</button>
-                <button type="button" class="vr-tab" :class="{ on: dashTab === 'trackers' }" @click="dashTab = 'trackers'">Trackers</button>
-            </div>
-            <div v-if="neonState.bodyUnlocked && dashTab === 'trackers'" class="vr-group">
-                <div class="vr-group-title">VRChat trackers (8 is the most it takes)</div>
-                <div class="vr-grid">
-                    <button
-                        v-for="t in bodyTrackerList"
-                        :key="t.key"
-                        type="button"
-                        class="vr-tile"
-                        :class="{ on: neonState.bodyTrackers[t.key] !== false }"
-                        @click="dashPress(`bodyTracker:${t.key}`)">
-                        <AuroraIcon name="dot" :size="34" :stroke="1.8" />
-                        <span class="vr-tile-label">{{ t.label }}</span>
-                        <span class="vr-tile-state">{{ onOffWord(neonState.bodyTrackers[t.key] !== false) }}</span>
-                    </button>
-                </div>
-            </div>
-            <div v-if="neonState.bodyUnlocked && dashTab === 'body'" class="vr-group">
-                <div class="vr-group-title">Sitting</div>
-                <div class="vr-grid">
-                    <button
-                        v-for="m in bodySitModes"
-                        :key="m.mode"
-                        type="button"
-                        class="vr-tile"
-                        :class="{ on: neonState.bodySit === m.mode }"
-                        @click="dashPress(`bodySit:${m.mode}`)">
-                        <AuroraIcon :name="m.icon" :size="34" :stroke="1.8" />
-                        <span class="vr-tile-label">{{ m.label }}</span>
-                    </button>
-                </div>
-                <div class="vr-group-title">Measure with a controller</div>
-                <div class="vr-grid">
-                    <button
-                        v-for="h in ['left', 'right']"
-                        :key="h"
-                        type="button"
-                        class="vr-tile"
-                        :class="{ on: neonState.bodyMeasure.hand === h }"
-                        @click="dashPress(`bodyMeasureHand:${h}`)">
-                        <span class="vr-tile-label">{{ h === 'left' ? 'Left hand' : 'Right hand' }}</span>
-                    </button>
-                    <button type="button" class="vr-tile" :class="{ on: neonState.bodyMeasure.floor }" @click="dashPress('bodyMeasureFloor')">
-                        <span class="vr-tile-label">1. Floor</span>
-                        <span class="vr-tile-state">{{ neonState.bodyMeasure.floor ? 'Set' : 'Touch it' }}</span>
-                    </button>
-                    <button type="button" class="vr-tile" @click="dashPress('bodyMeasurePoint')">
-                        <span class="vr-tile-label">2. Measure</span>
-                        <span class="vr-tile-state">{{ measureReadout }}</span>
-                    </button>
-                    <div class="vr-tile vr-info">
-                        <span class="vr-tile-label">{{ measureHelp }}</span>
-                    </div>
-                    <button type="button" class="vr-tile" @click="dashPress('bodyApplySeat')">
-                        <span class="vr-tile-label">Use as seat</span>
-                    </button>
-                    <button type="button" class="vr-tile" @click="dashPress('bodyApplyEye')">
-                        <span class="vr-tile-label">Use as eyes</span>
-                    </button>
-                </div>
-                <div class="vr-group-title">Send trackers</div>
-                <div class="vr-grid">
-                    <button type="button" class="vr-tile" :class="{ on: neonState.bodyDriver }" @click="dashPress('bodyDriver')">
-                        <AuroraIcon name="power" :size="34" :stroke="1.8" />
-                        <span class="vr-tile-label">To SteamVR</span>
-                        <span class="vr-tile-state">{{ onOffWord(neonState.bodyDriver) }}</span>
-                    </button>
-                </div>
-                <div class="vr-group-title">Standable</div>
-                <div class="vr-grid">
-                    <button type="button" class="vr-tile" :class="{ on: neonState.bodyStandableOff }" @click="dashPress('bodyStandable')">
-                        <AuroraIcon name="power" :size="34" :stroke="1.8" />
-                        <span class="vr-tile-label">Turn it off</span>
-                        <span class="vr-tile-state">{{ onOffWord(neonState.bodyStandableOff) }}</span>
-                    </button>
-                    <div class="vr-tile vr-info">
-                        <span class="vr-tile-label">Status</span>
-                        <span class="vr-tile-state">{{ bodyStandableWord }}</span>
-                    </div>
-                </div>
-            </div>
-            <div v-for="g in dashTab !== 'main' && neonState.bodyUnlocked ? [] : dashGroups" :key="g.title" class="vr-group">
+            <div v-for="g in dashGroups" :key="g.title" class="vr-group">
                 <div class="vr-group-title">{{ g.title }}</div>
                 <div class="vr-grid">
                     <!-- avatar height: a real slider, drag it with the laser -->
@@ -1669,9 +1584,7 @@
 
 
     // Aurora in the headset: a tiny synth blip for events, alarms and the quick controls.
-    const neonState = reactive({ accent: '#b4b4b4', mm: false, mmMuted: false, mmApp: '', mmVol: 80, song: '', artist: '', playing: false, chatbox: false, sounds: true, afk: false, music: false, preview: '', nextAlarm: '', watchAlert: null, height: 0, bodyUnlocked: false, bodySit: 'auto', bodyStandableOff: true, bodyStandable: 'unknown', bodyTrackers: {}, bodyDriver: true, bodyMeasure: { hand: 'right', status: 'idle', step: '', floor: false, meters: null, message: '' } });
-    // the dashboard has two pages: the main one and the body estimation one (shown once it is unlocked)
-    const dashTab = ref('main');
+    const neonState = reactive({ accent: '#b4b4b4', mm: false, mmMuted: false, mmApp: '', mmVol: 80, song: '', artist: '', playing: false, chatbox: false, sounds: true, afk: false, music: false, preview: '', nextAlarm: '', watchAlert: null, height: 0 });
     // ---- the wrist opening: the overlay host calls wristShown / wristHidden ----
     const wristStage = ref(null);
     const wristPhase = ref('');
@@ -1851,41 +1764,6 @@
             ]
         }
     ]);
-    const bodyTrackerList = [
-        { key: 'hips', label: 'Hips' },
-        { key: 'chest', label: 'Chest' },
-        { key: 'leftFoot', label: 'Left foot' },
-        { key: 'rightFoot', label: 'Right foot' },
-        { key: 'leftKnee', label: 'Left knee' },
-        { key: 'rightKnee', label: 'Right knee' },
-        { key: 'leftElbow', label: 'Left elbow' },
-        { key: 'rightElbow', label: 'Right elbow' }
-    ];
-    const measureReadout = computed(() => {
-        const m = neonState.bodyMeasure.meters;
-        return m === null || m === undefined ? '-' : `${Math.round(m * 100)} cm`;
-    });
-    const measureHelp = computed(() => {
-        const b = neonState.bodyMeasure;
-        if (b.status === 'wait') return b.step === 'floor' ? 'Hold it on the floor... 3s' : 'Hold it on the spot... 3s';
-        if (b.status === 'failed') {
-            return (
-                { moving: 'Hold still', no_controller: 'Controller not found', no_floor: 'Do the floor first', too_low: 'That is the floor' }[b.message] || 'Failed'
-            );
-        }
-        return 'Tap, then hold the controller still for 3 seconds';
-    });
-    const bodySitModes = [
-        { mode: 'auto', icon: 'refresh', label: 'Auto' },
-        { mode: 'sit', icon: 'arrow', label: 'Sit' },
-        { mode: 'stand', icon: 'power', label: 'Stand' }
-    ];
-    const bodyStandableWord = computed(
-        () =>
-            ({ absent: 'Not installed', off: 'Off', on: 'On', restart: 'Restart SteamVR', error: 'Error', unknown: 'Checking' })[
-                neonState.bodyStandable
-            ] || 'Checking'
-    );
     const musicLine = computed(() =>
         neonState.song ? `${neonState.artist ? neonState.artist + ' - ' : ''}${neonState.song}` : 'nothing playing'
     );

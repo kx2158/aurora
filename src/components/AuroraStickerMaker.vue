@@ -1,11 +1,5 @@
 <template>
-    <Dialog :open="open" @update:open="onOpenChange">
-        <DialogContent class="sm:max-w-[760px]">
-            <DialogHeader>
-                <DialogTitle>{{ t('view.sticker_maker.title') }}</DialogTitle>
-                <DialogDescription>{{ t('view.sticker_maker.desc') }}</DialogDescription>
-            </DialogHeader>
-
+    <div class="sm-root">
             <div
                 v-if="!source"
                 class="sm-drop"
@@ -98,7 +92,7 @@
                 </div>
             </div>
 
-            <DialogFooter class="gap-2">
+            <div class="sm-footer">
                 <Button v-if="source" variant="ghost" size="sm" :disabled="busy" @click="reset">
                     <RotateCcw /> {{ t('view.sticker_maker.other_file') }}
                 </Button>
@@ -117,10 +111,9 @@
                 <Button v-if="source" size="sm" :disabled="busy || !sheetBlob || !vrcPlus" @click="uploadAnimated">
                     <Upload /> {{ uploading ? t('view.sticker_maker.uploading') : t('view.sticker_maker.upload') }}
                 </Button>
-            </DialogFooter>
-            <p v-if="source && !vrcPlus" class="text-xs text-muted-foreground">{{ t('view.sticker_maker.needs_vrcplus') }}</p>
-        </DialogContent>
-    </Dialog>
+            </div>
+            <p v-if="source && !vrcPlus" class="a-note">{{ t('view.sticker_maker.needs_vrcplus') }}</p>
+    </div>
 </template>
 
 <script setup>
@@ -130,7 +123,6 @@
     import { useI18n } from 'vue-i18n';
 
     import { Button } from '@/components/ui/button';
-    import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
     import { Slider } from '@/components/ui/slider';
     import { Spinner } from '@/components/ui/spinner';
     import { Switch } from '@/components/ui/switch';
@@ -143,11 +135,10 @@
     import { SHEET_SIZE, keptAnimation, planFrames, sheetFileName, stickerParams } from '../services/stickerSheet';
 
     const props = defineProps({
-        open: { type: Boolean, default: false },
         vrcPlus: { type: Boolean, default: false },
         initialFile: { type: Object, default: null }
     });
-    const emit = defineEmits(['update:open', 'uploaded']);
+    const emit = defineEmits(['uploaded']);
     const { t } = useI18n();
 
     const ACCEPT = 'image/gif,image/webp,image/png,image/apng,image/jpeg,video/mp4,video/webm,video/quicktime';
@@ -395,23 +386,29 @@
         fileName.value = '';
     }
 
-    function onOpenChange(v) {
-        if (busy.value && !v) return;
-        emit('update:open', v);
-        if (!v) reset();
-    }
-
     watch(
-        () => [props.open, props.initialFile],
-        ([o, f]) => {
-            if (o && f) load(f);
-        }
+        () => props.initialFile,
+        (f) => {
+            if (f) load(f);
+        },
+        { immediate: true }
     );
 
     onBeforeUnmount(dispose);
 </script>
 
 <style scoped>
+    .sm-root {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+    }
+    .sm-footer {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
     .sm-drop {
         display: flex;
         flex-direction: column;

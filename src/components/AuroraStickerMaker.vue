@@ -106,6 +106,27 @@
                         <input v-if="background" v-model="background" type="color" class="sm-color" />
                     </div>
 
+                    <div v-if="mode === 'emoji'" class="sm-row">
+                        <div class="sm-label">
+                            <span>{{ t('view.sticker_maker.style') }}</span>
+                            <span>{{ style }}</span>
+                        </div>
+                        <div class="sm-styles">
+                            <button
+                                v-for="(file, name) in emojiAnimationStyleList"
+                                :key="name"
+                                type="button"
+                                class="sm-style"
+                                :class="{ on: style === name }"
+                                :title="name"
+                                @click="style = name">
+                                <img :src="`${emojiAnimationStyleUrl}${file}`" loading="lazy" alt="" />
+                                <span>{{ name }}</span>
+                            </button>
+                        </div>
+                        <div class="text-xs text-muted-foreground mt-1">{{ t('view.sticker_maker.style_hint') }}</div>
+                    </div>
+
                     <div v-if="result" class="sm-result" :class="result.tone">{{ result.text }}</div>
                 </div>
             </div>
@@ -141,6 +162,7 @@
     import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 
     import { miscRequest, vrcPlusImageRequest } from '../api';
+    import { emojiAnimationStyleList, emojiAnimationStyleUrl } from '../shared/constants';
     import { generateEmojiStyle } from '../shared/utils';
     import { readFileAsBase64, withUploadTimeout } from '../shared/utils/imageUpload';
     import { canvasBlob, openSource, renderSheet } from '../services/stickerFrames';
@@ -172,6 +194,7 @@
     const pingpong = ref(false);
     // stickers are one still picture, emoji are the ones VRChat animates
     const mode = ref('sticker');
+    const style = ref('Stop');
     const stillAt = computed({
         get: () => [range.value[0]],
         set: (v) => {
@@ -381,9 +404,9 @@
         const p = shownPlan.value;
         if (p.count > 1) {
             if (!sheetBlob.value) return;
-            await send(sheetBlob.value, animatedParams({ frames: p.count, fps: p.fps, pingpong: pingpong.value }), true);
+            await send(sheetBlob.value, animatedParams({ frames: p.count, fps: p.fps, pingpong: pingpong.value, style: style.value.toLowerCase() }), true);
         } else {
-            await send(await singleFrame(), { tag: 'emoji', animationStyle: 'stop', maskTag: 'square' }, false);
+            await send(await singleFrame(), { tag: 'emoji', animationStyle: style.value.toLowerCase(), maskTag: 'square' }, false);
         }
     }
 
@@ -573,5 +596,34 @@
         .sm-body {
             grid-template-columns: 1fr;
         }
+    }
+    .sm-styles {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+        gap: 6px;
+        max-height: 220px;
+        overflow: auto;
+        margin-top: 6px;
+    }
+    .sm-style {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+        padding: 4px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        font-size: 11px;
+        background: transparent;
+    }
+    .sm-style img {
+        width: 100%;
+        aspect-ratio: 1;
+        object-fit: cover;
+        border-radius: 8px;
+    }
+    .sm-style.on {
+        border-color: var(--primary, #8b5cf6);
+        box-shadow: 0 0 0 1px var(--primary, #8b5cf6);
     }
 </style>

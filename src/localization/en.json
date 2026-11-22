@@ -1725,7 +1725,9 @@
             "upload_sticker": "Upload sticker",
             "upload_emoji": "Upload emoji",
             "library_emoji": "Your animated emoji",
-            "library_emoji_empty": "No animated emoji yet. Switch the maker to Animated emoji and upload one."
+            "library_emoji_empty": "No animated emoji yet. Switch the maker to Animated emoji and upload one.",
+            "style": "Animation",
+            "style_hint": "VRChat's own previews of each effect. The effect is applied in game around your emoji, so it can't be shown on your own picture here."
         },
         "space_drag": {
             "title": "Space drag",

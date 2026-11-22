@@ -11,7 +11,7 @@
                 <input ref="inputRef" type="file" :accept="ACCEPT" style="display: none" @change="onPick" />
                 <Sparkles class="size-6 opacity-70" />
                 <div class="text-sm font-medium">
-                    {{ converting ? t('view.sticker_maker.converting') : loading ? t('view.sticker_maker.reading') : t('view.sticker_maker.drop') }}
+                    {{ loading ? t('view.sticker_maker.reading') : t('view.sticker_maker.drop') }}
                 </div>
                 <div class="text-xs text-muted-foreground">{{ t('view.sticker_maker.formats') }}</div>
             </div>
@@ -138,8 +138,8 @@
                     <RotateCcw /> {{ t('view.sticker_maker.other_file') }}
                 </Button>
                 <div class="flex-1"></div>
-                <Button v-if="convertedGif" variant="outline" size="sm" :disabled="busy" @click="saveGif">
-                    <Download /> {{ t('view.sticker_maker.save_gif') }}
+                <Button v-if="gifBusy || convertedGif" variant="outline" size="sm" :disabled="gifBusy" @click="saveGif">
+                    <Download /> {{ gifBusy ? t('view.sticker_maker.converting') : t('view.sticker_maker.save_gif') }}
                 </Button>
                 <Button v-if="source && mode === 'emoji'" variant="outline" size="sm" :disabled="busy || !sheetBlob" @click="saveSheet">
                     <Download /> {{ t('view.sticker_maker.save') }}
@@ -189,7 +189,7 @@
     const inputRef = ref(null);
     const dragOver = ref(false);
     const loading = ref(false);
-    const converting = ref(false);
+    const gifBusy = ref(false);
     // a video is turned into a GIF as soon as it is opened; that GIF is what the maker works from
     const convertedGif = ref(null);
     const source = ref(null);
@@ -279,28 +279,10 @@
         result.value = null;
         try {
             dispose();
-            let src = await openSource(file);
-            let shownName = file.name;
+            const src = await openSource(file);
             convertedGif.value = null;
-            if (src.kind === 'video') {
-                converting.value = true;
-                try {
-                    const gif = await videoToGif(src);
-                    const gifFile = new File([gif], `${file.name.replace(/\.[^.]+$/, '')}.gif`, { type: 'image/gif' });
-                    const fromGif = await openSource(gifFile);
-                    src.dispose?.();
-                    src = fromGif;
-                    shownName = gifFile.name;
-                    convertedGif.value = gifFile;
-                } catch (err) {
-                    // keep working from the video itself
-                    console.error('sticker maker: could not convert the video to a GIF', err);
-                } finally {
-                    converting.value = false;
-                }
-            }
             source.value = src;
-            fileName.value = shownName;
+            fileName.value = file.name;
             range.value = [0, Math.round(src.totalMs)];
             // a long video would make a slideshow; start with its first three seconds
             if (src.kind === 'video' && src.totalMs > 3000) range.value = [0, 3000];
@@ -311,6 +293,7 @@
             offX.value = [0];
             offY.value = [0];
             await render();
+            if (src.kind === 'video') convertInBackground(src, file);
         } catch (err) {
             console.error('sticker maker: could not read', err);
             toast.error(t(isVideoType(kind) ? 'view.sticker_maker.video_failed' : 'view.sticker_maker.not_supported'));
@@ -440,6 +423,20 @@
         }
     }
 
+    // the GIF is made after the picture is already usable, so opening a video is not slowed down by it
+    async function convertInBackground(src, file) {
+        gifBusy.value = true;
+        try {
+            const gif = await videoToGif(src);
+            if (source.value !== src) return;
+            convertedGif.value = new File([gif], `${file.name.replace(/\.[^.]+$/, '')}.gif`, { type: 'image/gif' });
+        } catch (err) {
+            console.error('sticker maker: could not convert the video to a GIF', err);
+        } finally {
+            if (source.value === src || !source.value) gifBusy.value = false;
+        }
+    }
+
     function saveGif() {
         if (!convertedGif.value) return;
         const url = URL.createObjectURL(convertedGif.value);
@@ -469,6 +466,7 @@
         source.value?.dispose?.();
         source.value = null;
         convertedGif.value = null;
+        gifBusy.value = false;
         sheetBlob.value = null;
         if (previewUrl.value) URL.revokeObjectURL(previewUrl.value);
         previewUrl.value = '';

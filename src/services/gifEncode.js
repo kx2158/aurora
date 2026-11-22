@@ -108,7 +108,7 @@ function lzw(indices, minCode) {
  * @param {number} delayMs
  * @returns {Uint8Array}
  */
-export function encodeGif(frames, delayMs, loops = 0) {
+export async function encodeGif(frames, delayMs, loops = 0) {
     const { width, height } = frames[0];
     const transparent = frames.some((f) => {
         for (let i = 3; i < f.data.length; i += 4) if (f.data[i] < 128) return true;
@@ -174,6 +174,8 @@ export function encodeGif(frames, delayMs, loops = 0) {
             for (let j = 0; j < n; j++) out.push(data[i + j]);
         }
         out.push(0);
+        // let the page breathe between frames
+        await new Promise((resolve) => setTimeout(resolve, 0));
     }
     out.push(0x3b);
     return Uint8Array.from(out);
@@ -187,7 +189,7 @@ export function encodeGif(frames, delayMs, loops = 0) {
  * @returns {Promise<Blob>}
  */
 export async function videoToGif(source, opts = {}) {
-    const { maxSize = 360, fps = 15, maxFrames = 150, maxMs = 12000 } = opts;
+    const { maxSize = 320, fps = 12, maxFrames = 100, maxMs = 10000 } = opts;
     const span = Math.min(source.totalMs, maxMs);
     const count = Math.max(1, Math.min(maxFrames, Math.round((span / 1000) * fps)));
     const scale = Math.min(1, maxSize / Math.max(source.width, source.height));
@@ -202,7 +204,8 @@ export async function videoToGif(source, opts = {}) {
         const img = await source.frameAt((span * i) / count);
         ctx.clearRect(0, 0, w, h);
         ctx.drawImage(img, 0, 0, w, h);
+        img.close?.();
         frames.push({ data: ctx.getImageData(0, 0, w, h).data, width: w, height: h });
     }
-    return new Blob([encodeGif(frames, span / count)], { type: 'image/gif' });
+    return new Blob([await encodeGif(frames, span / count)], { type: 'image/gif' });
 }

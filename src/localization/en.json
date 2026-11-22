@@ -1805,6 +1805,29 @@
             "open_app": "Open Aurora",
             "quit_game": "Hold to crash VRChat",
             "quit_holding": "Crashing VRChat..."
+        },
+        "cimabox": {
+            "desc": "Live voice changer, translation and captions for games and voice chat. A separate app by Aye7even that Aurora installs and keeps up to date for you.",
+            "repo": "GitHub page",
+            "check": "Check for updates",
+            "installed": "Installed",
+            "latest": "Latest",
+            "not_installed": "Not installed",
+            "offline": "Could not reach GitHub",
+            "update_ready": "Update available",
+            "current": "Up to date",
+            "install": "Install CIMA Box",
+            "update": "Update",
+            "working": "Working...",
+            "launch": "Open CIMA Box",
+            "running": "Running",
+            "folder": "Open folder",
+            "auto": "Keep it updated automatically",
+            "close_first": "Close CIMA Box first, then update. It can also update itself.",
+            "source": "Aurora downloads the official CIMABox.exe from the project's GitHub releases. The app and its code belong to its author.",
+            "whats_new": "What's new",
+            "failed": "That did not work.",
+            "installed_ok": "Installed version {v}."
         }
     },
     "dialog": {
@@ -4104,6 +4127,7 @@
         "section_worlds": "Worlds",
         "section_insights": "Insights",
         "section_aurora": "Aurora",
-        "stickers": "Stickers"
+        "stickers": "Stickers",
+        "cimabox": "CIMA Box"
     }
 }

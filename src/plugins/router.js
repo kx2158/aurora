@@ -46,6 +46,7 @@ const routes = [
             { path: 'mic', name: 'mic', component: Mic },
             { path: 'automations', name: 'automations', component: Automations },
             { path: 'stickers', name: 'stickers', component: Stickers },
+            { path: 'emoji', name: 'emoji', component: Stickers },
             { path: 'cimabox', name: 'cimabox', component: CimaBox },
             {
                 path: 'insights',

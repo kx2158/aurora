@@ -30,7 +30,7 @@
 
                 <div class="sm-controls">
                     <div class="sm-row">
-                        <ToggleGroup v-model="mode" type="single" variant="outline" size="sm">
+                        <ToggleGroup v-if="!kind" v-model="mode" type="single" variant="outline" size="sm">
                             <ToggleGroupItem value="sticker">{{ t('view.sticker_maker.mode_sticker') }}</ToggleGroupItem>
                             <ToggleGroupItem value="emoji">{{ t('view.sticker_maker.mode_emoji') }}</ToggleGroupItem>
                         </ToggleGroup>
@@ -170,7 +170,9 @@
 
     const props = defineProps({
         vrcPlus: { type: Boolean, default: false },
-        initialFile: { type: Object, default: null }
+        initialFile: { type: Object, default: null },
+        // 'sticker' or 'emoji' fixes what this page makes; empty lets the switch choose
+        kind: { type: String, default: '' }
     });
     const emit = defineEmits(['uploaded']);
     const { t } = useI18n();
@@ -193,7 +195,7 @@
     const fit = ref('cover');
     const pingpong = ref(false);
     // stickers are one still picture, emoji are the ones VRChat animates
-    const mode = ref('sticker');
+    const mode = ref(props.kind || 'sticker');
     const style = ref('Stop');
     const stillAt = computed({
         get: () => [range.value[0]],
@@ -274,7 +276,7 @@
             range.value = [0, Math.round(src.totalMs)];
             // a long video would make a slideshow; start with its first three seconds
             if (src.kind === 'video' && src.totalMs > 3000) range.value = [0, 3000];
-            mode.value = src.kind === 'still' ? 'sticker' : 'emoji';
+            mode.value = props.kind || (src.kind === 'still' ? 'sticker' : 'emoji');
             count.value = [0];
             speed.value = [1];
             zoom.value = [1];

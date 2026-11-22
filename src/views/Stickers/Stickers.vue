@@ -3,8 +3,8 @@
         <div class="a-page-inner">
             <header class="a-head">
                 <div>
-                    <h1 class="a-title">{{ t('view.sticker_maker.title') }}</h1>
-                    <p class="a-sub">{{ t('view.sticker_maker.desc') }}</p>
+                    <h1 class="a-title">{{ t(`view.sticker_maker.title_${kind}`) }}</h1>
+                    <p class="a-sub">{{ t(`view.sticker_maker.desc_${kind}`) }}</p>
                 </div>
                 <div class="flex items-center gap-2">
                     <button type="button" class="a-btn" @click="router.push({ name: 'gallery', query: { tab: 'stickers' } })">
@@ -14,10 +14,10 @@
             </header>
 
             <section class="a-card">
-                <AuroraStickerMaker :vrc-plus="isLocalUserVrcPlusSupporter" :initial-file="initial" @uploaded="onUploaded" />
+                <AuroraStickerMaker :key="kind" :kind="kind" :vrc-plus="isLocalUserVrcPlusSupporter" :initial-file="initial" @uploaded="onUploaded" />
             </section>
 
-            <section v-for="(group, gi) in groups" :key="group.key" class="a-card">
+            <section v-for="(group, gi) in groups.filter((g) => g.key === (kind === 'emoji' ? 'emoji' : 'stickers'))" :key="group.key" class="a-card">
                 <div class="flex items-center gap-3">
                     <h2 class="a-h2 flex-1">{{ t(group.title) }}</h2>
                     <button v-if="gi === 0" type="button" class="a-btn" :disabled="galleryDialogStickersLoading" @click="refreshAll">
@@ -73,9 +73,9 @@
             <section class="a-card">
                 <h2 class="a-h2">{{ t('view.sticker_maker.vault') }}</h2>
                 <p class="a-note">{{ t('view.sticker_maker.vault_desc') }}</p>
-                <p v-if="!vault.length" class="a-note">{{ t('view.sticker_maker.vault_empty') }}</p>
+                <p v-if="!vaultShown.length" class="a-note">{{ t('view.sticker_maker.vault_empty') }}</p>
                 <div v-else class="st-grid">
-                    <div v-for="rec in vault" :key="rec.key" class="st-tile">
+                    <div v-for="rec in vaultShown" :key="rec.key" class="st-tile">
                         <Emoji v-if="rec.params.frames" :imageUrl="dataUrl(rec)" class="st-pic" />
                         <img v-else :src="dataUrl(rec)" loading="lazy" class="st-pic" />
                         <div class="st-meta">
@@ -116,7 +116,7 @@
     import { Archive, Lock, LockOpen, Trash2, Upload } from 'lucide-vue-next';
     import { toast } from 'vue-sonner';
     import { useI18n } from 'vue-i18n';
-    import { useRouter } from 'vue-router';
+    import { useRoute, useRouter } from 'vue-router';
 
     import AuroraStickerMaker from '../../components/AuroraStickerMaker.vue';
     import Emoji from '../../components/Emoji.vue';
@@ -127,6 +127,9 @@
 
     const { t } = useI18n();
     const router = useRouter();
+    const route = useRoute();
+    // the Stickers and Emoji sidebar tabs share this page
+    const kind = computed(() => (route.name === 'emoji' ? 'emoji' : 'sticker'));
     const galleryStore = useGalleryStore();
     const { stickerTable, emojiTable, galleryDialogStickersLoading } = storeToRefs(galleryStore);
     const { refreshStickerTable, refreshEmojiTable, handleStickerAdd } = galleryStore;
@@ -184,6 +187,7 @@
     const SLOTS = 18;
     const vault = ref([]);
     const vaultBusy = ref(false);
+    const vaultShown = computed(() => vault.value.filter((r) => (r.params.tag === 'sticker') === (kind.value === 'sticker')));
     const liveIds = computed(() => new Set([...stickerTable.value, ...emojiTable.value].map((f) => f.id)));
     const isLocked = (id) => vault.value.some((r) => r.fileId === id && r.locked);
     const isKept = (id) => vault.value.some((r) => r.fileId === id);

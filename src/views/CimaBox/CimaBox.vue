@@ -12,22 +12,27 @@
                 </div>
             </header>
 
-            <section class="a-card">
-                <div class="cb-row">
-                    <div>
-                        <div class="cb-label">{{ t('view.cimabox.installed') }}</div>
-                        <div class="cb-value">{{ status.installed ? status.version : t('view.cimabox.not_installed') }}</div>
-                    </div>
-                    <div>
-                        <div class="cb-label">{{ t('view.cimabox.latest') }}</div>
-                        <div class="cb-value">{{ status.latest || '-' }}</div>
-                    </div>
-                    <div class="cb-state" :class="{ ok: upToDate, warn: updateAvailable }">
-                        {{ stateText }}
-                    </div>
+            <div class="a-grid a-grid-3">
+                <div class="a-card a-stat">
+                    <span class="a-stat-label">{{ t('view.cimabox.installed') }}</span>
+                    <span class="a-stat-value">{{ status.installed ? status.version : '-' }}</span>
+                    <span class="a-stat-sub">{{ status.installed ? t('view.cimabox.current_sub') : t('view.cimabox.not_installed') }}</span>
                 </div>
+                <div class="a-card a-stat">
+                    <span class="a-stat-label">{{ t('view.cimabox.latest') }}</span>
+                    <span class="a-stat-value">{{ status.latest || '-' }}</span>
+                    <span class="a-stat-sub">{{ status.published ? status.published.slice(0, 10) : '' }}</span>
+                </div>
+                <div class="a-card a-stat">
+                    <span class="a-stat-label">{{ t('view.cimabox.status') }}</span>
+                    <span class="a-stat-value cb-state" :class="{ ok: upToDate, warn: updateAvailable }">{{ stateText }}</span>
+                    <span class="a-stat-sub">{{ status.running ? t('view.cimabox.running') : '' }}</span>
+                </div>
+            </div>
 
-                <div class="flex flex-wrap items-center gap-2 mt-4">
+            <section class="a-card">
+                <h2 class="a-h2">{{ t('view.cimabox.manage') }}</h2>
+                <div class="flex flex-wrap items-center gap-2">
                     <button v-if="!status.installed" type="button" class="a-btn primary" :disabled="busy" @click="install">
                         {{ busy ? t('view.cimabox.working') : t('view.cimabox.install') }}
                     </button>
@@ -38,18 +43,19 @@
                         {{ status.running ? t('view.cimabox.running') : t('view.cimabox.launch') }}
                     </button>
                     <button v-if="status.installed" type="button" class="a-btn" @click="openFolder">{{ t('view.cimabox.folder') }}</button>
-                    <label class="flex items-center gap-2 ml-auto text-sm">
-                        <Switch v-model="auto" />
-                        {{ t('view.cimabox.auto') }}
-                    </label>
                 </div>
-                <p v-if="message" class="a-note mt-3" :class="{ 'cb-bad': bad }">{{ message }}</p>
-                <p v-if="status.running && updateAvailable" class="a-note mt-3">{{ t('view.cimabox.close_first') }}</p>
-                <p class="a-note mt-3">{{ t('view.cimabox.source') }}</p>
+                <label class="a-switch cb-auto">
+                    <input v-model="auto" type="checkbox" />
+                    <span class="a-switch-track"><span class="a-switch-knob"></span></span>
+                    <span>{{ t('view.cimabox.auto') }}</span>
+                </label>
+                <p v-if="message" class="a-note" :class="{ warn: bad }">{{ message }}</p>
+                <p v-if="status.running && updateAvailable" class="a-note warn">{{ t('view.cimabox.close_first') }}</p>
+                <p class="a-note">{{ t('view.cimabox.source') }}</p>
             </section>
 
             <section v-if="status.notes" class="a-card">
-                <h2 class="a-h2">{{ t('view.cimabox.whats_new') }}: {{ status.latest }}</h2>
+                <h2 class="a-h2">{{ t('view.cimabox.whats_new') }} <span class="a-pill">{{ status.latest }}</span></h2>
                 <pre class="cb-notes">{{ status.notes }}</pre>
             </section>
         </div>
@@ -59,8 +65,6 @@
 <script setup>
     import { computed, onMounted, ref, watch } from 'vue';
     import { useI18n } from 'vue-i18n';
-
-    import { Switch } from '@/components/ui/switch';
 
     const { t } = useI18n();
     const REPO = 'https://github.com/Aye7even/CIMA-Box';
@@ -182,41 +186,20 @@
 </script>
 
 <style scoped>
-    .cb-row {
-        display: flex;
-        align-items: center;
-        gap: 32px;
-        flex-wrap: wrap;
-    }
-    .cb-label {
-        font-size: 12px;
-        opacity: 0.7;
-    }
-    .cb-value {
-        font-size: 20px;
-        font-weight: 600;
-    }
     .cb-state {
-        margin-left: auto;
-        padding: 4px 12px;
-        border-radius: 999px;
-        border: 1px solid var(--border);
-        font-size: 12px;
+        font-size: 1.1rem;
     }
     .cb-state.ok {
-        border-color: #3ba55c;
+        color: var(--a-accent);
     }
-    .cb-state.warn {
-        border-color: #e6a23c;
-    }
-    .cb-bad {
-        color: #f56c6c;
+    .cb-auto {
+        margin-top: 16px;
     }
     .cb-notes {
         white-space: pre-wrap;
         font-family: inherit;
-        font-size: 13px;
-        margin-top: 10px;
+        font-size: 0.82rem;
+        color: var(--a-muted);
         max-height: 360px;
         overflow: auto;
     }

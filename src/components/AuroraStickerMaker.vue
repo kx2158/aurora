@@ -10,7 +10,9 @@
                 @drop.prevent="onDrop">
                 <input ref="inputRef" type="file" :accept="ACCEPT" style="display: none" @change="onPick" />
                 <Sparkles class="size-6 opacity-70" />
-                <div class="text-sm font-medium">{{ loading ? t('view.sticker_maker.reading') : t('view.sticker_maker.drop') }}</div>
+                <div class="text-sm font-medium">
+                    {{ converting ? t('view.sticker_maker.converting') : loading ? t('view.sticker_maker.reading') : t('view.sticker_maker.drop') }}
+                </div>
                 <div class="text-xs text-muted-foreground">{{ t('view.sticker_maker.formats') }}</div>
             </div>
 
@@ -136,6 +138,9 @@
                     <RotateCcw /> {{ t('view.sticker_maker.other_file') }}
                 </Button>
                 <div class="flex-1"></div>
+                <Button v-if="convertedGif" variant="outline" size="sm" :disabled="busy" @click="saveGif">
+                    <Download /> {{ t('view.sticker_maker.save_gif') }}
+                </Button>
                 <Button v-if="source && mode === 'emoji'" variant="outline" size="sm" :disabled="busy || !sheetBlob" @click="saveSheet">
                     <Download /> {{ t('view.sticker_maker.save') }}
                 </Button>
@@ -166,6 +171,7 @@
     import { generateEmojiStyle } from '../shared/utils';
     import { readFileAsBase64, withUploadTimeout } from '../shared/utils/imageUpload';
     import { canvasBlob, openSource, renderSheet } from '../services/stickerFrames';
+    import { videoToGif } from '../services/gifEncode';
     import { SHEET_SIZE, animatedParams, guessType, isVideoType, keptAnimation, planFrames, sheetFileName, stickerParams } from '../services/stickerSheet';
 
     const props = defineProps({
@@ -183,6 +189,9 @@
     const inputRef = ref(null);
     const dragOver = ref(false);
     const loading = ref(false);
+    const converting = ref(false);
+    // a video is turned into a GIF as soon as it is opened; that GIF is what the maker works from
+    const convertedGif = ref(null);
     const source = ref(null);
     const fileName = ref('');
 
@@ -270,9 +279,28 @@
         result.value = null;
         try {
             dispose();
-            const src = await openSource(file);
+            let src = await openSource(file);
+            let shownName = file.name;
+            convertedGif.value = null;
+            if (src.kind === 'video') {
+                converting.value = true;
+                try {
+                    const gif = await videoToGif(src);
+                    const gifFile = new File([gif], `${file.name.replace(/\.[^.]+$/, '')}.gif`, { type: 'image/gif' });
+                    const fromGif = await openSource(gifFile);
+                    src.dispose?.();
+                    src = fromGif;
+                    shownName = gifFile.name;
+                    convertedGif.value = gifFile;
+                } catch (err) {
+                    // keep working from the video itself
+                    console.error('sticker maker: could not convert the video to a GIF', err);
+                } finally {
+                    converting.value = false;
+                }
+            }
             source.value = src;
-            fileName.value = file.name;
+            fileName.value = shownName;
             range.value = [0, Math.round(src.totalMs)];
             // a long video would make a slideshow; start with its first three seconds
             if (src.kind === 'video' && src.totalMs > 3000) range.value = [0, 3000];
@@ -412,6 +440,18 @@
         }
     }
 
+    function saveGif() {
+        if (!convertedGif.value) return;
+        const url = URL.createObjectURL(convertedGif.value);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = convertedGif.value.name;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 10000);
+    }
+
     function saveSheet() {
         if (!sheetBlob.value) return;
         const p = shownPlan.value;
@@ -428,6 +468,7 @@
         clearTimeout(renderTimer);
         source.value?.dispose?.();
         source.value = null;
+        convertedGif.value = null;
         sheetBlob.value = null;
         if (previewUrl.value) URL.revokeObjectURL(previewUrl.value);
         previewUrl.value = '';

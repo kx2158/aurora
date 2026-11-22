@@ -316,7 +316,11 @@ namespace VRCX
 
             var imageData = options["imageData"] as string;
             var matchingDimensions = options["matchingDimensions"] as bool? ?? false;
-            var fileToUpload = Program.AppApiInstance.ResizeImageToFitLimits(Convert.FromBase64String(imageData), matchingDimensions);
+            // raw uploads are sent as they are, so an animated PNG keeps its frames
+            var raw = options.TryGetValue("raw", out var rawObject) && rawObject is bool rawFlag && rawFlag;
+            var fileToUpload = raw
+                ? Convert.FromBase64String(imageData)
+                : Program.AppApiInstance.ResizeImageToFitLimits(Convert.FromBase64String(imageData), matchingDimensions);
 
             var imageContent = new ByteArrayContent(fileToUpload);
             imageContent.Headers.ContentType = new MediaTypeHeaderValue("image/png");

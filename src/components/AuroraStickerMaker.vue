@@ -108,6 +108,14 @@
                     @click="uploadStill">
                     <Image /> {{ t('view.sticker_maker.upload_still') }}
                 </Button>
+                <Button
+                    v-if="source && plan.count > 1"
+                    variant="outline"
+                    size="sm"
+                    :disabled="busy || !sheetBlob || !vrcPlus"
+                    @click="uploadStickerTest">
+                    {{ t('view.sticker_maker.try_sticker') }}
+                </Button>
                 <Button v-if="source" size="sm" :disabled="busy || !sheetBlob || !vrcPlus" @click="uploadAnimated">
                     <Upload /> {{ uploading ? t('view.sticker_maker.uploading') : t('view.sticker_maker.upload') }}
                 </Button>
@@ -332,6 +340,28 @@
             console.error('sticker maker: upload failed', err);
             result.value = { tone: 'bad', text: t('view.sticker_maker.failed') };
             toast.error(t('message.upload.error'));
+        } finally {
+            uploading.value = false;
+        }
+    }
+
+    // Experiment: send the sheet as a real sticker with the play settings and keep it, whatever the
+    // upload reply says, so it can be placed in game to see if VRChat animates it there
+    async function uploadStickerTest() {
+        if (!sheetBlob.value) return;
+        const p = shownPlan.value;
+        const params = stickerParams({ frames: p.count, fps: p.fps, pingpong: pingpong.value });
+        uploading.value = true;
+        result.value = null;
+        try {
+            const args = await upload(sheetBlob.value, params);
+            console.log('sticker maker: sticker test reply', JSON.stringify(args.json));
+            emit('uploaded', args, false);
+            const echoed = keptAnimation(args.json, params);
+            result.value = { tone: 'ok', text: t(echoed ? 'view.sticker_maker.try_kept' : 'view.sticker_maker.try_unknown') };
+        } catch (err) {
+            console.error('sticker maker: sticker test failed', err);
+            result.value = { tone: 'bad', text: t('view.sticker_maker.failed') };
         } finally {
             uploading.value = false;
         }

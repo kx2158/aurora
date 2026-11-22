@@ -297,14 +297,14 @@
     watch([range, count, speed, zoom, offX, offY, fit, background], scheduleRender, { deep: true });
     watch(pingpong, () => previewKey.value++);
 
-    async function upload(blob, params) {
+    async function upload(blob, params, name) {
         const base64 = await readFileAsBase64(blob);
         let args;
         await withUploadTimeout(
             (async () => {
                 args =
                     params.tag === 'sticker'
-                        ? await vrcPlusImageRequest.uploadSticker(base64, params)
+                        ? await vrcPlusImageRequest.uploadSticker(base64, params, name)
                         : await vrcPlusImageRequest.uploadEmoji(base64, params);
             })()
         );
@@ -351,10 +351,12 @@
         if (!sheetBlob.value) return;
         const p = shownPlan.value;
         const params = stickerParams({ frames: p.count, fps: p.fps, pingpong: pingpong.value });
+        // the frame count and fps also go in the file name, the way VRChat's own sheets are named
+        const name = sheetFileName(fileName.value, p.count, p.fps, pingpong.value);
         uploading.value = true;
         result.value = null;
         try {
-            const args = await upload(sheetBlob.value, params);
+            const args = await upload(sheetBlob.value, params, name);
             console.log('sticker maker: sticker test reply', JSON.stringify(args.json));
             emit('uploaded', args, false);
             const echoed = keptAnimation(args.json, params);

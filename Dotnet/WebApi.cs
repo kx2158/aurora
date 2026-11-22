@@ -320,7 +320,13 @@ namespace VRCX
 
             var imageContent = new ByteArrayContent(fileToUpload);
             imageContent.Headers.ContentType = new MediaTypeHeaderValue("image/png");
-            content.Add(imageContent, "file", "blob");
+            // VRChat reads frames and fps from the file name of a sheet (name_16frames_12fps.png)
+            var fileName = options.TryGetValue("fileName", out var fileNameObject) ? fileNameObject as string : null;
+            if (string.IsNullOrWhiteSpace(fileName) || fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
+            {
+                fileName = "blob";
+            }
+            content.Add(imageContent, "file", fileName);
 
             request.Content = content;
             return request;

@@ -53,7 +53,7 @@ export function languagesOf(ref) {
  * @param {Array<{id:string, ref:object}>} ctxs
  * @param {{favorites?: Set<string>, now?: number}} opts
  */
-export function buildRows(ctxs, { favorites = new Set(), now = Date.now() } = {}) {
+export function buildRows(ctxs, { favorites = new Set(), locked = new Set(), now = Date.now() } = {}) {
     const rows = [];
     for (const ctx of ctxs) {
         const ref = ctx.ref;
@@ -79,6 +79,7 @@ export function buildRows(ctxs, { favorites = new Set(), now = Date.now() } = {}
             friendNumber: ref.$friendNumber || 0,
             since,
             favorite: favorites.has(ctx.id) || !!ctx.isVIP,
+            locked: locked.has(ctx.id),
             hasMemo: !!(ref.$memo || ref.note),
             bio: typeof ref.bio === 'string' ? ref.bio : ''
         });
@@ -105,13 +106,13 @@ export function mutualBucket(row) {
 
 /**
  * How likely it is that you no longer need this friend, 0 to 100, with the reasons that raised it.
- * Favorites, anyone with a memo and brand new friends always score 0: those are decisions you made.
+ * Locked friends, favorites, anyone with a memo and brand new friends always score 0: those are decisions you made.
  * @param {object} row from buildRows
  * @param {number} now
  * @returns {{score:number, reasons:string[]}}
  */
 export function unfriendScore(row, now = Date.now()) {
-    if (row.favorite || row.hasMemo) return { score: 0, reasons: [] };
+    if (row.locked || row.favorite || row.hasMemo) return { score: 0, reasons: [] };
     if (row.since && now - row.since < 30 * DAY) return { score: 0, reasons: [] };
 
     const reasons = [];
@@ -167,6 +168,30 @@ export function suggestUnfriend(rows, { min = 50, now = Date.now() } = {}) {
 }
 
 /**
+ * The small organizer: sorts every friend into keep, maybe or cut with the same score as the
+ * suggestions. No model, no network, so the answer is the same every time and every call is instant.
+ * Locked friends are always keep and come first. Cut needs a high score, maybe is the grey zone.
+ * @param {object[]} rows from buildRows
+ * @param {{now?:number, cut?:number, maybe?:number}} opts
+ * @returns {{keep:object[], maybe:object[], cut:object[]}} each entry is { row, score, reasons }
+ */
+export function organizeFriends(rows, { now = Date.now(), cut = 70, maybe = 40 } = {}) {
+    const out = { keep: [], maybe: [], cut: [] };
+    for (const row of rows) {
+        const { score, reasons } = unfriendScore(row, now);
+        const item = { row, score, reasons };
+        if (row.locked) out.keep.push(item);
+        else if (score >= cut) out.cut.push(item);
+        else if (score >= maybe) out.maybe.push(item);
+        else out.keep.push(item);
+    }
+    out.keep.sort((a, b) => Number(b.row.locked) - Number(a.row.locked) || (b.row.timeSpent || 0) - (a.row.timeSpent || 0));
+    out.maybe.sort((a, b) => b.score - a.score);
+    out.cut.sort((a, b) => b.score - a.score || (a.row.lastSeen || 0) - (b.row.lastSeen || 0));
+    return out;
+}
+
+/**
  * @param {object[]} rows
  * @returns {Array<{key:string, count:number}>} languages by number of friends
  */
@@ -216,7 +241,7 @@ export function hangoutCounts(rows, now = Date.now()) {
 
 /**
  * Match a typed list ("name1, name2, name3" or one per line) against friends by display name.
- * Case and surrounding spaces are ignored. Names that match more than one friend are reported, not guessed.
+ * Case and surrounding spaces are ignored. Names that match more than one friend are reported, not guessed. Locked friends are never matched.
  * @param {object[]} rows
  * @param {string} text
  * @returns {{matched:object[], missing:string[], ambiguous:string[]}}
@@ -232,6 +257,7 @@ export function matchNames(rows, text) {
     const matched = [];
     const missing = [];
     const ambiguous = [];
+    const skippedLocked = [];
     for (const raw of String(text || '').split(/[,\n;]+/)) {
         const name = raw.trim();
         if (!name) continue;
@@ -241,9 +267,10 @@ export function matchNames(rows, text) {
         const hits = byName.get(key);
         if (!hits) missing.push(name);
         else if (hits.length > 1) ambiguous.push(name);
+        else if (hits[0].locked) skippedLocked.push(name);
         else matched.push(hits[0]);
     }
-    return { matched, missing, ambiguous };
+    return { matched, missing, ambiguous, skippedLocked };
 }
 
 /**

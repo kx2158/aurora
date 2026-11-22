@@ -14,6 +14,9 @@
                         {{ t('view.friends_manager.tab_suggested') }}
                         <small>{{ suggestions.length }}</small>
                     </button>
+                    <button type="button" :class="{ on: tab === 'organize' }" @click="tab = 'organize'">
+                        {{ t('view.friends_manager.tab_organize') }}
+                    </button>
                     <button type="button" :class="{ on: tab === 'names' }" @click="tab = 'names'">
                         {{ t('view.friends_manager.tab_names') }}
                     </button>
@@ -110,10 +113,30 @@
                     <span v-if="nameMatch.missing.length" class="a-pill warn">
                         {{ t('view.friends_manager.names_missing', { list: nameMatch.missing.join(', ') }) }}
                     </span>
+                    <span v-if="nameMatch.skippedLocked.length" class="a-pill">
+                        {{ t('view.friends_manager.names_locked', { list: nameMatch.skippedLocked.join(', ') }) }}
+                    </span>
                     <span v-if="nameMatch.ambiguous.length" class="a-pill bad">
                         {{ t('view.friends_manager.names_ambiguous', { list: nameMatch.ambiguous.join(', ') }) }}
                     </span>
                 </div>
+            </section>
+
+            <section v-else-if="tab === 'organize'" class="a-card fm-filters">
+                <div class="fm-top">
+                    <div class="a-seg">
+                        <button
+                            v-for="b in buckets"
+                            :key="b"
+                            type="button"
+                            :class="{ on: bucket === b }"
+                            @click="bucket = b">
+                            {{ t('view.friends_manager.b_' + b) }}
+                            <small>{{ organized[b].length }}</small>
+                        </button>
+                    </div>
+                </div>
+                <span class="fm-label fm-wide">{{ t('view.friends_manager.organize_note') }}</span>
             </section>
 
             <div v-else class="a-note warn">{{ t('view.friends_manager.suggest_note') }}</div>
@@ -140,6 +163,9 @@
                         @click="unfriendSelected">
                         {{ t('view.friends_manager.unfriend_selected', { n: selected.size }) }}
                     </button>
+                    <button v-if="selected.size" type="button" class="a-btn" @click="lockSelected">
+                        {{ t('view.friends_manager.lock_selected', { n: selected.size }) }}
+                    </button>
                     <button v-if="selected.size" type="button" class="a-btn" @click="selected = new Set()">
                         {{ t('view.friends_manager.clear') }}
                     </button>
@@ -155,6 +181,7 @@
                         type="checkbox"
                         class="fm-box"
                         :checked="selected.has(x.row.id)"
+                        :disabled="x.row.locked"
                         @change="toggle(x.row.id)" />
                     <button type="button" class="fm-who" @click="showUserDialog(x.row.id)">
                         <img v-if="x.row.photo" :src="x.row.photo" class="fm-avatar" loading="lazy" alt="" />
@@ -164,15 +191,23 @@
                             <span class="a-row-meta">{{ meta(x.row) }}</span>
                         </span>
                     </button>
+                    <span v-if="x.row.locked" class="a-pill ok">{{ t('view.friends_manager.locked') }}</span>
                     <span v-if="x.row.favorite" class="a-pill ok">{{ t('view.friends_manager.favorite') }}</span>
                     <span v-for="r in x.reasons" :key="r" class="a-pill warn">
                         {{ t('view.friends_manager.r_' + r) }}
                     </span>
-                    <span v-if="tab === 'suggested'" class="a-pill bad">{{ x.score }}</span>
+                    <span v-if="tab === 'suggested' || tab === 'organize'" class="a-pill bad">{{ x.score }}</span>
                     <button
                         type="button"
                         class="a-btn"
-                        :disabled="busy"
+                        :title="t(x.row.locked ? 'view.friends_manager.unlock' : 'view.friends_manager.lock')"
+                        @click="setLocked(x.row.id, !x.row.locked)">
+                        {{ t(x.row.locked ? 'view.friends_manager.unlock' : 'view.friends_manager.lock') }}
+                    </button>
+                    <button
+                        type="button"
+                        class="a-btn"
+                        :disabled="busy || x.row.locked"
                         :title="t('view.friends_manager.unfriend')"
                         @click="unfriendOne(x.row)">
                         {{ t('view.friends_manager.unfriend') }}
@@ -195,6 +230,7 @@
 
     import { friendRequest } from '../../api';
     import { fmtDuration } from '../../services/auroraStats';
+    import { initFriendLocks, lockedIds, setLocked, setManyLocked } from '../../services/friendLocks';
     import { handleFriendDelete } from '../../coordinators/friendRelationshipCoordinator';
     import { showUserDialog } from '../../coordinators/userCoordinator';
     import { useFriendStore, useModalStore } from '../../stores';
@@ -208,6 +244,7 @@
         exportText,
         matchNames,
         mutualBucket,
+        organizeFriends,
         suggestUnfriend
     } from '../../services/friendInsights';
 
@@ -228,12 +265,15 @@
     const selected = ref(new Set());
     const sorts = ['seen', 'seen_old', 'time', 'mutual', 'name'];
     const mutualKeys = ['none', 'few', 'some', 'many'];
+    const buckets = ['cut', 'maybe', 'keep'];
+    const bucket = ref('cut');
 
     const now = ref(Date.now());
 
     const rows = computed(() =>
         buildRows([...friends.value.values()], {
             favorites: allFavoriteFriendIds.value || new Set(),
+            locked: lockedIds.value,
             now: now.value
         })
     );
@@ -248,6 +288,7 @@
         return out;
     });
     const suggestions = computed(() => suggestUnfriend(rows.value, { now: now.value }));
+    const organized = computed(() => organizeFriends(rows.value, { now: now.value }));
 
     const namesText = ref('');
     const nameMatch = computed(() => matchNames(rows.value, namesText.value));
@@ -257,12 +298,15 @@
                 ? 'view.friends_manager.list'
                 : tab.value === 'names'
                   ? 'view.friends_manager.tab_names'
-                  : 'view.friends_manager.tab_suggested'
+                  : tab.value === 'organize'
+                    ? 'view.friends_manager.tab_organize'
+                    : 'view.friends_manager.tab_suggested'
         )
     );
 
     const shown = computed(() => {
         if (tab.value === 'suggested') return suggestions.value;
+        if (tab.value === 'organize') return organized.value[bucket.value];
         if (tab.value === 'names') return nameMatch.value.matched.map((row) => ({ row, reasons: [], score: 0 }));
         return filterRows(rows.value, {
             search: search.value,
@@ -274,7 +318,10 @@
         }).map((row) => ({ row, reasons: [], score: 0 }));
     });
     const visible = computed(() => shown.value.slice(0, limit.value));
-    const allSelected = computed(() => shown.value.length > 0 && shown.value.every((x) => selected.value.has(x.row.id)));
+    const selectable = computed(() => shown.value.filter((x) => !x.row.locked));
+    const allSelected = computed(
+        () => selectable.value.length > 0 && selectable.value.every((x) => selected.value.has(x.row.id))
+    );
 
     const tiles = computed(() => {
         const total = rows.value.length;
@@ -306,7 +353,7 @@
         ];
     });
 
-    watch([search, sort, hangout, language, mutual, tab], () => {
+    watch([search, sort, hangout, language, mutual, tab, bucket], () => {
         limit.value = 200;
     });
 
@@ -341,13 +388,21 @@
     }
 
     function toggle(id) {
+        if (lockedIds.value.has(id)) return;
         if (selected.value.has(id)) selected.value.delete(id);
         else selected.value.add(id);
         selected.value = new Set(selected.value);
     }
 
     function toggleAll() {
-        selected.value = allSelected.value ? new Set() : new Set(shown.value.map((x) => x.row.id));
+        selected.value = allSelected.value ? new Set() : new Set(selectable.value.map((x) => x.row.id));
+    }
+
+    function lockSelected() {
+        const ids = [...selected.value];
+        setManyLocked(ids, true);
+        selected.value = new Set();
+        toast.success(t('view.friends_manager.locked_n', { n: ids.length }));
     }
 
     async function load() {
@@ -365,6 +420,8 @@
     }
 
     async function removeIds(ids) {
+        ids = ids.filter((id) => !lockedIds.value.has(id));
+        if (!ids.length) return;
         busy.value = true;
         let done = 0;
         try {
@@ -385,6 +442,7 @@
     }
 
     function unfriendOne(row) {
+        if (row.locked) return;
         modalStore
             .confirm({
                 title: t('confirm.title'),
@@ -395,8 +453,8 @@
     }
 
     function unfriendSelected() {
-        const names = rows.value.filter((r) => selected.value.has(r.id)).map((r) => r.name);
-        const ids = [...selected.value];
+        const ids = [...selected.value].filter((id) => !lockedIds.value.has(id));
+        const names = rows.value.filter((r) => ids.includes(r.id)).map((r) => r.name);
         if (!ids.length) return;
         modalStore
             .confirm({
@@ -425,6 +483,7 @@
 
     onMounted(() => {
         now.value = Date.now();
+        initFriendLocks();
         load();
     });
 
@@ -465,6 +524,9 @@
         flex: none;
         font-size: 0.75rem;
         color: var(--a-muted);
+    }
+    .fm-wide {
+        width: auto;
     }
     .fm-bar {
         display: flex;

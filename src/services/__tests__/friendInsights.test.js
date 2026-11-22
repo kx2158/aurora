@@ -11,6 +11,7 @@ import {
     languagesOf,
     matchNames,
     mutualBucket,
+    organizeFriends,
     suggestUnfriend,
     unfriendScore
 } from '../friendInsights';
@@ -113,5 +114,30 @@ describe('friendInsights', () => {
         const text = exportText(rows);
         expect(text).toContain('Anna\nhi\nthere');
         expect(text).toContain('Bob\n(no bio)');
+    });
+    it('never scores, suggests or matches a locked friend', () => {
+        const ctxs = [ctx('gone', { $lastSeen: ago(900), $mutualCount: 0 }), ctx('safe', { $lastSeen: ago(900), $mutualCount: 0 })];
+        const rows = buildRows(ctxs, { now: NOW, locked: new Set(['safe']) });
+        expect(rows.find((r) => r.id === 'safe').locked).toBe(true);
+        expect(unfriendScore(rows.find((r) => r.id === 'safe'), NOW).score).toBe(0);
+        expect(suggestUnfriend(rows, { now: NOW }).map((x) => x.row.id)).toEqual(['gone']);
+        const m = matchNames(rows, 'gone, safe');
+        expect(m.matched.map((r) => r.id)).toEqual(['gone']);
+        expect(m.skippedLocked).toEqual(['safe']);
+    });
+
+    it('organizes friends into keep, maybe and cut', () => {
+        const rows = buildRows(
+            [
+                ctx('stranger', { $lastSeen: ago(900), $mutualCount: 0 }),
+                ctx('pal', { $lastSeen: ago(1), $mutualCount: 20, $timeSpent: 10 * 3600000, $joinCount: 30 }),
+                ctx('locked', { $lastSeen: ago(900), $mutualCount: 0 })
+            ],
+            { now: NOW, locked: new Set(['locked']) }
+        );
+        const out = organizeFriends(rows, { now: NOW });
+        expect(out.cut.map((x) => x.row.id)).toEqual(['stranger']);
+        expect(out.keep.map((x) => x.row.id)).toEqual(['locked', 'pal']);
+        expect(out.maybe).toEqual([]);
     });
 });

@@ -14,6 +14,9 @@
                         {{ t('view.friends_manager.tab_suggested') }}
                         <small>{{ suggestions.length }}</small>
                     </button>
+                    <button type="button" :class="{ on: tab === 'names' }" @click="tab = 'names'">
+                        {{ t('view.friends_manager.tab_names') }}
+                    </button>
                 </div>
             </header>
 
@@ -95,11 +98,29 @@
                 </div>
             </section>
 
+            <section v-else-if="tab === 'names'" class="a-card fm-filters">
+                <span class="fm-label">{{ t('view.friends_manager.names_label') }}</span>
+                <textarea
+                    v-model="namesText"
+                    class="fm-names"
+                    rows="3"
+                    :placeholder="t('view.friends_manager.names_placeholder')"></textarea>
+                <div v-if="namesText.trim()" class="fm-group">
+                    <span class="a-pill ok">{{ t('view.friends_manager.names_found', { n: nameMatch.matched.length }) }}</span>
+                    <span v-if="nameMatch.missing.length" class="a-pill warn">
+                        {{ t('view.friends_manager.names_missing', { list: nameMatch.missing.join(', ') }) }}
+                    </span>
+                    <span v-if="nameMatch.ambiguous.length" class="a-pill bad">
+                        {{ t('view.friends_manager.names_ambiguous', { list: nameMatch.ambiguous.join(', ') }) }}
+                    </span>
+                </div>
+            </section>
+
             <div v-else class="a-note warn">{{ t('view.friends_manager.suggest_note') }}</div>
 
             <section class="a-card">
                 <h2 class="a-h2">
-                    {{ tab === 'all' ? t('view.friends_manager.list') : t('view.friends_manager.tab_suggested') }}
+                    {{ listTitle }}
                     <span class="a-h2-aside">{{ shown.length }}</span>
                 </h2>
 
@@ -119,8 +140,11 @@
                         @click="unfriendSelected">
                         {{ t('view.friends_manager.unfriend_selected', { n: selected.size }) }}
                     </button>
-                    <button v-if="selected.size" type="button" class="a-btn" @click="selected.clear()">
+                    <button v-if="selected.size" type="button" class="a-btn" @click="selected = new Set()">
                         {{ t('view.friends_manager.clear') }}
+                    </button>
+                    <button type="button" class="a-btn" @click="exportFile">
+                        {{ selected.size ? t('view.friends_manager.export_selected') : t('view.friends_manager.export') }}
                     </button>
                 </div>
 
@@ -181,6 +205,8 @@
         filterRows,
         hangoutCounts,
         languageCounts,
+        exportText,
+        matchNames,
         mutualBucket,
         suggestUnfriend
     } from '../../services/friendInsights';
@@ -223,8 +249,21 @@
     });
     const suggestions = computed(() => suggestUnfriend(rows.value, { now: now.value }));
 
+    const namesText = ref('');
+    const nameMatch = computed(() => matchNames(rows.value, namesText.value));
+    const listTitle = computed(() =>
+        t(
+            tab.value === 'all'
+                ? 'view.friends_manager.list'
+                : tab.value === 'names'
+                  ? 'view.friends_manager.tab_names'
+                  : 'view.friends_manager.tab_suggested'
+        )
+    );
+
     const shown = computed(() => {
         if (tab.value === 'suggested') return suggestions.value;
+        if (tab.value === 'names') return nameMatch.value.matched.map((row) => ({ row, reasons: [], score: 0 }));
         return filterRows(rows.value, {
             search: search.value,
             hangout: hangout.value,
@@ -269,6 +308,11 @@
 
     watch([search, sort, hangout, language, mutual, tab], () => {
         limit.value = 200;
+    });
+
+    // typing a list selects everyone it matches, so one click on Unfriend finishes the job
+    watch(nameMatch, (m) => {
+        if (tab.value === 'names') selected.value = new Set(m.matched.map((r) => r.id));
     });
 
     function langName(key) {
@@ -351,7 +395,7 @@
     }
 
     function unfriendSelected() {
-        const names = shown.value.filter((x) => selected.value.has(x.row.id)).map((x) => x.row.name);
+        const names = rows.value.filter((r) => selected.value.has(r.id)).map((r) => r.name);
         const ids = [...selected.value];
         if (!ids.length) return;
         modalStore
@@ -361,6 +405,22 @@
             })
             .then(({ ok }) => ok && removeIds(ids))
             .catch(() => {});
+    }
+
+    function exportFile() {
+        const list = selected.value.size
+            ? rows.value.filter((r) => selected.value.has(r.id))
+            : shown.value.map((x) => x.row);
+        if (!list.length) return;
+        const blob = new Blob([exportText(list)], { type: 'text/plain;charset=utf-8' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `aurora-friends-${new Date().toISOString().slice(0, 10)}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+        toast.success(t('view.friends_manager.exported', { n: list.length }));
     }
 
     onMounted(() => {
@@ -437,6 +497,16 @@
         height: 32px;
         border-radius: 50%;
         object-fit: cover;
+    }
+    .fm-names {
+        width: 100%;
+        padding: 8px 12px;
+        border-radius: 10px;
+        border: 1px solid var(--a-line);
+        background: transparent;
+        color: var(--foreground);
+        font-size: 0.86rem;
+        resize: vertical;
     }
     .fm-more {
         margin-top: 12px;

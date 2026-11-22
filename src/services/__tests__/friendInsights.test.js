@@ -3,11 +3,13 @@ import { describe, expect, it } from 'vitest';
 import {
     DAY,
     buildRows,
+    exportText,
     filterRows,
     hangoutBucket,
     hangoutCounts,
     languageCounts,
     languagesOf,
+    matchNames,
     mutualBucket,
     suggestUnfriend,
     unfriendScore
@@ -96,5 +98,20 @@ describe('friendInsights', () => {
         expect(filterRows(rows, { sort: 'mutual', now: NOW })[0].id).toBe('anna');
         expect(hangoutCounts(rows, NOW).week).toBe(1);
         expect(languageCounts(rows)[0].count).toBe(1);
+    });
+
+    it('matches a typed list of usernames', () => {
+        const rows = buildRows([ctx('Anna', {}), ctx('Bob', {}), ctx('bob', {}), ctx('Cy', {})], { now: NOW });
+        const r = matchNames(rows, ' anna ,CY, nobody, bob,\nanna');
+        expect(r.matched.map((x) => x.id)).toEqual(['Anna', 'Cy']);
+        expect(r.missing).toEqual(['nobody']);
+        expect(r.ambiguous).toEqual(['bob']);
+    });
+
+    it('exports names with their bios', () => {
+        const rows = buildRows([ctx('Anna', { bio: 'hi\r\nthere' }), ctx('Bob', {})], { now: NOW });
+        const text = exportText(rows);
+        expect(text).toContain('Anna\nhi\nthere');
+        expect(text).toContain('Bob\n(no bio)');
     });
 });

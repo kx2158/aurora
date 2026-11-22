@@ -1872,7 +1872,16 @@
             "confirm_title": "Unfriend {n} friends?",
             "confirm_many": "This can lower your trust rank and cannot be undone.\n\n{list}",
             "done": "Unfriended {n}",
-            "failed": "Something went wrong while unfriending"
+            "failed": "Something went wrong while unfriending",
+            "tab_names": "Remove by name",
+            "names_label": "Usernames to remove, separated by commas",
+            "names_placeholder": "username1, username2, username3",
+            "names_found": "{n} found",
+            "names_missing": "Not on your friends list: {list}",
+            "names_ambiguous": "More than one friend has this name, skipped: {list}",
+            "export": "Export names and bios",
+            "export_selected": "Export selected",
+            "exported": "Saved {n} friends to a text file"
         }
     },
     "dialog": {

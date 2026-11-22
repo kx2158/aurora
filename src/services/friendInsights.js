@@ -79,7 +79,8 @@ export function buildRows(ctxs, { favorites = new Set(), now = Date.now() } = {}
             friendNumber: ref.$friendNumber || 0,
             since,
             favorite: favorites.has(ctx.id) || !!ctx.isVIP,
-            hasMemo: !!(ref.$memo || ref.note)
+            hasMemo: !!(ref.$memo || ref.note),
+            bio: typeof ref.bio === 'string' ? ref.bio : ''
         });
     }
     return rows;
@@ -211,4 +212,49 @@ export function hangoutCounts(rows, now = Date.now()) {
     const counts = Object.fromEntries(HANGOUT_BUCKETS.map((b) => [b.key, 0]));
     for (const r of rows) counts[hangoutBucket(r, now)]++;
     return counts;
+}
+
+/**
+ * Match a typed list ("name1, name2, name3" or one per line) against friends by display name.
+ * Case and surrounding spaces are ignored. Names that match more than one friend are reported, not guessed.
+ * @param {object[]} rows
+ * @param {string} text
+ * @returns {{matched:object[], missing:string[], ambiguous:string[]}}
+ */
+export function matchNames(rows, text) {
+    const byName = new Map();
+    for (const r of rows) {
+        const k = r.name.trim().toLowerCase();
+        if (!byName.has(k)) byName.set(k, []);
+        byName.get(k).push(r);
+    }
+    const seen = new Set();
+    const matched = [];
+    const missing = [];
+    const ambiguous = [];
+    for (const raw of String(text || '').split(/[,\n;]+/)) {
+        const name = raw.trim();
+        if (!name) continue;
+        const key = name.toLowerCase();
+        if (seen.has(key)) continue;
+        seen.add(key);
+        const hits = byName.get(key);
+        if (!hits) missing.push(name);
+        else if (hits.length > 1) ambiguous.push(name);
+        else matched.push(hits[0]);
+    }
+    return { matched, missing, ambiguous };
+}
+
+/**
+ * A plain text file of names and bios, one block per friend.
+ * @param {object[]} rows
+ * @returns {string}
+ */
+export function exportText(rows) {
+    const blocks = rows.map((r) => {
+        const bio = r.bio.replace(/\r\n?/g, '\n').trim();
+        return bio ? `${r.name}\n${bio}` : `${r.name}\n(no bio)`;
+    });
+    return blocks.join('\n\n----------\n\n') + '\n';
 }

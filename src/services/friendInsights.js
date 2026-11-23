@@ -285,3 +285,88 @@ export function exportText(rows) {
     });
     return blocks.join('\n\n----------\n\n') + '\n';
 }
+
+/**
+ * Your recent friend changes, newest first, one per person (their latest change in the window).
+ * @param {Array<{type:string,userId:string,displayName?:string,created_at?:string}>} history newest first
+ * @param {{types?:string[], days?:number, now?:number}} opts days 0 means all time
+ * @returns {Array<{userId:string,name:string,type:string,at:number}>}
+ */
+export function recentChanges(history, { types = ['Unfriend', 'Friend'], days = 30, now = Date.now() } = {}) {
+    const since = days > 0 ? now - days * DAY : 0;
+    const seen = new Set();
+    const out = [];
+    for (const h of history || []) {
+        if (h.type !== 'Friend' && h.type !== 'Unfriend') continue;
+        if (!h.userId) continue;
+        const at = toMs(h.created_at);
+        if (since && at < since) continue;
+        if (seen.has(h.userId)) continue;
+        seen.add(h.userId);
+        if (types.includes(h.type)) out.push({ userId: h.userId, name: h.displayName || h.userId, type: h.type, at });
+    }
+    return out.sort((a, b) => b.at - a.at);
+}
+
+/**
+ * The file you hand to a friend.
+ * @param {Array<{userId:string,name:string,type:string,at:number}>} entries
+ * @param {number} now
+ */
+export function changesFileText(entries, now = Date.now()) {
+    return JSON.stringify(
+        {
+            app: 'aurora-friend-changes',
+            version: 1,
+            exportedAt: new Date(now).toISOString(),
+            entries: entries.map((e) => ({
+                userId: e.userId,
+                name: e.name,
+                type: e.type,
+                at: e.at ? new Date(e.at).toISOString() : null
+            }))
+        },
+        null,
+        2
+    );
+}
+
+/**
+ * Reads a changes file. Accepts the JSON above, or any text with VRChat user ids (usr_...) in it,
+ * which counts as a list of unfriended people.
+ * @param {string} text
+ * @returns {Array<{userId:string,name:string,type:string,at:number}>}
+ */
+export function parseChangesFile(text) {
+    const src = String(text || '');
+    try {
+        const data = JSON.parse(src);
+        if (data && data.app === 'aurora-friend-changes' && Array.isArray(data.entries)) {
+            return data.entries
+                .filter((e) => e && typeof e.userId === 'string' && /^usr_[0-9a-f-]+$/i.test(e.userId))
+                .map((e) => ({
+                    userId: e.userId,
+                    name: typeof e.name === 'string' ? e.name : e.userId,
+                    type: e.type === 'Friend' ? 'Friend' : 'Unfriend',
+                    at: toMs(e.at)
+                }));
+        }
+    } catch {
+        // not JSON, fall through to the plain id list
+    }
+    const ids = [...new Set(src.match(/usr_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi) || [])];
+    return ids.map((userId) => ({ userId, name: userId, type: 'Unfriend', at: 0 }));
+}
+
+/**
+ * Which of your friends are in a changes file.
+ * @param {object[]} rows from buildRows
+ * @param {Array<{userId:string,type:string}>} entries
+ * @param {string[]} types which kind of change to act on
+ * @returns {{matched:object[], notFriends:number}}
+ */
+export function matchChanges(rows, entries, types = ['Unfriend']) {
+    const wanted = new Set(entries.filter((e) => types.includes(e.type)).map((e) => e.userId));
+    const matched = rows.filter((r) => wanted.has(r.id));
+    return { matched, notFriends: wanted.size - matched.length };
+}

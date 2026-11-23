@@ -17,6 +17,9 @@
                     <button type="button" :class="{ on: tab === 'organize' }" @click="tab = 'organize'">
                         {{ t('view.friends_manager.tab_organize') }}
                     </button>
+                    <button type="button" :class="{ on: tab === 'changes' }" @click="tab = 'changes'">
+                        {{ t('view.friends_manager.tab_changes') }}
+                    </button>
                     <button type="button" :class="{ on: tab === 'names' }" @click="tab = 'names'">
                         {{ t('view.friends_manager.tab_names') }}
                     </button>
@@ -139,9 +142,11 @@
                 <span class="fm-label fm-wide">{{ t('view.friends_manager.organize_note') }}</span>
             </section>
 
-            <div v-else class="a-note warn">{{ t('view.friends_manager.suggest_note') }}</div>
+            <div v-else-if="tab === 'suggested'" class="a-note warn">{{ t('view.friends_manager.suggest_note') }}</div>
 
-            <section class="a-card">
+            <FriendChanges v-if="tab === 'changes'" :rows="rows" :busy="busy" @unfriend="confirmUnfriendIds" />
+
+            <section v-else class="a-card">
                 <h2 class="a-h2">
                     {{ listTitle }}
                     <span class="a-h2-aside">{{ shown.length }}</span>
@@ -228,6 +233,7 @@
     import { toast } from 'vue-sonner';
     import { useI18n } from 'vue-i18n';
 
+    import FriendChanges from './FriendChanges.vue';
     import { friendRequest } from '../../api';
     import { fmtDuration } from '../../services/auroraStats';
     import { initFriendLocks, lockedIds, setLocked, setManyLocked } from '../../services/friendLocks';
@@ -453,7 +459,11 @@
     }
 
     function unfriendSelected() {
-        const ids = [...selected.value].filter((id) => !lockedIds.value.has(id));
+        confirmUnfriendIds([...selected.value]);
+    }
+
+    function confirmUnfriendIds(all) {
+        const ids = all.filter((id) => !lockedIds.value.has(id));
         const names = rows.value.filter((r) => ids.includes(r.id)).map((r) => r.name);
         if (!ids.length) return;
         modalStore

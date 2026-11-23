@@ -60,16 +60,24 @@ internal static class Program
         _shownEnabled = enabled;
     }
 
-    /// <summary>True when the switch was clicked since the last call.</summary>
-    private static bool SwitchClicked()
+    /// <summary>The tile is 512 wide: the left part (x below this) is the on/off switch, the right part is Reset.
+    /// tools/spacedrag_dash_images.py draws the tile on the same split.</summary>
+    private const float ResetSplitX = 316f;
+
+    /// <summary>What was clicked on the dashboard tile since the last call.</summary>
+    private static void TileClicks(out bool toggle, out bool reset)
     {
+        toggle = false;
+        reset = false;
         var overlay = OpenVR.Overlay;
-        if (overlay == null || _dashMain == 0) return false;
-        var clicked = false;
+        if (overlay == null || _dashMain == 0) return;
         var e = new VREvent_t();
         while (overlay.PollNextOverlayEvent(_dashMain, ref e, (uint)Marshal.SizeOf(e)))
-            if ((EVREventType)e.eventType == EVREventType.VREvent_MouseButtonDown) clicked = true;
-        return clicked;
+        {
+            if ((EVREventType)e.eventType != EVREventType.VREvent_MouseButtonDown) continue;
+            if (e.data.mouse.x < ResetSplitX) toggle = true;
+            else reset = true;
+        }
     }
 
     [STAThread]
@@ -292,8 +300,10 @@ internal static class Program
                 continue;
             }
 
-            // the switch in the SteamVR dashboard: one click flips "enabled" and saves it, so Aurora's card follows
-            if (SwitchClicked())
+            // the tile in the SteamVR dashboard: the switch flips "enabled" and saves it, so Aurora's card follows;
+            // the Reset button puts the play space back
+            TileClicks(out var clickedSwitch, out var clickedReset);
+            if (clickedSwitch)
             {
                 settings.Enabled = !settings.Enabled;
                 settings.Save(_settingsPath);
@@ -304,7 +314,7 @@ internal static class Program
             status.Enabled = settings.Enabled;
 
             // reset request from the card
-            if (settings.ResetCounter != seenReset)
+            if (settings.ResetCounter != seenReset || clickedReset)
             {
                 seenReset = settings.ResetCounter;
                 var setup = OpenVR.ChaperoneSetup;

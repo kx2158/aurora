@@ -3,13 +3,17 @@ import { describe, expect, it } from 'vitest';
 import {
     DAY,
     buildRows,
+    changesFileText,
     exportText,
     filterRows,
     hangoutBucket,
     hangoutCounts,
     languageCounts,
     languagesOf,
+    matchChanges,
     matchNames,
+    parseChangesFile,
+    recentChanges,
     mutualBucket,
     organizeFriends,
     suggestUnfriend,
@@ -139,5 +143,48 @@ describe('friendInsights', () => {
         expect(out.cut.map((x) => x.row.id)).toEqual(['stranger']);
         expect(out.keep.map((x) => x.row.id)).toEqual(['locked', 'pal']);
         expect(out.maybe).toEqual([]);
+    });
+
+    it('lists recent changes, latest per person, inside the window', () => {
+        const h = [
+            { type: 'Friend', userId: 'usr_a', displayName: 'A', created_at: ago(1) },
+            { type: 'Unfriend', userId: 'usr_b', displayName: 'B', created_at: ago(2) },
+            { type: 'Friend', userId: 'usr_b', displayName: 'B', created_at: ago(40) },
+            { type: 'Unfriend', userId: 'usr_c', displayName: 'C', created_at: ago(60) },
+            { type: 'DisplayName', userId: 'usr_d', displayName: 'D', created_at: ago(1) }
+        ];
+        const un = recentChanges(h, { types: ['Unfriend'], days: 30, now: NOW });
+        expect(un.map((e) => e.userId)).toEqual(['usr_b']);
+        expect(recentChanges(h, { types: ['Unfriend'], days: 0, now: NOW }).map((e) => e.userId)).toEqual([
+            'usr_b',
+            'usr_c'
+        ]);
+        expect(recentChanges(h, { days: 30, now: NOW }).map((e) => e.userId)).toEqual(['usr_a', 'usr_b']);
+    });
+
+    it('round trips a changes file and matches friends by id', () => {
+        const id1 = 'usr_11111111-1111-1111-1111-111111111111';
+        const id2 = 'usr_22222222-2222-2222-2222-222222222222';
+        const text = changesFileText(
+            [
+                { userId: id1, name: 'One', type: 'Unfriend', at: NOW },
+                { userId: id2, name: 'Two', type: 'Friend', at: NOW }
+            ],
+            NOW
+        );
+        const entries = parseChangesFile(text);
+        expect(entries.map((e) => e.type)).toEqual(['Unfriend', 'Friend']);
+        const rows = buildRows([ctx(id1, {}), ctx(id2, {}), ctx('usr_other', {})], { now: NOW });
+        const m = matchChanges(rows, entries, ['Unfriend']);
+        expect(m.matched.map((r) => r.id)).toEqual([id1]);
+        expect(m.notFriends).toBe(0);
+        expect(matchChanges([], entries, ['Unfriend']).notFriends).toBe(1);
+    });
+
+    it('reads a plain list of user ids and ignores junk', () => {
+        const id = 'usr_33333333-3333-3333-3333-333333333333';
+        expect(parseChangesFile(`hello ${id}, ${id}\nnope`).map((e) => e.userId)).toEqual([id]);
+        expect(parseChangesFile('{"app":"other"}')).toEqual([]);
+        expect(parseChangesFile('')).toEqual([]);
     });
 });

@@ -1892,7 +1892,23 @@
             "names_locked": "Locked, skipped: {list}",
             "export": "Export names and bios",
             "export_selected": "Export selected",
-            "exported": "Saved {n} friends to a text file"
+            "exported": "Saved {n} friends to a text file",
+            "tab_changes": "Share changes",
+            "ch_export_title": "Export your recent changes",
+            "ch_export_note": "Pick who to include and save a file you can send to a friend. They load it in their own Friends manager to unfriend the same people.",
+            "ch_days": "{n} days",
+            "ch_all": "All time",
+            "ch_unfriended": "Unfriended",
+            "ch_added": "Added",
+            "ch_none": "No changes in this period.",
+            "ch_export": "Export {n}",
+            "ch_exported": "Saved {n} people to a file",
+            "ch_import_title": "Load a file from a friend",
+            "ch_import_note": "Choose a changes file. Anyone in it who is also your friend is selected, and you confirm before anything is removed.",
+            "ch_pick_file": "Choose file",
+            "ch_bad_file": "No friends found in that file.",
+            "ch_not_friends": "{n} not on your friends list",
+            "ch_locked": "{n} locked, skipped"
         }
     },
     "dialog": {

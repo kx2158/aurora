@@ -33,53 +33,6 @@ internal static class Program
     private static string _statusPath;
     private static string _baseDir;
 
-    // the one-button switch that lives in the SteamVR dashboard
-    private const string OverlayKey = "aurora.spacedrag.switch";
-    private static ulong _dashMain, _dashThumb;
-    private static bool? _shownEnabled;
-
-    private static void CreateSwitch()
-    {
-        var overlay = OpenVR.Overlay;
-        if (overlay == null) return;
-        _dashMain = 0; _dashThumb = 0; _shownEnabled = null;
-        if (overlay.CreateDashboardOverlay(OverlayKey, "Space Drag", ref _dashMain, ref _dashThumb) != EVROverlayError.None) { _dashMain = 0; return; }
-        overlay.SetOverlayWidthInMeters(_dashMain, 1.0f);
-        overlay.SetOverlayInputMethod(_dashMain, VROverlayInputMethod.Mouse);
-        var scale = new HmdVector2_t { v0 = 512f, v1 = 256f };
-        overlay.SetOverlayMouseScale(_dashMain, ref scale);
-    }
-
-    private static void ShowSwitch(bool enabled)
-    {
-        var overlay = OpenVR.Overlay;
-        if (overlay == null || _dashMain == 0 || _shownEnabled == enabled) return;
-        var n = enabled ? "on" : "off";
-        overlay.SetOverlayFromFile(_dashMain, Path.Join(_baseDir, "openvr", "dash_" + n + ".png"));
-        if (_dashThumb != 0) overlay.SetOverlayFromFile(_dashThumb, Path.Join(_baseDir, "openvr", "thumb_" + n + ".png"));
-        _shownEnabled = enabled;
-    }
-
-    /// <summary>The tile is 512 wide: the left part (x below this) is the on/off switch, the right part is Reset.
-    /// tools/spacedrag_dash_images.py draws the tile on the same split.</summary>
-    private const float ResetSplitX = 316f;
-
-    /// <summary>What was clicked on the dashboard tile since the last call.</summary>
-    private static void TileClicks(out bool toggle, out bool reset)
-    {
-        toggle = false;
-        reset = false;
-        var overlay = OpenVR.Overlay;
-        if (overlay == null || _dashMain == 0) return;
-        var e = new VREvent_t();
-        while (overlay.PollNextOverlayEvent(_dashMain, ref e, (uint)Marshal.SizeOf(e)))
-        {
-            if ((EVREventType)e.eventType != EVREventType.VREvent_MouseButtonDown) continue;
-            if (e.data.mouse.x < ResetSplitX) toggle = true;
-            else reset = true;
-        }
-    }
-
     [STAThread]
     private static int Main(string[] args)
     {
@@ -254,7 +207,6 @@ internal static class Program
                 OpenVR.Input.GetActionSetHandle(ActionSet, ref setHandle);
                 OpenVR.Input.GetActionHandle(ActionLeft, ref leftAction);
                 OpenVR.Input.GetActionHandle(ActionRight, ref rightAction);
-                CreateSwitch();
                 inited = true;
                 status.SteamVr = true;
                 applied = null;
@@ -287,7 +239,6 @@ internal static class Program
 
             if (quit)
             {
-                _dashMain = 0; _dashThumb = 0;
                 system.AcknowledgeQuit_Exiting();
                 OpenVR.Shutdown();
                 inited = false;
@@ -300,21 +251,10 @@ internal static class Program
                 continue;
             }
 
-            // the tile in the SteamVR dashboard: the switch flips "enabled" and saves it, so Aurora's card follows;
-            // the Reset button puts the play space back
-            TileClicks(out var clickedSwitch, out var clickedReset);
-            if (clickedSwitch)
-            {
-                settings.Enabled = !settings.Enabled;
-                settings.Save(_settingsPath);
-                settingsStamp = File.Exists(_settingsPath) ? File.GetLastWriteTimeUtc(_settingsPath) : DateTime.MinValue;
-            }
-
-            ShowSwitch(settings.Enabled);
             status.Enabled = settings.Enabled;
 
-            // reset request from the card
-            if (settings.ResetCounter != seenReset || clickedReset)
+            // reset request from Aurora (its card, or the Space drag buttons in the Aurora SteamVR dashboard)
+            if (settings.ResetCounter != seenReset)
             {
                 seenReset = settings.ResetCounter;
                 var setup = OpenVR.ChaperoneSetup;

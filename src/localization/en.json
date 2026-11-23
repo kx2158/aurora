@@ -1729,7 +1729,9 @@
             "title_sticker": "Stickers",
             "desc_sticker": "Turn a picture, GIF or short video into a VRChat sticker: one still picture you place on walls and surfaces. Fill crops to the square, fit shows all of it.",
             "title_emoji": "Animated emoji",
-            "desc_emoji": "Turn a GIF or short video into a VRChat animated emoji. VRChat only animates emoji, not stickers, so animations live here."
+            "desc_emoji": "Turn a GIF or short video into a VRChat animated emoji. VRChat only animates emoji, not stickers, so animations live here.",
+            "converting": "Making GIF...",
+            "save_gif": "Save GIF"
         },
         "space_drag": {
             "title": "Space drag",

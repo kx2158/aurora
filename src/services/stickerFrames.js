@@ -204,6 +204,18 @@ async function decodeVideoNative(file) {
 export async function openSource(file) {
     const type = guessType(file.name, file.type);
     if (isVideoType(type)) {
+        // Aurora's browser engine has no H.264, so MP4 and MOV go straight to Windows instead of waiting for the browser to fail
+        const probe = document.createElement('video');
+        const browserCanPlay = probe.canPlayType('video/mp4; codecs="avc1.42E01E"') !== '';
+        const isMp4Family = /mp4|quicktime|x-m4v/.test(type);
+        if (isMp4Family && !browserCanPlay && nativeApi()) {
+            try {
+                return await decodeVideoNative(file);
+            } catch (err) {
+                console.warn('sticker maker: Windows could not read this video, trying the browser', err);
+            }
+            return decodeVideo(file);
+        }
         try {
             return await decodeVideo(file);
         } catch (err) {

@@ -1758,7 +1758,8 @@
             "title_emoji": "Animated emoji",
             "desc_emoji": "Turn a GIF or short video into a VRChat animated emoji. VRChat only animates emoji, not stickers, so animations live here.",
             "converting": "Making GIF...",
-            "save_gif": "Save GIF"
+            "save_gif": "Save GIF",
+            "still_only": "Stickers take still pictures only. Moving pictures and videos go in the Emoji tab."
         },
         "space_drag": {
             "title": "Space drag",

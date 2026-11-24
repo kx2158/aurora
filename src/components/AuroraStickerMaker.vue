@@ -8,7 +8,7 @@
                 @dragover.prevent="dragOver = true"
                 @dragleave="dragOver = false"
                 @drop.prevent="onDrop">
-                <input ref="inputRef" type="file" :accept="ACCEPT" style="display: none" @change="onPick" />
+                <input ref="inputRef" type="file" :accept="acceptTypes" style="display: none" @change="onPick" />
                 <Sparkles class="size-6 opacity-70" />
                 <div class="text-sm font-medium">
                     {{ loading ? t('view.sticker_maker.reading') : t('view.sticker_maker.drop') }}
@@ -183,6 +183,9 @@
     const emit = defineEmits(['uploaded']);
     const { t } = useI18n();
 
+    // stickers take still pictures only; the emoji tab takes anything that moves too
+    const STILL_ACCEPT = 'image/png,image/jpeg,image/webp,image/gif,.png,.jpg,.jpeg,.webp,.gif';
+    const acceptTypes = computed(() => (props.kind === 'sticker' ? STILL_ACCEPT : ACCEPT));
     const ACCEPT = 'image/gif,image/webp,image/png,image/apng,image/jpeg,video/mp4,video/webm,video/quicktime,.gif,.webp,.png,.apng,.jpg,.jpeg,.mp4,.m4v,.mov,.webm,.mkv,.avi,.wmv';
     const PREVIEW = 220;
 
@@ -280,6 +283,10 @@
         try {
             dispose();
             const src = await openSource(file);
+            if (props.kind === 'sticker' && src.kind !== 'still') {
+                toast.error(t('view.sticker_maker.still_only'));
+                return;
+            }
             convertedGif.value = null;
             source.value = src;
             fileName.value = file.name;

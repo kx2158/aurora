@@ -43,6 +43,8 @@ jobs:
 
   screenshots:
     runs-on: ubuntu-24.04
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
@@ -61,6 +63,18 @@ jobs:
           for i in $(seq 1 60); do curl -sf http://localhost:9000/preview.html > /dev/null && break; sleep 2; done
       - name: Screenshots
         run: node tools/preview/shoot.mjs http://localhost:9000 shots
+      - name: Publish screenshots to the ci-shots branch (so they can be looked at)
+        if: always() && github.event_name == 'push'
+        run: |
+          git config user.name "ci"
+          git config user.email "ci@users.noreply.github.com"
+          git checkout --orphan ci-shots-tmp
+          git rm -rf . -q || true
+          cp shots/*.jpg . 2>/dev/null || true
+          cp shots/console.txt . 2>/dev/null || true
+          git add -f *.jpg console.txt 2>/dev/null || true
+          git commit -q -m "screenshots for ${GITHUB_SHA}" || true
+          git push -f origin HEAD:refs/heads/ci-shots
       - name: Print screenshots (base64, for remote review)
         if: always()
         run: |

@@ -1464,3 +1464,19 @@
     background: transparent !important;
     box-shadow: none !important;
 }
+
+/* a little room between a name and what it did */
+.au-name + .au-meta {
+    margin-left: 10px;
+}
+/* on a narrower window the big character sits quietly behind the text instead of dropping below it */
+@media (max-width: 1700px) {
+    .au-page > .stage {
+        position: absolute;
+        inset: 0 0 0 auto;
+        width: 46%;
+        min-height: 0;
+        opacity: 0.22;
+        pointer-events: none;
+    }
+}

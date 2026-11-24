@@ -270,6 +270,7 @@
     import FriendReview from './FriendReview.vue';
     import GroupsManager from './GroupsManager.vue';
     import { friendRequest } from '../../api';
+    import { ageCache, fetchMissingAges, initAgeCache, withCachedAge } from '../../services/ageCache';
     import { fmtDuration } from '../../services/auroraStats';
     import { initDecisions } from '../../services/decisionNotes';
     import { initFriendLocks, lockedIds, setLocked, setManyLocked } from '../../services/friendLocks';
@@ -319,7 +320,7 @@
             favorites: allFavoriteFriendIds.value || new Set(),
             locked: lockedIds.value,
             now: now.value
-        })
+        }).map((r) => withCachedAge(r, ageCache.value))
     );
     const hangouts = computed(() => hangoutCounts(rows.value, now.value));
     const languages = computed(() => languageCounts(rows.value));
@@ -491,6 +492,9 @@
             now.value = Date.now();
             loading.value = false;
         }
+        // age verification: looked up once per friend, then remembered; later only new friends are asked about
+        await initAgeCache();
+        fetchMissingAges(rows.value.filter((r) => r.age === 'unknown').map((r) => r.id));
     }
 
     async function removeIds(ids) {

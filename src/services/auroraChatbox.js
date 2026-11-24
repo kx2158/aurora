@@ -6,6 +6,7 @@
 import { ref, watch } from 'vue';
 
 import configRepository from './config';
+import { animFrame, hasAnimation } from './chatboxAnim';
 import { useFriendStore, useGameStore, useLocationStore } from '../stores';
 
 export const chatboxEnabled = ref(false);
@@ -38,6 +39,12 @@ let lastSentAt = 0;
 let nudgeTimer = null;
 // VRChat asks for no more than one chatbox message about every 1.5 seconds
 const MIN_GAP = 1600;
+// a message you send through Aurora stays up at least this long before anything else replaces it
+export const HOLD_MS = 7000;
+let holdUntil = 0;
+
+let animTimer = null;
+let frame = 0;
 
 export async function initChatbox() {
     if (loaded) {
@@ -98,6 +105,10 @@ export function sendChatboxNow(text, typingFirst = false) {
         return;
     }
     AppApi.SendOscChatbox(renderChatbox(line), true, chatboxNotify.value, 9000);
+    // keep this message on screen: nothing else (rotation, animation, nudges) may replace it for a while
+    holdUntil = Date.now() + HOLD_MS;
+    lastSentAt = Date.now();
+    lastSent = '';
     if (typingFirst) {
         AppApi.SendOscTyping(false, 9000);
     }
@@ -158,7 +169,11 @@ export function renderChatbox(template) {
         cpu: sysInfo.value.cpu != null ? `${sysInfo.value.cpu}%` : '',
         ram: sysInfo.value.ram != null ? `${sysInfo.value.ram}%` : '',
         battery: sysInfo.value.battery != null ? `${sysInfo.value.battery}%${sysInfo.value.charging ? '+' : ''}` : '',
-        afk: (sysInfo.value.idleSeconds || 0) >= afkMinutes.value * 60 ? 'AFK' : ''
+        afk: (sysInfo.value.idleSeconds || 0) >= afkMinutes.value * 60 ? 'AFK' : '',
+        sparkle: animFrame('sparkle', frame),
+        dots: animFrame('dots', frame),
+        cursor: animFrame('cursor', frame),
+        spin: animFrame('spin', frame)
     };
     return String(template).replace(/\{(\w+)\}/g, (m, key) => (key in values ? values[key] : m)).slice(0, 144);
 }
@@ -169,11 +184,14 @@ export function renderChatbox(template) {
  */
 export function chatboxNudge() {
     clearTimeout(nudgeTimer);
-    const wait = MIN_GAP - (Date.now() - lastSentAt);
+    const wait = Math.max(MIN_GAP - (Date.now() - lastSentAt), holdUntil - Date.now());
     nudgeTimer = setTimeout(() => tick(false), Math.max(0, wait));
 }
 
 function tick(advance = true) {
+    if (Date.now() < holdUntil) {
+        return; // a message you sent is still on screen
+    }
     // with integrations plugged in, pinned lines stay and the rotating ones take turns
     // a nudge re-sends the item that is showing now, it does not skip ahead
     const counter = advance ? rotateCounter.value : Math.max(0, rotateCounter.value - 1);
@@ -206,5 +224,14 @@ function restart() {
     clearInterval(timer);
     lastSent = '';
     timer = setInterval(tick, chatboxInterval.value * 1000);
+    clearInterval(animTimer);
+    // animated pieces move on every send; VRChat allows about one send per 1.5 s, so that is the fastest it can go
+    animTimer = setInterval(() => {
+        if (!chatboxEnabled.value || !hasAnimation(chatboxPages.value) || Date.now() < holdUntil) {
+            return;
+        }
+        frame++;
+        tick(false);
+    }, MIN_GAP);
     tick();
 }

@@ -56,6 +56,13 @@
     --aura-glass-strong: rgba(255, 255, 255, 0.62);
     --aura-line: rgba(31, 34, 38, 0.18);
     --aura-pane: rgba(246, 246, 247, 0.34);
+    --lg-fill: linear-gradient(150deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.24));
+    --lg-fill-hover: linear-gradient(150deg, rgba(255, 255, 255, 0.88), rgba(255, 255, 255, 0.36));
+    --lg-fill-on: linear-gradient(150deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.5));
+    --lg-rim: inset 0 1.5px 1px rgba(255, 255, 255, 0.95), inset 0 -1.5px 1px rgba(31, 34, 38, 0.1),
+        inset 1.5px 0 1px rgba(255, 255, 255, 0.55), inset -1.5px 0 1px rgba(255, 255, 255, 0.35);
+    --lg-drop: 0 12px 26px -12px rgba(31, 34, 38, 0.38), 0 2px 6px -2px rgba(31, 34, 38, 0.14);
+    --lg-bead: radial-gradient(circle at 32% 26%, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.3) 46%, rgba(31, 34, 38, 0.12) 100%);
     --aura-edge: rgba(255, 255, 255, 0.85);
     --aura-kanji: rgba(31, 34, 38, 0.62);
     --aura-blur: blur(26px) saturate(1.5);

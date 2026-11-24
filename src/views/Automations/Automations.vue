@@ -274,12 +274,39 @@
                     </button>
                 </div>
             </section>
+
+            <section class="a-card">
+                <div class="flex items-center gap-3">
+                    <h2 class="a-h2 flex-1"><AuroraIcon name="people" :size="15" /> {{ t('view.automations.invite') }}</h2>
+                    <button
+                        type="button"
+                        class="a-toggle"
+                        :class="{ on: autoInvite.enabled }"
+                        :aria-pressed="autoInvite.enabled"
+                        :aria-label="t('view.automations.enabled')"
+                        @click="autoInvite.enabled = !autoInvite.enabled"></button>
+                </div>
+                <p class="a-note mb-4">{{ t('view.automations.invite_desc') }}</p>
+                <PeoplePicker :people="autoInvite.people" :placeholder="t('view.automations.invite_add')" />
+                <div v-for="p in autoInvite.people" :key="p.id" class="watch-person">
+                    <button type="button" class="watch-name" @click="openProfile(p.id)">{{ p.name }}</button>
+                    <span class="a-note flex-1">{{ t('view.automations.invite_count', { sent: p.sent, max: p.max }) }}</span>
+                    <input
+                        v-model.number="p.max"
+                        type="number"
+                        min="1"
+                        max="99"
+                        class="a-input watch-days"
+                        :aria-label="t('view.automations.invite_max')" />
+                    <button type="button" class="a-btn" @click="resetCount(p)">{{ t('view.automations.invite_reset') }}</button>
+                </div>
+            </section>
         </div>
     </div>
 </template>
 
 <script setup>
-    import { onBeforeUnmount, onMounted, ref } from 'vue';
+    import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
     import { useI18n } from 'vue-i18n';
 
     import AuroraIcon from '../../components/AuroraIcon.vue';
@@ -295,6 +322,7 @@
         ruleState,
         statusRules
     } from '../../services/auroraStatusRules';
+    import { autoInvite, initAutoInvite, normalizePeople, resetCount } from '../../services/autoInvite';
     import { initInstanceWatch, instanceWatch, openProfile, removeWatched } from '../../services/auroraWatch';
 
     const { t, locale } = useI18n();
@@ -321,9 +349,12 @@
         initAlarms();
         initStatusRules();
         initInstanceWatch();
+        initAutoInvite();
         tick = setInterval(() => (now.value = Date.now()), 1000);
     });
     onBeforeUnmount(() => clearInterval(tick));
+    // people picked from the list get their default invite limit
+    watch(() => autoInvite.value.people.length, () => normalizePeople(autoInvite.value.people));
 
     function ruleTitle(rule) {
         const langs = (rule.langs || []).map((l) => langName(l));

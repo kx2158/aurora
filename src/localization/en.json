@@ -4330,7 +4330,11 @@
             "alerts": "ALERTS",
             "s_online": "here",
             "s_active": "away",
-            "s_offline": "offline"
+            "s_offline": "offline",
+            "about": "ABOUT",
+            "mutual": "mutual friends",
+            "platform": "on",
+            "invite": "ask invite"
         }
     }
 }

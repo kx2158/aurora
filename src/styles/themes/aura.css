@@ -57,6 +57,8 @@
     --aura-edge: rgba(255, 255, 255, 0.85);
     --aura-kanji: rgba(31, 34, 38, 0.62);
     --aura-blur: blur(26px) saturate(1.5);
+    --aura-kanji-ink: #26282b;
+    --aura-frost: rgba(242, 243, 245, 0.62);
     --aura-grain: 0.3;
     --aura-grain-blend: multiply;
 

@@ -691,3 +691,299 @@
     background: var(--aura-glass-strong);
     box-shadow: inset 0 1px 0 var(--aura-edge);
 }
+
+/* =====================================================================
+   Pages, as drawn in the concept: text on the left, a stage on the right.
+   The stage holds one huge ink character that a frosted sheet softens from the middle down.
+   ===================================================================== */
+:root:is([data-theme='aura'], [data-theme='auradark']):has(.au-page)::before {
+    display: none;
+}
+.au-page {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: 0;
+    padding: 0 40px 0 56px;
+    overflow-x: hidden;
+}
+.au-left {
+    flex: 1 1 460px;
+    min-width: 0;
+    max-width: 820px;
+    box-sizing: border-box;
+    padding: 64px 48px 72px 0;
+}
+.au-listcol {
+    flex: 0 1 440px;
+    display: flex;
+    flex-direction: column;
+    max-height: 100vh;
+}
+.au-big {
+    margin: 22px 0 14px;
+    font-size: clamp(64px, 8.4vw, 112px);
+    font-weight: 200;
+    letter-spacing: -0.03em;
+    line-height: 1;
+}
+.au-mid {
+    font-size: clamp(56px, 6.4vw, 84px);
+    margin-bottom: 28px;
+}
+.au-item,
+.au-line {
+    padding: 20px 14px;
+    margin: 0 -14px;
+}
+.au-item:nth-child(odd),
+.au-line:nth-child(odd) {
+    background: var(--aura-hover);
+}
+.au-item:nth-child(even),
+.au-line:nth-child(even) {
+    background: transparent;
+}
+
+/* stage drawings */
+.stage .s-line {
+    stroke: var(--aura-ink);
+    stroke-width: 0.9;
+    opacity: 0.55;
+}
+.stage .s-dash {
+    stroke: var(--aura-ink);
+    stroke-width: 0.8;
+    stroke-dasharray: 2 5;
+    opacity: 0.5;
+}
+.stage .s-node {
+    fill: var(--aura-paper);
+    stroke: var(--aura-ink);
+    stroke-width: 1;
+}
+.stage .s-dot {
+    fill: var(--aura-ink);
+}
+.stage .s-rim {
+    stroke: #fff;
+    stroke-opacity: 0.7;
+    stroke-width: 1.2;
+}
+.stage .s-orb-kanji {
+    font-size: 150px;
+    font-family: 'Hiragino Mincho ProN', 'Yu Mincho', 'Noto Serif JP', serif;
+    font-weight: 300;
+    letter-spacing: 0;
+    fill: var(--aura-ink);
+    opacity: 0.55;
+}
+.orb-pulse {
+    animation: orb-breathe 7s ease-in-out infinite;
+    transform-origin: 300px 400px;
+}
+@keyframes orb-breathe {
+    0%,
+    100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.025);
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .orb-pulse {
+        animation: none;
+    }
+}
+
+/* ---------- a person ---------- */
+.pp-card {
+    position: absolute;
+    z-index: 2;
+    left: 40px;
+    right: 40px;
+    top: 56px;
+    bottom: 40px;
+    overflow-y: auto;
+    padding: 0 0 28px;
+    background: var(--aura-glass-strong);
+    -webkit-backdrop-filter: blur(30px) saturate(1.6);
+    backdrop-filter: blur(30px) saturate(1.6);
+    box-shadow:
+        inset 0 1px 0 var(--aura-edge),
+        0 40px 90px -40px var(--aura-shadow);
+    pointer-events: auto;
+}
+.pp-banner {
+    height: 150px;
+    background-color: var(--aura-tint);
+    background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.45), transparent 60%);
+    background-size: cover;
+    background-position: center;
+}
+.pp-banner[style] {
+    filter: saturate(1.1);
+}
+.pp-head {
+    display: flex;
+    align-items: flex-end;
+    gap: 22px;
+    padding: 0 32px;
+    margin-top: -52px;
+}
+.pp-avatar {
+    position: relative;
+    flex: none;
+    width: 112px;
+    height: 112px;
+    background: var(--aura-paper);
+    box-shadow: 0 0 0 6px var(--aura-glass-strong);
+}
+.pp-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+.pp-status {
+    position: absolute;
+    right: -8px;
+    bottom: -8px;
+    width: 20px;
+    height: 20px;
+    background: var(--aura-ink);
+    box-shadow: 0 0 0 5px var(--aura-glass-strong);
+}
+.pp-status.active {
+    background: var(--aura-paper);
+    box-shadow:
+        inset 0 0 0 2px var(--aura-ink),
+        0 0 0 5px var(--aura-glass-strong);
+}
+.pp-status.offline {
+    background: var(--aura-mute);
+    opacity: 0.7;
+}
+.pp-id {
+    min-width: 0;
+    padding-bottom: 4px;
+}
+.pp-name {
+    margin: 8px 0 2px;
+    font-size: clamp(34px, 4vw, 56px);
+    font-weight: 200;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+    overflow-wrap: anywhere;
+}
+.pp-statustext {
+    font-size: 13px;
+    color: var(--aura-mute);
+}
+.pp-block {
+    margin: 26px 32px 0;
+}
+.pp-bio {
+    margin: 10px 0 0;
+    font-size: 14px;
+    line-height: 1.65;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+.pp-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+    margin: 26px 32px 0;
+}
+.pp-grid > div {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 14px 16px;
+    background: var(--aura-hover);
+}
+.pp-grid span {
+    font-size: 10.5px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--aura-mute);
+}
+.pp-grid b {
+    font-size: 18px;
+    font-weight: 300;
+    font-variant-numeric: tabular-nums;
+}
+.pp-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 30px 32px 0;
+}
+.pp-btn {
+    height: 44px;
+    padding: 0 26px;
+    background: var(--aura-hover);
+    border: 0;
+    color: var(--aura-ink);
+    font: inherit;
+    font-size: 11px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition:
+        background-color 0.15s,
+        color 0.15s;
+}
+.pp-btn:hover {
+    background: var(--aura-ink);
+    color: var(--aura-paper);
+}
+.pp-btn.main {
+    background: var(--aura-ink);
+    color: var(--aura-paper);
+}
+.pp-btn.main:hover {
+    opacity: 0.85;
+}
+
+/* ---------- liquid glass on top of the whole app ---------- */
+:root:is([data-theme='aura'], [data-theme='auradark']) .bg-background,
+:root:is([data-theme='aura'], [data-theme='auradark']) .bg-card,
+:root:is([data-theme='aura'], [data-theme='auradark']) .bg-sidebar,
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='sidebar-inner'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='card'],
+:root:is([data-theme='aura'], [data-theme='auradark']) .a-card,
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='dialog-content'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='popover-content'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='dropdown-menu-content'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='select-content'] {
+    background-image:
+        linear-gradient(125deg, rgba(255, 255, 255, 0.34) 0%, rgba(255, 255, 255, 0) 34%),
+        linear-gradient(315deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0) 30%);
+}
+/* a slow sheen drifting across the sidebar, like light moving over glass */
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='sidebar-inner']::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, 0.22) 50%, transparent 65%);
+    background-size: 260% 100%;
+    animation: glass-sheen 14s ease-in-out infinite;
+}
+@keyframes glass-sheen {
+    0%,
+    100% {
+        background-position: 100% 0;
+    }
+    50% {
+        background-position: 0 0;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    :root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='sidebar-inner']::after {
+        animation: none;
+    }
+}

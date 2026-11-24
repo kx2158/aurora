@@ -1,6 +1,6 @@
 <template>
     <div class="au-page">
-        <section class="au-main au-glass">
+        <section class="au-left">
             <div class="aura-label">記録 · LOG</div>
             <h1 class="au-big au-mid">{{ t('aura.feed.title') }}</h1>
             <div class="au-tabs">
@@ -29,6 +29,16 @@
                 </div>
             </template>
         </section>
+
+        <AuraStage kanji="記録" :size="300" offset="12%" variant="b">
+            <svg viewBox="0 0 400 800" preserveAspectRatio="xMidYMid slice" fill="none">
+                <line x1="300" y1="80" x2="300" y2="720" class="s-dash" />
+                <path d="M60 700 C120 520 330 560 300 380 S120 240 220 120" class="s-line" />
+                <circle cx="300" cy="380" r="3.2" class="s-node" />
+                <circle cx="220" cy="120" r="3.2" class="s-node" />
+                <circle cx="60" cy="700" r="3.2" class="s-node" />
+            </svg>
+        </AuraStage>
     </div>
 </template>
 
@@ -37,6 +47,7 @@
     import { storeToRefs } from 'pinia';
     import { useI18n } from 'vue-i18n';
 
+    import AuraStage from '../../components/AuraStage.vue';
     import { showUserDialog } from '../../coordinators/userCoordinator';
     import { useFeedStore } from '../../stores';
 

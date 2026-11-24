@@ -3,7 +3,7 @@ import { ref } from 'vue';
 import configRepository from './config.js';
 
 // Only the SHA-256 of the developer password is kept here, never the password itself.
-const HASH = '3e01110b5bdf3e1a01f2346ceb648476ead254be59b1590077f5a5ab8877f369';
+const HASH = '6a7c306f2470f5c53c2bd5e72cff2f571a6dabde86f792510eb89adf3f69a711';
 const KEY = 'Aura_devUnlocked';
 
 export const devUnlocked = ref(false);

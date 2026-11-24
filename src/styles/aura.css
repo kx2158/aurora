@@ -1419,3 +1419,48 @@
     color: var(--aura-paper, #fff);
     background: var(--aura-ink, #222);
 }
+
+/* ---------- round two: nothing keeps a grey block behind it ---------- */
+:root:is([data-theme='aura'], [data-theme='auradark']) [class*='bg-background'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [class*='bg-card'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [class*='bg-sidebar'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [class*='bg-muted'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [class*='bg-accent'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [class*='bg-secondary'],
+:root:is([data-theme='aura'], [data-theme='auradark']) main,
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='sidebar-inset'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='sidebar-container'] {
+    background: transparent !important;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    box-shadow: none;
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-active='true'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-sidebar='menu-button'][data-active='true'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='sidebar-menu-button'][data-active='true'] {
+    background: transparent !important;
+    box-shadow: none !important;
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='sidebar-menu-button']:hover,
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='sidebar-menu-button']:focus-visible {
+    background: transparent !important;
+}
+/* segmented switches and pagination: plain text, the chosen one underlined */
+:root:is([data-theme='aura'], [data-theme='auradark']) .a-seg,
+:root:is([data-theme='aura'], [data-theme='auradark']) .a-seg button,
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='pagination'] a,
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='pagination'] button {
+    background: transparent !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) .a-seg button.on,
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='pagination'] [aria-current='page'] {
+    box-shadow: inset 0 -1px 0 var(--aura-ink) !important;
+    color: var(--aura-ink);
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) [class*='-pagination'] button,
+:root:is([data-theme='aura'], [data-theme='auradark']) nav[aria-label*='agination'] button {
+    background: transparent !important;
+    box-shadow: none !important;
+}

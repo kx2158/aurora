@@ -6,6 +6,10 @@ const [base, out] = process.argv.slice(2);
 fs.mkdirSync(out, { recursive: true });
 const routes = {
     home: 'home',
+    now: 'aura-now',
+    log: 'log',
+    circle: 'people',
+    'friends-mgr': 'friends-manager',
     mic: 'mic',
     insights: 'insights',
     automations: 'automations',

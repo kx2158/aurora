@@ -89,6 +89,10 @@
                     </template>
                     <button v-else type="button" class="a-btn" @click="lockDev">{{ t('view.tools.dev_lock') }}</button>
                 </div>
+                <div v-if="devUnlocked" class="mb-6 flex items-center gap-3">
+                    <Switch :model-value="unmuteEnabled" :ariaLabel="t('view.tools.dev_unmutes')" @update:modelValue="setUnmuteEnabled" />
+                    <span class="text-sm">{{ t('view.tools.dev_unmutes') }}: {{ unmuteCount }}</span>
+                </div>
             </div>
         </div>
     </div>
@@ -100,6 +104,7 @@
     import { useI18n } from 'vue-i18n';
 
     import { Button } from '@/components/ui/button';
+    import { Switch } from '@/components/ui/switch';
     import { TooltipWrapper } from '@/components/ui/tooltip';
     import ToolItem from './components/ToolItem.vue';
     import AuroraStealth from '../../components/AuroraStealth.vue';
@@ -110,6 +115,7 @@
     import { getToolsByCategory, toolCategories } from '../../shared/constants';
     import configRepository from '../../services/config.js';
     import { devUnlocked, initDevLock, lockDev, tryUnlock } from '../../services/devLock';
+    import { setUnmuteEnabled, unmuteCount, unmuteEnabled } from '../../services/unmuteCounter';
 
     const { t } = useI18n();
     const { triggerTool } = useToolActions();

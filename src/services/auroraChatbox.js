@@ -8,6 +8,7 @@ import { ref, watch } from 'vue';
 import configRepository from './config';
 import { animFrame, hasAnimation } from './chatboxAnim';
 import { clampMs, revealText, TYPEOUT_DEFAULTS, typewriterPlan } from './chatboxTypeout';
+import { unmuteCount, unmuteEnabled } from './unmuteCounter';
 import { useFriendStore, useGameStore, useLocationStore } from '../stores';
 
 export const chatboxEnabled = ref(false);
@@ -276,6 +277,7 @@ export function renderChatbox(template) {
         players: String(loc?.playerList?.size ?? 0),
         friends: String(useFriendStore().onlineFriendCount ?? 0),
         uptime: formatUptime(Date.now() - startedAt),
+        unmutes: unmuteEnabled.value ? String(unmuteCount.value) : '',
         window: String(sysInfo.value.window || '').slice(0, 40),
         app: sysInfo.value.app || '',
         song: sysInfo.value.song || '',

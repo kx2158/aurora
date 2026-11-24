@@ -107,7 +107,7 @@
 
                 <h2 class="nx-h2 nx-mt">{{ t('view.chatbox.insert') }}</h2>
                 <div class="nx-chips">
-                    <button v-for="tok in tokens" :key="tok" type="button" class="nx-chip" @click="insertToken(tok)">{{ '{' + tok + '}' }}</button>
+                    <button v-for="tok in shownTokens" :key="tok" type="button" class="nx-chip" @click="insertToken(tok)">{{ '{' + tok + '}' }}</button>
                 </div>
 
                 <div class="nx-opts">
@@ -233,10 +233,12 @@
         setTyping
     } from '@/services/auroraChatbox';
     import { friendlyApp, initIntegrations, INTEGRATIONS, mediaSessions, setEnabled, setOption, setSlot, state } from '@/services/auroraIntegrations';
+    import { devUnlocked } from '@/services/devLock';
     import { useGameStore } from '@/stores';
 
     const { t } = useI18n();
     const game = useGameStore();
+    const shownTokens = computed(() => (devUnlocked.value ? [...tokens, 'unmutes'] : tokens));
     const tokens = ['time', 'date', 'world', 'players', 'friends', 'uptime', 'window', 'app', 'music', 'song', 'artist', 'cpu', 'ram', 'battery', 'afk', 'sparkle', 'dots', 'cursor', 'spin'];
     const focused = ref(0);
     const manual = ref('');

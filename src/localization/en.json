@@ -759,7 +759,8 @@
             "dev_placeholder": "Developer password",
             "dev_unlock": "Unlock",
             "dev_lock": "Lock developer tools",
-            "dev_wrong": "Wrong password"
+            "dev_wrong": "Wrong password",
+            "dev_unmutes": "Count my unmutes this session (use {unmutes} in the chatbox)"
         },
         "profile": {
             "profile": {

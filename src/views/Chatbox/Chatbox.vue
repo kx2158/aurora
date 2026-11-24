@@ -121,6 +121,15 @@
                         :model-value="chatboxInterval"
                         class="nx-small"
                         @update:modelValue="setChatboxInterval" />
+                    <label class="nx-meta">{{ t('view.chatbox.anim_speed') }}</label>
+                    <Input
+                        type="number"
+                        min="1000"
+                        max="5000"
+                        step="100"
+                        :model-value="chatboxAnimMs"
+                        class="nx-small"
+                        @update:modelValue="setChatboxAnimMs" />
                     <label class="nx-meta">{{ t('view.settings.aurora.chatbox_notify') }}</label>
                     <Switch :model-value="chatboxNotify" :ariaLabel="t('view.settings.aurora.chatbox_notify')" @update:modelValue="setChatboxNotify" />
                 </div>
@@ -169,6 +178,7 @@
     import {
         afkMinutes,
         chatboxEnabled,
+        chatboxAnimMs,
         chatboxInterval,
         chatboxNotify,
         chatboxPageIndex,
@@ -179,6 +189,7 @@
         renderChatbox,
         sendChatboxNow,
         setChatboxEnabled,
+        setChatboxAnimMs,
         setChatboxInterval,
         setChatboxNotify,
         setAfkMinutes,

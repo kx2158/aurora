@@ -37,8 +37,12 @@ let timer = null;
 let lastSent = '';
 let lastSentAt = 0;
 let nudgeTimer = null;
-// VRChat asks for no more than one chatbox message about every 1.5 seconds
-const MIN_GAP = 1600;
+// VRChat rate-limits chatbox updates (about 5 per 5 seconds, and stricter since 2024), so 1 second is the floor:
+// anything faster is dropped and can earn a "timed out for spam" pause. The speed is a setting, 1.2 s by default.
+export const ANIM_MIN_MS = 1000;
+export const ANIM_MAX_MS = 5000;
+export const chatboxAnimMs = ref(1200);
+const MIN_GAP = () => chatboxAnimMs.value;
 // a message you send through Aurora stays up at least this long before anything else replaces it
 export const HOLD_MS = 7000;
 let holdUntil = 0;
@@ -68,9 +72,19 @@ export async function initChatbox() {
         chatboxPageSlots.value = chatboxPages.value.map(() => 'rotate');
     }
     afkMinutes.value = await configRepository.getInt('Neon_afkMinutes', 5);
-    watch([chatboxEnabled, chatboxInterval], restart);
+    chatboxAnimMs.value = clampAnim(await configRepository.getInt('Aurora_chatboxAnimMs', 1200));
+    watch([chatboxEnabled, chatboxInterval, chatboxAnimMs], restart);
     startSysInfo();
     restart();
+}
+
+export function clampAnim(v) {
+    const n = Math.round(Number(v));
+    return Number.isFinite(n) ? Math.min(ANIM_MAX_MS, Math.max(ANIM_MIN_MS, n)) : 1200;
+}
+export function setChatboxAnimMs(v) {
+    chatboxAnimMs.value = clampAnim(v);
+    configRepository.setInt('Aurora_chatboxAnimMs', chatboxAnimMs.value);
 }
 
 export function setChatboxEnabled(v) {
@@ -184,7 +198,7 @@ export function renderChatbox(template) {
  */
 export function chatboxNudge() {
     clearTimeout(nudgeTimer);
-    const wait = Math.max(MIN_GAP - (Date.now() - lastSentAt), holdUntil - Date.now());
+    const wait = Math.max(MIN_GAP() - (Date.now() - lastSentAt), holdUntil - Date.now());
     nudgeTimer = setTimeout(() => tick(false), Math.max(0, wait));
 }
 
@@ -232,6 +246,6 @@ function restart() {
         }
         frame++;
         tick(false);
-    }, MIN_GAP);
+    }, MIN_GAP());
     tick();
 }

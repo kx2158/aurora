@@ -1584,7 +1584,7 @@
 
 
     // Aurora in the headset: a tiny synth blip for events, alarms and the quick controls.
-    const neonState = reactive({ accent: '#b4b4b4', mm: false, mmMuted: false, mmApp: '', mmVol: 80, song: '', artist: '', playing: false, chatbox: false, sounds: true, afk: false, music: false, preview: '', nextAlarm: '', watchAlert: null, height: 0 });
+    const neonState = reactive({ accent: '#b4b4b4', mm: false, mmMuted: false, mmApp: '', mmVol: 80, song: '', artist: '', playing: false, chatbox: false, sounds: true, afk: false, music: false, preview: '', nextAlarm: '', watchAlert: null, height: 0, drag: true, dragState: 'off' });
     // ---- the wrist opening: the overlay host calls wristShown / wristHidden ----
     const wristStage = ref(null);
     const wristPhase = ref('');
@@ -1702,6 +1702,12 @@
         blip([[900, 0.05]]);
     }
     const onOffWord = (v) => (v ? 'On' : 'Off');
+    const dragStateWord = computed(() => {
+        if (neonState.dragState === 'missing') return 'Not found';
+        if (neonState.dragState === 'starting') return 'Starting';
+        if (neonState.dragState === 'unbound') return 'Needs binding';
+        return onOffWord(neonState.drag);
+    });
     const vrHeight = computed(() => {
         const m = Number(neonState.height) || 0;
         if (!m) return '';
@@ -1753,6 +1759,13 @@
                 { cmd: 'timer30', icon: 'alarm', label: '30 min' },
                 { cmd: 'timer60', icon: 'alarm', label: '1 hour' },
                 { cmd: 'stopAlarm', icon: 'close', label: 'Stop alarm', warn: true }
+            ]
+        },
+        {
+            title: 'Space drag',
+            buttons: [
+                { cmd: 'dragToggle', icon: 'power', label: 'Space drag', state: dragStateWord.value, on: neonState.drag, warn: neonState.dragState === 'missing' },
+                { cmd: 'dragReset', icon: 'refresh', label: 'Reset space', state: 'Put it back' }
             ]
         },
         {

@@ -24,6 +24,7 @@ import { chatboxEnabled, chatboxPreview, sendChatboxNow, setChatboxEnabled } fro
 import { setEnabled, state } from './auroraIntegrations';
 import { herePeople, instanceWatch, openProfile, toggleWatched, watchAlert } from './auroraWatch';
 import { backToNormal, height, initHeight, normalHeight, setHeight, setNormalHeight, stepHeight } from './auroraHeight';
+import { dragSettings, dragUiState, initSpaceDrag, resetDragSpace, updateDragSettings } from './auroraSpaceDrag';
 import { useLocationStore } from '../stores/location';
 
 /** The instance you are in, for the overlays: name, people and the latest flagged join. */
@@ -233,7 +234,9 @@ function pushState() {
                 mmMuted: mm.value.micMuted,
                 mmVol: Math.round(mm.value.musicVol * 100),
                 watchAlert: hereState().alert,
-                height: height.value
+                height: height.value,
+                drag: !!dragSettings.value.enabled,
+                dragState: dragUiState.value
             })
         );
     } catch {
@@ -247,6 +250,86 @@ export function neonCommand(command) {
         setHeight(Number(command.slice(7)));
         return;
     }
+    switch (String(command)) {
+        case 'chatbox':
+            setChatboxEnabled(!chatboxEnabled.value);
+            break;
+        case 'timer5':
+            addTimer(5);
+            break;
+        case 'timer15':
+            addTimer(15);
+            break;
+        case 'timer30':
+            addTimer(30);
+            break;
+        case 'timer60':
+            addTimer(60);
+            break;
+        case 'stopAlarm':
+            stopRinging();
+            break;
+        case 'sounds':
+            vrSounds = !vrSounds;
+            configRepository.setBool('Neon_vrSounds', vrSounds);
+            break;
+        case 'afk':
+            setEnabled('afk', !state.afk?.enabled);
+            break;
+        case 'music':
+            setEnabled('medialink', !state.medialink?.enabled);
+            break;
+        case 'mPrev':
+        case 'mPlay':
+        case 'mNext':
+            try {
+                AppApi.NeonMediaControl(String(command));
+            } catch (e) {
+                console.error(e);
+            }
+            break;
+        case 'mmToggle':
+            toggleMusicMic();
+            break;
+        case 'mmMute':
+            toggleMicMute();
+            break;
+        case 'mmSource':
+            nextMusicSource();
+            break;
+        case 'mmUp':
+            nudgeMusicVolume(0.1);
+            break;
+        case 'mmDown':
+            nudgeMusicVolume(-0.1);
+            break;
+        case 'brb':
+            sendChatboxNow('Be right back');
+            break;
+        case 'clear':
+            sendChatboxNow(' ');
+            break;
+        case 'quitGame':
+            quitVrchat();
+            break;
+        case 'heightUp':
+            stepHeight(1);
+            break;
+        case 'heightDown':
+            stepHeight(-1);
+            break;
+        case 'heightNormal':
+            backToNormal();
+            break;
+        case 'dragToggle':
+            updateDragSettings({ enabled: !dragSettings.value.enabled });
+            break;
+        case 'dragReset':
+            resetDragSpace();
+            break;
+        default:
+            break;
+    }
     pushState();
 }
 
@@ -257,6 +340,9 @@ export async function initVrBridge() {
     started = true;
     vrSounds = await configRepository.getBool('Neon_vrSounds', true);
     initHeight();
+    // the space drag helper starts with Aurora, so the dashboard buttons work without opening the Tools page
+    initSpaceDrag();
+    watch([dragSettings, dragUiState], pushState, { deep: true });
     watch([accent, mm, chatboxEnabled, chatboxPreview, alarms, audioApps, instanceWatch, watchAlert, height, normalHeight], pushState, { deep: true });
     // people coming and going
     watch(() => useLocationStore().lastLocation.playerList.size, pushDesk);

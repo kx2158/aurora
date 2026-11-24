@@ -54,6 +54,8 @@
     --aura-pool: rgba(40, 44, 52, 0.6);
     --aura-glass: rgba(34, 38, 45, 0.46);
     --aura-glass-strong: rgba(44, 49, 58, 0.66);
+    --aura-line: rgba(255, 255, 255, 0.18);
+    --aura-pane: rgba(20, 22, 26, 0.34);
     --aura-edge: rgba(255, 255, 255, 0.14);
     --aura-kanji: rgba(230, 232, 235, 0.36);
     --aura-blur: blur(26px) saturate(1.3);

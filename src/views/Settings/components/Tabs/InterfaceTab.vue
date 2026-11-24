@@ -16,6 +16,21 @@
                 </Select>
             </SettingsItem>
 
+            <SettingsItem :label="t('view.settings.appearance.appearance.theme_mode')">
+                <Select :model-value="themeMode" @update:modelValue="appearanceSettingsStore.setThemeMode">
+                    <SelectTrigger size="sm">
+                        <SelectValue :placeholder="themeLabel(themeMode)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectGroup>
+                            <SelectItem v-for="key in themeKeys" :key="key" :value="key">
+                                {{ themeLabel(key) }}
+                            </SelectItem>
+                        </SelectGroup>
+                    </SelectContent>
+                </Select>
+            </SettingsItem>
+
             <SettingsItem :label="t('view.settings.appearance.appearance.font_family')">
                 <DropdownMenu>
                     <DropdownMenuTrigger as-child>
@@ -486,7 +501,7 @@
     import { Switch } from '@/components/ui/switch';
     import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
     import { getLanguageName, languageCodes } from '@/localization';
-    import { APP_CJK_FONT_PACKS, APP_FONT_CONFIG, APP_FONT_DEFAULT_KEY, APP_FONT_FAMILIES } from '@/shared/constants';
+    import { THEME_CONFIG, APP_CJK_FONT_PACKS, APP_FONT_CONFIG, APP_FONT_DEFAULT_KEY, APP_FONT_FAMILIES } from '@/shared/constants';
     import { Button } from '@/components/ui/button';
     import { storeToRefs } from 'pinia';
     import { toast } from 'vue-sonner';
@@ -501,11 +516,19 @@
 
     const { t } = useI18n();
 
+    const themeKeys = Object.keys(THEME_CONFIG);
+    const themeLabel = (key) => {
+        const k = `view.settings.appearance.appearance.theme_mode_${key}`;
+        const v = t(k);
+        return v !== k ? v : THEME_CONFIG[key]?.name ?? key;
+    };
+
     const appearanceSettingsStore = useAppearanceSettingsStore();
     const { saveOpenVROption, updateVRConfigVars } = useVrStore();
 
     const {
         appLanguage,
+        themeMode,
         displayVRCProfileThemes,
         displayVRCProfileBackgrounds,
         profileBackgroundOpacity,

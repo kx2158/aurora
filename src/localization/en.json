@@ -1452,7 +1452,12 @@
                 "desk_off": "Off",
                 "desk_taken": "That hotkey is taken by another app, try another one.",
                 "desk_saved": "Hotkey saved",
-                "desk_open": "Open overlay"
+                "desk_open": "Open overlay",
+                "invites": {
+                    "header": "Group invites",
+                    "auto_reject": "Auto reject group invites",
+                    "auto_reject_desc": "Declines every group invite the moment it arrives. No popup, nothing left in your notifications."
+                }
             }
         },
         "home": {

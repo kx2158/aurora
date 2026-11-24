@@ -1,3 +1,4 @@
+import { autoRejectGroupInvites, declineResponseType, loadGroupInviteSetting } from '../../services/groupInvites';
 import { newsFromNoty } from '../../services/auroraNews';
 import { isAlertEvent, loadFriendAlerts } from '../../services/friendAlerts';
 import { computed, ref, watch } from 'vue';
@@ -61,6 +62,7 @@ import { watchState } from '../../services/watchState';
 import configRepository from '../../services/config';
 
 export const useNotificationStore = defineStore('Notification', () => {
+    loadGroupInviteSetting();
     const { t } = useI18n();
     const generalSettingsStore = useGeneralSettingsStore();
     const locationStore = useLocationStore();
@@ -619,6 +621,13 @@ export const useNotificationStore = defineStore('Notification', () => {
         }
         database.addNotificationV2ToDatabase(ref);
         notificationTable.value.data.push(ref);
+        if (ref.type === 'group.invite' && autoRejectGroupInvites.value) {
+            const decline = declineResponseType(ref.responses);
+            if (decline) {
+                sendNotificationResponse(ref.id, ref.responses, decline);
+                return;
+            }
+        }
         queueNotificationNoty(ref);
         sharedFeedStore.addEntry(ref);
     }

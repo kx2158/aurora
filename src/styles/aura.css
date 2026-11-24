@@ -987,3 +987,150 @@
         animation: none;
     }
 }
+
+/* =====================================================================
+   Hairlines instead of blocks. Nothing is a filled rectangle: things are
+   told apart by thin lines and by frost, in Helvetica.
+   ===================================================================== */
+:root:is([data-theme='aura'], [data-theme='auradark']),
+:root:is([data-theme='aura'], [data-theme='auradark']) body,
+:root:is([data-theme='aura'], [data-theme='auradark']) button,
+:root:is([data-theme='aura'], [data-theme='auradark']) input,
+:root:is([data-theme='aura'], [data-theme='auradark']) select,
+:root:is([data-theme='aura'], [data-theme='auradark']) textarea {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif !important;
+}
+
+/* panels: no box, no fill, no shadow, just a hairline on the side they face */
+:root:is([data-theme='aura'], [data-theme='auradark']) .au-glass,
+:root:is([data-theme='aura'], [data-theme='auradark']) .au-list,
+:root:is([data-theme='aura'], [data-theme='auradark']) .au-detail,
+:root:is([data-theme='aura'], [data-theme='auradark']) .a-card,
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='card'] {
+    background: transparent !important;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    box-shadow: none !important;
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) .au-detail,
+:root:is([data-theme='aura'], [data-theme='auradark']) .au-list + .au-detail {
+    box-shadow: inset 1px 0 0 var(--aura-line) !important;
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='card'] {
+    box-shadow: inset 0 1px 0 var(--aura-line) !important;
+}
+
+/* no stripes, no selected blocks: rows are split by a hairline and the chosen one gets an ink rule */
+.au-item:nth-child(odd),
+.au-line:nth-child(even) {
+    background: transparent;
+}
+.au-item,
+.au-line,
+.au-person {
+    box-shadow: inset 0 -1px 0 var(--aura-line);
+}
+.au-person.on {
+    background: transparent;
+    box-shadow:
+        inset 0 -1px 0 var(--aura-line),
+        inset 2px 0 0 var(--aura-ink);
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='sidebar-menu-button']:hover {
+    background: transparent;
+    letter-spacing: 0.08em;
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='sidebar-menu-button'][data-active='true'] {
+    background: transparent;
+    box-shadow: inset 2px 0 0 var(--aura-ink);
+    font-weight: 400;
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='sidebar-inner'] {
+    box-shadow: inset -1px 0 0 var(--aura-line) !important;
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='sidebar-group-label'] {
+    box-shadow: inset 0 -1px 0 var(--aura-line);
+    padding-bottom: 6px;
+}
+/* tables and lists: selected, hovered and striped rows lose their fill */
+:root:is([data-theme='aura'], [data-theme='auradark']) tr,
+:root:is([data-theme='aura'], [data-theme='auradark']) [role='row'] {
+    background: transparent !important;
+    box-shadow: inset 0 -1px 0 var(--aura-line);
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) tr[data-state='selected'],
+:root:is([data-theme='aura'], [data-theme='auradark']) tr:hover {
+    box-shadow:
+        inset 0 -1px 0 var(--aura-ink),
+        inset 0 1px 0 var(--aura-line);
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) .bg-muted,
+:root:is([data-theme='aura'], [data-theme='auradark']) .bg-accent,
+:root:is([data-theme='aura'], [data-theme='auradark']) .bg-secondary,
+:root:is([data-theme='aura'], [data-theme='auradark']) .hover\:bg-accent:hover,
+:root:is([data-theme='aura'], [data-theme='auradark']) .hover\:bg-muted\/50:hover {
+    background: transparent !important;
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='tabs-trigger'][data-state='active'] {
+    background: transparent !important;
+    box-shadow: inset 0 -1px 0 var(--aura-ink);
+}
+
+/* the Now stage: a node for you, thin lines, and a patch of frost with no edge at each instance */
+.stage .s-line {
+    vector-effect: non-scaling-stroke;
+    stroke-width: 1;
+    opacity: 0.45;
+}
+.stage .s-dash {
+    vector-effect: non-scaling-stroke;
+    opacity: 0.4;
+}
+.stage .s-me {
+    position: absolute;
+    width: 9px;
+    height: 9px;
+    margin: -4.5px 0 0 -4.5px;
+    border-radius: 50% !important;
+    background: var(--aura-ink);
+    box-shadow: 0 0 0 7px var(--aura-pane);
+    animation: orb-breathe 7s ease-in-out infinite;
+}
+.stage .s-pane {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 150px;
+    max-width: 240px;
+    padding: 16px 28px 16px 22px;
+    transform: translate(0, -50%);
+    background: var(--aura-pane);
+    -webkit-backdrop-filter: blur(22px) saturate(1.5);
+    backdrop-filter: blur(22px) saturate(1.5);
+    /* the frost fades out at its edges, so it never reads as a rectangle */
+    -webkit-mask-image: radial-gradient(closest-side, #000 55%, transparent 100%);
+    mask-image: radial-gradient(closest-side, #000 55%, transparent 100%);
+}
+.stage .s-pane b {
+    font-size: 17px;
+    font-weight: 300;
+    letter-spacing: 0.01em;
+    color: var(--aura-ink);
+}
+.stage .s-pane small {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: var(--aura-mute);
+}
+.stage .s-pane-dot {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 7px;
+    height: 7px;
+    margin: -3.5px 0 0 -3.5px;
+    border-radius: 50% !important;
+    background: var(--aura-paper);
+    box-shadow: 0 0 0 1px var(--aura-ink);
+}

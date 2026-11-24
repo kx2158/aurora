@@ -102,6 +102,18 @@
             </SettingsItem>
         </SettingsGroup>
 
+        <SettingsGroup id="nx-invites" :title="t('view.settings.aurora.invites.header')">
+            <SettingsItem
+                :label="t('view.settings.aurora.invites.auto_reject')"
+                :description="t('view.settings.aurora.invites.auto_reject_desc')"
+                toggle>
+                <Switch
+                    :model-value="autoRejectGroupInvites"
+                    :ariaLabel="t('view.settings.aurora.invites.auto_reject')"
+                    @update:modelValue="setAutoRejectGroupInvites" />
+            </SettingsItem>
+        </SettingsGroup>
+
         <SettingsGroup id="nx-cleanup" :title="t('view.settings.aurora.cleanup.header')">
             <SettingsItem
                 v-for="key in CLEANUP_KEYS"
@@ -171,6 +183,7 @@
     import { Switch } from '@/components/ui/switch';
     import { ACCENT_PRESETS, accent, setAccent } from '@/services/auroraAccent';
     import { CLEANUP_KEYS, cleanCategories, countCategory } from '@/services/auroraCleanup';
+    import { autoRejectGroupInvites, loadGroupInviteSetting, setAutoRejectGroupInvites } from '@/services/groupInvites';
     import { isValidPin } from '@/services/auroraSecurity';
     import { getDeskHotkey, setDeskHotkey, toggleDeskOverlay } from '@/services/auroraVrBridge';
     import { useAuroraSettingsStore } from '@/stores';
@@ -181,6 +194,7 @@
     import SettingsItem from '../SettingsItem.vue';
 
     const { t } = useI18n();
+    loadGroupInviteSetting();
     const store = useAuroraSettingsStore();
     const { appLockEnabled, autoLockMinutes, cleanupSelected, cleanupKeepDays, cleanupAuto } = storeToRefs(store);
     const { setAutoLockMinutes, lockNow, toggleCleanup, setCleanupKeepDays, setCleanupAuto } = store;

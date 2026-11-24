@@ -1461,3 +1461,120 @@
 :root:is([data-theme='aura']) #app {
     background: #ffffff;
 }
+
+/* =====================================================================
+   Round three: one radius for everything, centred buttons, calm tables
+   ===================================================================== */
+:root:is([data-theme='aura'], [data-theme='auradark']) {
+    --aura-r: 16px;
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='button'],
+:root:is([data-theme='aura'], [data-theme='auradark']) button,
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='input'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='textarea'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='select-trigger'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='badge'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='card'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='tabs-trigger'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='toggle'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='table-row'],
+:root:is([data-theme='aura'], [data-theme='auradark']) .a-card,
+:root:is([data-theme='aura'], [data-theme='auradark']) .au-glass,
+:root:is([data-theme='aura'], [data-theme='auradark']) .au-pane,
+:root:is([data-theme='aura'], [data-theme='auradark']) .s-pane,
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='dialog-content'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='alert-dialog-content'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='sheet-content'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='popover-content'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='dropdown-menu-content'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='dropdown-menu-sub-content'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='context-menu-content'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='select-content'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='hover-card-content'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='tooltip-content'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='dropdown-menu-item'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='select-item'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='dropdown-menu-checkbox-item'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='dropdown-menu-sub-trigger'] {
+    border-radius: var(--aura-r) !important;
+}
+/* only round things stay circles: avatars, dots, switches */
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='avatar'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='avatar-image'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='avatar-fallback'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='switch'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='switch-thumb'],
+:root:is([data-theme='aura'], [data-theme='auradark']) .rounded-full {
+    border-radius: 999px !important;
+}
+
+/* every button: text dead centre, both ways */
+:root:is([data-theme='aura'], [data-theme='auradark']) button,
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='button'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='toggle'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='tabs-trigger'] {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    line-height: 1;
+    gap: 6px;
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='button']:not([class*='size-']):not([class*='w-']) {
+    min-height: 34px;
+    padding-block: 0;
+}
+
+/* tooltips: a small plain label, no glass, no rim */
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='tooltip-content'] {
+    background: var(--aura-ink) !important;
+    color: var(--aura-bg-solid, #fff) !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    box-shadow: none !important;
+    padding: 6px 12px !important;
+    font-size: 12px;
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='tooltip-content'] * {
+    color: inherit !important;
+}
+
+/* tables (feed, friends, notifications): airy rows, hairline under the head only */
+:root:is([data-theme='aura'], [data-theme='auradark']) table {
+    border-collapse: separate;
+    border-spacing: 0 2px;
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='table-head'] {
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-weight: 400;
+    color: var(--aura-mute);
+    background: transparent !important;
+    box-shadow: inset 0 -1px 0 var(--aura-line);
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='table-row'] {
+    background: transparent !important;
+    box-shadow: none !important;
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='table-row']:hover {
+    background: var(--aura-hover) !important;
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='table-cell'] {
+    padding-block: 12px;
+    background: transparent !important;
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='table-cell']:first-child {
+    border-radius: var(--aura-r) 0 0 var(--aura-r);
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='table-cell']:last-child {
+    border-radius: 0 var(--aura-r) var(--aura-r) 0;
+}
+
+/* plain background: flat white, flat dark */
+:root[data-theme='aura'] body {
+    background: #ffffff !important;
+}
+:root[data-theme='auradark'] body {
+    background: var(--aura-mid) !important;
+}

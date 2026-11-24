@@ -1578,3 +1578,10 @@
 :root[data-theme='auradark'] body {
     background: var(--aura-mid) !important;
 }
+
+/* region flags: small rounded chips instead of hard pixel blocks */
+.flags {
+    border-radius: 5px;
+    box-shadow: 0 0 0 1px var(--aura-line);
+    filter: saturate(0.85);
+}

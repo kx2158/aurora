@@ -121,6 +121,8 @@
                         :model-value="chatboxInterval"
                         class="nx-small"
                         @update:modelValue="setChatboxInterval" />
+                    <label class="nx-meta">{{ t('view.chatbox.live') }}</label>
+                    <Switch :model-value="chatboxLive" :ariaLabel="t('view.chatbox.live')" @update:modelValue="setChatboxLive" />
                     <label class="nx-meta">{{ t('view.chatbox.no_bg') }}</label>
                     <Switch :model-value="chatboxNoBg" :ariaLabel="t('view.chatbox.no_bg')" @update:modelValue="setChatboxNoBg" />
                     <label class="nx-meta">{{ t('view.chatbox.typing_indicator') }}</label>
@@ -164,7 +166,7 @@
                         v-model="manual"
                         maxlength="144"
                         :placeholder="t('view.chatbox.manual_ph')"
-                        @input="setTyping(true)"
+                        @input="onManualInput"
                         @keydown.enter="sendManual" />
                     <div class="nx-actions">
                         <button type="button" class="nx-add" @click="sendManual">{{ t('view.chatbox.send') }}</button>
@@ -186,6 +188,7 @@
         afkMinutes,
         chatboxEnabled,
         chatboxAnimMs,
+        chatboxLive,
         chatboxNoBg,
         chatboxTypingIndicator,
         chatboxInterval,
@@ -199,6 +202,8 @@
         sendChatboxNow,
         setChatboxEnabled,
         setChatboxAnimMs,
+        liveTypeSend,
+        setChatboxLive,
         setChatboxNoBg,
         setChatboxTypingIndicator,
         setChatboxInterval,
@@ -263,6 +268,14 @@
     function insertToken(tok) {
         const i = Math.min(focused.value, pages.value.length - 1);
         editPage(i, (pages.value[i] || '') + '{' + tok + '}');
+    }
+    // live typing sends every change as it happens; otherwise only the typing bubble shows until Enter
+    function onManualInput() {
+        if (chatboxLive.value) {
+            liveTypeSend(manual.value);
+        } else {
+            setTyping(true);
+        }
     }
     function sendManual() {
         if (!manual.value.trim()) {

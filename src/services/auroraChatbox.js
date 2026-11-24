@@ -17,6 +17,9 @@ export const chatboxNotify = ref(false);
 export const NO_BG_SUFFIX = '\u0003\u001f';
 export const chatboxNoBg = ref(false);
 export const chatboxTypingIndicator = ref(true);
+export const chatboxLive = ref(false);
+let liveTimer = null;
+let liveAt = 0;
 /** Adds the no-background marker (it costs 2 of the 144 characters) when that is switched on. */
 export function withBackgroundSetting(text, noBg) {
     const t = String(text ?? '');
@@ -81,6 +84,7 @@ export async function initChatbox() {
         chatboxPageSlots.value = chatboxPages.value.map(() => 'rotate');
     }
     afkMinutes.value = await configRepository.getInt('Neon_afkMinutes', 5);
+    chatboxLive.value = await configRepository.getBool('Aurora_chatboxLive', false);
     chatboxNoBg.value = await configRepository.getBool('Aurora_chatboxNoBg', false);
     chatboxTypingIndicator.value = await configRepository.getBool('Aurora_chatboxTyping', true);
     chatboxAnimMs.value = clampAnim(await configRepository.getInt('Aurora_chatboxAnimMs', 100));
@@ -98,6 +102,10 @@ export function setChatboxAnimMs(v) {
     configRepository.setInt('Aurora_chatboxAnimMs', chatboxAnimMs.value);
 }
 
+export function setChatboxLive(v) {
+    chatboxLive.value = !!v;
+    configRepository.setBool('Aurora_chatboxLive', chatboxLive.value);
+}
 export function setChatboxNoBg(v) {
     chatboxNoBg.value = !!v;
     configRepository.setBool('Aurora_chatboxNoBg', chatboxNoBg.value);
@@ -135,6 +143,7 @@ export function setChatboxPages(pages, slots) {
 
 /** Sends one line right now (for the manual box). */
 export function sendChatboxNow(text, typingFirst = false) {
+    clearTimeout(liveTimer);
     const line = String(text || '').slice(0, 144);
     if (!line) {
         return;
@@ -146,6 +155,34 @@ export function sendChatboxNow(text, typingFirst = false) {
     lastSent = '';
     if (typingFirst) {
         AppApi.SendOscTyping(false, 9000);
+    }
+}
+
+/**
+ * Live typing: the text in the box goes to VRChat as it is typed. VRChat limits updates, so it goes out at most once per
+ * animation-speed gap, and the newest text is always sent last (trailing send), never an old half-word.
+ */
+export function liveTypeSend(text) {
+    clearTimeout(liveTimer);
+    const t = String(text ?? '');
+    if (!t.trim()) {
+        return;
+    }
+    const send = () => {
+        liveAt = Date.now();
+        holdUntil = Date.now() + HOLD_MS;
+        lastSent = '';
+        try {
+            AppApi.SendOscChatbox(withBackgroundSetting(t, chatboxNoBg.value), true, false, 9000);
+        } catch (e) {
+            console.error('live typing failed', e);
+        }
+    };
+    const wait = chatboxAnimMs.value - (Date.now() - liveAt);
+    if (wait <= 0) {
+        send();
+    } else {
+        liveTimer = setTimeout(send, wait);
     }
 }
 

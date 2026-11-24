@@ -1535,7 +1535,8 @@
             "slot_hint": "TOP and BOTTOM are always shown. ROTATE lines take turns in the middle.",
             "anim_speed": "Animation speed (ms, you can go down to 100, but VRChat may drop updates under about 1100)",
             "no_bg": "Hide the bubble behind the text (uses 2 of the 144 characters)",
-            "typing_indicator": "Show the typing bubble while I type in the box below"
+            "typing_indicator": "Show the typing bubble while I type in the box below",
+            "live": "Live typing: people see your text as you type it in the box below"
         },
         "dock": {
             "title": "DOCK",

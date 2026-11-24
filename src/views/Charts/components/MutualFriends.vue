@@ -242,7 +242,7 @@
                         v-show="!(hasFetched && !isFetching && !graphReady)"
                         ref="graphContainerRef"
                         class="mt-3 h-[calc(100vh-260px)] min-h-[520px] w-full flex-1 rounded-lg bg-transparent"
-                        :style="{ backgroundColor: canvasBackground }"></div>
+                        :style="{ background: canvasBackground, borderRadius: '16px' }"></div>
                 </ContextMenuTrigger>
                 <ContextMenuContent v-if="contextMenuNodeId" class="min-w-40">
                     <ContextMenuItem @click="handleNodeMenuViewDetails">
@@ -347,23 +347,13 @@
     const MAX_LABEL_NAME_LENGTH = 20;
 
     // Aurora palette: soft borealis tones that stay apart from each other on dark and light
-    const COLORS_PALETTE = [
-        '#4fe3a0',
-        '#5fd0e8',
-        '#8ea2ff',
-        '#b58cff',
-        '#ff8fc7',
-        '#ffc06b',
-        '#7fe0c8',
-        '#6cb6ff',
-        '#e0a3ff'
-    ];
+    const COLORS_PALETTE = ['#ffffff', '#cfe0ff', '#ffe9c7', '#d8ccff', '#bfeaff', '#ffd6e8', '#e8f0ff'];
 
     // a thin ring in the background colour keeps overlapping nodes readable
     function nodeBorderLayer(dark) {
         return layerBorder({
             borders: [
-                { size: 0.14, color: dark ? '#15171b' : '#ffffff', mode: 'relative' },
+                { size: 0.14, color: '#0a0d1a', mode: 'relative' },
                 { size: 0, color: { attribute: 'color' }, fill: true }
             ]
         });
@@ -602,7 +592,11 @@
         totalFriends.value ? Math.min(100, Math.round((fetchState.processedFriends / totalFriends.value) * 100)) : 0
     );
 
-    const canvasBackground = computed(() => 'transparent');
+    // a night sky, with a few faint stars painted into the background itself
+    const canvasBackground = computed(
+        () =>
+            "radial-gradient(1px 1px at 12% 18%, rgba(255,255,255,.55) 50%, transparent 51%), radial-gradient(1px 1px at 78% 30%, rgba(255,255,255,.45) 50%, transparent 51%), radial-gradient(1.5px 1.5px at 42% 74%, rgba(255,255,255,.4) 50%, transparent 51%), radial-gradient(1px 1px at 90% 82%, rgba(255,255,255,.5) 50%, transparent 51%), radial-gradient(1px 1px at 24% 88%, rgba(255,255,255,.35) 50%, transparent 51%), radial-gradient(ellipse at 50% 35%, #161c33 0%, #0a0d1a 62%, #05060d 100%)"
+    );
 
     const selectedFriendId = ref(null);
 
@@ -972,11 +966,13 @@
 
         const DEFAULT_LABEL_THRESHOLD = 10;
 
-        const dark = isDarkMode.value;
+        // the graph is always a night sky, whatever the app theme is
+        const dark = true;
         const labelColor = dark ? 'rgba(236,238,242,0.92)' : 'rgba(24,26,30,0.9)';
-        const EDGE_BASE = dark ? 'rgba(236,238,242,0.07)' : 'rgba(24,26,30,0.08)';
-        const EDGE_ACTIVE = dark ? 'rgba(236,238,242,0.5)' : 'rgba(24,26,30,0.45)';
-        const NODE_FADED = dark ? 'rgba(236,238,242,0.06)' : 'rgba(24,26,30,0.06)';
+        const EDGE_BASE = 'rgba(200,215,255,0.10)';
+        const EDGE_ACTIVE = 'rgba(225,235,255,0.8)';
+        const EDGE_MID = 'rgba(200,215,255,0.32)';
+        const NODE_FADED = 'rgba(200,210,240,0.12)';
         const LABEL_BACKGROUND = dark ? 'rgba(21,23,27,0.8)' : 'rgba(255,255,255,0.85)';
         const NODE_HOVER = dark ? '#ffffff' : '#15171b';
 
@@ -1071,6 +1067,10 @@
                 const [s, t] = g.extremities(edge);
                 if (s === hoveredNode || t === hoveredNode) {
                     return { color: EDGE_ACTIVE };
+                }
+                // the constellation: friends of this person who also know each other stay linked
+                if (hoveredNeighbors.has(s) && hoveredNeighbors.has(t)) {
+                    return { color: EDGE_MID };
                 }
                 return { visibility: 'hidden' };
             }

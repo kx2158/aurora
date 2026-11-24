@@ -1624,7 +1624,7 @@
             "live_fallback": "Nobody joined, fallback status is on",
             "live_joined": "Together now",
             "avoid": "Keep away list",
-            "avoid_desc": "People you would rather not have following you. When someone from a rule joins you and anyone on this list is online, Aura uses this status instead.",
+            "avoid_desc": "People you would rather not have following you. Whenever anyone on this list is online, Aura uses this status, and puts yours back when they are all offline.",
             "avoid_who": "People",
             "avoid_status": "While any of them are online, use",
             "watch": "Instance watch",
@@ -1640,7 +1640,12 @@
             "langs_label": "Also anyone whose profile lists",
             "langs_now": "Online now through language: {names}",
             "speakers": "{langs} speakers",
-            "langs_add": "Add a language"
+            "langs_add": "Add a language",
+            "checks": "Checks",
+            "checks_desc": "Aura also looks at who is online by itself, so friends who were already online are not missed. The keep away list is checked the same way, and your status goes back once they are offline.",
+            "check_start": "Check who is online when I start the game",
+            "check_every_a": "Check again every",
+            "check_every_b": "minutes (0 = off)"
         },
         "insights": {
             "title": "Insights",

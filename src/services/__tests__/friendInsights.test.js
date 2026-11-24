@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest';
 
 import {
     DAY,
+    ageOf,
     buildRows,
+    countBy,
     changesFileText,
     exportText,
     filterRows,
@@ -186,5 +188,34 @@ describe('friendInsights', () => {
         expect(parseChangesFile(`hello ${id}, ${id}\nnope`).map((e) => e.userId)).toEqual([id]);
         expect(parseChangesFile('{"app":"other"}')).toEqual([]);
         expect(parseChangesFile('')).toEqual([]);
+    });
+
+    it('reads age verification and platform', () => {
+        expect(ageOf({ ageVerificationStatus: '18+' })).toBe('18plus');
+        expect(ageOf({ ageVerificationStatus: 'verified' })).toBe('verified');
+        expect(ageOf({ ageVerificationStatus: 'hidden' })).toBe('hidden');
+        expect(ageOf({ ageVerified: true })).toBe('verified');
+        expect(ageOf({})).toBe('unknown');
+    });
+
+    it('filters by age, trust, status, platform and marks', () => {
+        const rows = buildRows(
+            [
+                ctx('a', { ageVerificationStatus: '18+', $trustLevel: 'Trusted User', status: 'active', last_platform: 'standalonewindows', $memo: 'x' }),
+                ctx('b', { ageVerificationStatus: 'hidden', $trustLevel: 'User', status: 'busy', last_platform: 'android' }),
+                ctx('c', {}, { isVIP: true })
+            ],
+            { now: NOW }
+        );
+        const ids = (f) => filterRows(rows, { ...f, now: NOW, sort: 'name' }).map((r) => r.id);
+        expect(ids({ age: '18plus' })).toEqual(['a']);
+        expect(ids({ age: 'unknown' })).toEqual(['c']);
+        expect(ids({ trust: 'User' })).toEqual(['b']);
+        expect(ids({ trust: 'none' })).toEqual(['c']);
+        expect(ids({ status: 'busy' })).toEqual(['b']);
+        expect(ids({ platform: 'android' })).toEqual(['b']);
+        expect(ids({ mark: 'memo' })).toEqual(['a']);
+        expect(ids({ mark: 'favorite' })).toEqual(['c']);
+        expect(countBy(rows, 'age').find((x) => x.key === 'unknown').count).toBe(1);
     });
 });

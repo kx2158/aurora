@@ -87,6 +87,26 @@
                     </button>
                 </div>
 
+                <div v-for="g in extraGroups" :key="g.key" class="fm-group">
+                    <span class="fm-label">{{ g.label }}</span>
+                    <button
+                        type="button"
+                        class="a-chip"
+                        :class="{ on: extra[g.key] === 'all' }"
+                        @click="extra[g.key] = 'all'">
+                        {{ t('view.friends_manager.any') }}
+                    </button>
+                    <button
+                        v-for="o in g.options"
+                        :key="o.key"
+                        type="button"
+                        class="a-chip"
+                        :class="{ on: extra[g.key] === o.key }"
+                        @click="extra[g.key] = o.key">
+                        {{ o.label }}<small>{{ o.count }}</small>
+                    </button>
+                </div>
+
                 <div class="fm-group">
                     <span class="fm-label">{{ t('view.friends_manager.f_mutual') }}</span>
                     <button type="button" class="a-chip" :class="{ on: mutual === 'all' }" @click="mutual = 'all'">
@@ -228,7 +248,7 @@
 </template>
 
 <script setup>
-    import { computed, onMounted, ref, watch } from 'vue';
+    import { computed, onMounted, reactive, ref, watch } from 'vue';
     import { storeToRefs } from 'pinia';
     import { toast } from 'vue-sonner';
     import { useI18n } from 'vue-i18n';
@@ -245,6 +265,7 @@
         HANGOUT_BUCKETS,
         buildRows,
         filterRows,
+        countBy,
         hangoutCounts,
         languageCounts,
         exportText,
@@ -265,6 +286,7 @@
     const hangout = ref('all');
     const language = ref('all');
     const mutual = ref('all');
+    const extra = reactive({ age: 'all', trust: 'all', status: 'all', platform: 'all', mark: 'all' });
     const limit = ref(200);
     const loading = ref(false);
     const busy = ref(false);
@@ -285,6 +307,31 @@
     );
     const hangouts = computed(() => hangoutCounts(rows.value, now.value));
     const languages = computed(() => languageCounts(rows.value));
+    const extraGroups = computed(() => {
+        const label = (ns, k) => t('view.friends_manager.' + ns + String(k).replace(/ /g, '_'));
+        const opts = (key, name) =>
+            countBy(rows.value, key).map((o) => ({ key: o.key, label: name(o.key), count: o.count }));
+        const known = (ns) => (k) => (k === 'none' ? t('view.friends_manager.unknown') : label(ns, k));
+        const groups = [
+            { key: 'age', label: t('view.friends_manager.f_age'), options: opts('age', (k) => label('age_', k)) },
+            { key: 'trust', label: t('view.friends_manager.f_trust'), options: opts('trustName', (k) => (k === 'none' ? t('view.friends_manager.unknown') : k)) },
+            { key: 'status', label: t('view.friends_manager.f_status'), options: opts('presence', known('st_')) },
+            { key: 'platform', label: t('view.friends_manager.f_platform'), options: opts('platform', known('pl_')) },
+            {
+                key: 'mark',
+                label: t('view.friends_manager.f_mark'),
+                options: ['favorite', 'notfavorite', 'memo', 'nomemo', 'locked'].map((k) => ({
+                    key: k,
+                    label: label('mk_', k),
+                    count: rows.value.filter((r) =>
+                        k === 'favorite' ? r.favorite : k === 'notfavorite' ? !r.favorite : k === 'memo' ? r.hasMemo : k === 'nomemo' ? !r.hasMemo : r.locked
+                    ).length
+                }))
+            }
+        ];
+        // an option that is the same for everyone filters nothing, so only groups with a choice show
+        return groups.filter((g) => g.key === 'mark' || g.options.length > 1);
+    });
     const mutualCounts = computed(() => {
         const out = {};
         for (const r of rows.value) {
@@ -319,6 +366,11 @@
             hangout: hangout.value,
             language: language.value,
             mutual: mutual.value,
+            age: extra.age,
+            trust: extra.trust,
+            status: extra.status,
+            platform: extra.platform,
+            mark: extra.mark,
             sort: sort.value,
             now: now.value
         }).map((row) => ({ row, reasons: [], score: 0 }));
@@ -359,7 +411,7 @@
         ];
     });
 
-    watch([search, sort, hangout, language, mutual, tab, bucket], () => {
+    watch([search, sort, hangout, language, mutual, tab, bucket, () => ({ ...extra })], () => {
         limit.value = 200;
     });
 

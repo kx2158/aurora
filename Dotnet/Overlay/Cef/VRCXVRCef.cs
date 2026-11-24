@@ -560,7 +560,7 @@ namespace VRCX
                     }
 
                     ulong thumbnailHandle = 0;
-                    err = overlay.CreateDashboardOverlay("neon.dashboard", "Aurora", ref dashboardHandle, ref thumbnailHandle);
+                    err = overlay.CreateDashboardOverlay("neon.dashboard", "Aura", ref dashboardHandle, ref thumbnailHandle);
                     if (err != EVROverlayError.None)
                     {
                         return err;

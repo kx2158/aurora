@@ -14,14 +14,6 @@ const navDefinitions = [
         section: ''
     },
     {
-        key: 'aura-feed',
-        icon: 'a:log',
-        tooltip: 'nav_aurora.log',
-        labelKey: 'nav_aurora.log',
-        routeName: 'aura-feed',
-        section: ''
-    },
-    {
         key: 'aura-people',
         icon: 'a:people',
         tooltip: 'nav_aurora.circle',

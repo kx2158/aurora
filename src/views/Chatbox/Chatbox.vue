@@ -11,6 +11,12 @@
             </div>
         </div>
 
+            <div class="nx-card nx-panel">
+                <h2 class="nx-h2">{{ t('view.chatbox.preview') }}</h2>
+                <div class="nx-bubble" style="white-space: pre-line">{{ preview || '...' }}</div>
+                <span class="nx-meta">{{ preview.length }} / 144</span>
+            </div>
+
         <h2 class="nx-h2">{{ t('view.chatbox.integrations') }}</h2>
         <div class="nx-ints">
             <div v-for="def in INTEGRATIONS" :key="def.id" class="nx-int nx-card" :class="{ on: state[def.id]?.enabled }">
@@ -74,23 +80,7 @@
                         </template>
                     </template>
                     <p v-if="def.id === 'status'" class="nx-meta nx-full">{{ t('view.chatbox.status_hint') }}</p>
-                    <div v-if="def.id === 'medialink'" class="nx-full nx-sessions">
-                        <p v-if="!mediaSessions.length" class="nx-meta">{{ t('view.chatbox.no_media') }}</p>
-                        <div v-for="m in mediaSessions" :key="m.id" class="nx-session">
-                            <b>{{ friendlyApp(m.id) }}</b>
-                            <span class="nx-meta nx-trunc">{{ m.title }}{{ m.artist ? ' - ' + m.artist : '' }}</span>
-                            <button type="button" class="nx-pill" :class="{ on: !state.medialink.noArtist[m.id] }" @click="flip('noArtist', m.id)">ARTIST</button>
-                            <button type="button" class="nx-pill" :class="{ on: !state.medialink.noTitle[m.id] }" @click="flip('noTitle', m.id)">TITLE</button>
-                            <button type="button" class="nx-pill" :class="{ on: !state.medialink.hidden[m.id] }" @click="flip('hidden', m.id, true)">SHOW</button>
-                            <span class="nx-meta">{{ m.playing ? 'PLAYING' : 'PAUSED' }}</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="nx-cols">
-            <div class="nx-card nx-panel">
+                    <div v-if="def.id === 'status'" class="nx-full nx-pages-in">
                 <h2 class="nx-h2">{{ t('view.chatbox.pages') }}</h2>
                 <div v-for="(page, i) in pages" :key="i" class="nx-page" :class="{ active: i === activeIndex }">
                     <span class="nx-num">{{ i + 1 }}</span>
@@ -135,14 +125,23 @@
                     <Switch :model-value="chatboxNotify" :ariaLabel="t('view.settings.aurora.chatbox_notify')" @update:modelValue="setChatboxNotify" />
                 </div>
             </div>
-
-            <div class="nx-right">
-                <div class="nx-card nx-panel">
-                    <h2 class="nx-h2">{{ t('view.chatbox.preview') }}</h2>
-                    <div class="nx-bubble" style="white-space: pre-line">{{ preview || '...' }}</div>
-                    <span class="nx-meta">{{ preview.length }} / 144</span>
+                    <div v-if="def.id === 'medialink'" class="nx-full nx-sessions">
+                        <p v-if="!mediaSessions.length" class="nx-meta">{{ t('view.chatbox.no_media') }}</p>
+                        <div v-for="m in mediaSessions" :key="m.id" class="nx-session">
+                            <b>{{ friendlyApp(m.id) }}</b>
+                            <span class="nx-meta nx-trunc">{{ m.title }}{{ m.artist ? ' - ' + m.artist : '' }}</span>
+                            <button type="button" class="nx-pill" :class="{ on: !state.medialink.noArtist[m.id] }" @click="flip('noArtist', m.id)">ARTIST</button>
+                            <button type="button" class="nx-pill" :class="{ on: !state.medialink.noTitle[m.id] }" @click="flip('noTitle', m.id)">TITLE</button>
+                            <button type="button" class="nx-pill" :class="{ on: !state.medialink.hidden[m.id] }" @click="flip('hidden', m.id, true)">SHOW</button>
+                            <span class="nx-meta">{{ m.playing ? 'PLAYING' : 'PAUSED' }}</span>
+                        </div>
+                    </div>
                 </div>
+            </div>
+        </div>
 
+        <div class="nx-cols">
+            <div class="nx-right">
                 <div class="nx-card nx-panel">
                     <h2 class="nx-h2">{{ t('view.chatbox.send_now') }}</h2>
                     <Input

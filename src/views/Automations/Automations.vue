@@ -9,14 +9,16 @@
             </header>
 
             <section class="a-card">
-                <h2 class="a-h2">
+                <h2 class="a-h2 cursor-pointer" @click="alarmsOpen = !alarmsOpen">
                     <AuroraIcon name="alarm" :size="15" /> {{ t('view.automations.alarms') }}
-                    <span class="a-h2-aside flex gap-2">
+                    <span class="a-note">{{ alarmsOpen ? '-' : '+' }}</span>
+                    <span v-show="alarmsOpen" class="a-h2-aside flex gap-2" @click.stop>
                         <button v-for="m in [5, 15, 30, 60]" :key="m" type="button" class="a-btn" @click="addTimer(m)">
                             {{ m < 60 ? t('view.automations.minutes', { n: m }) : t('view.automations.hour') }}
                         </button>
                     </span>
                 </h2>
+                <div v-show="alarmsOpen">
                 <p v-if="!alarms.length" class="a-empty">{{ t('view.automations.no_alarms') }}</p>
                 <div v-for="a in alarms" :key="a.id" class="auto-alarm">
                     <input v-model="a.time" type="time" class="a-input auto-time" :aria-label="t('view.automations.time')" />
@@ -54,6 +56,7 @@
                         <AuroraIcon name="plus" :size="15" /> {{ t('view.automations.add_alarm') }}
                     </button>
                     <button type="button" class="a-btn" @click="ringAlarm">{{ t('view.automations.test') }}</button>
+                </div>
                 </div>
             </section>
 

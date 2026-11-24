@@ -1,7 +1,7 @@
 /* Aura Dark: the same paper after the lights go out - graphite, pale ink. The concept's colours, as the app's tokens.
  * Everything is square (--radius 0). The shape of buttons, inputs and panels lives in styles/aura.css. */
 :root[data-theme='auradark'] {
-    --radius: 0;
+    --radius: 1rem;
 
     --background: #14161a;
     --foreground: #e6e8eb;

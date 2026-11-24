@@ -1,4 +1,4 @@
-name: Build Aurora (Windows installer)
+name: Build Aura (Windows installer)
 
 # Run it by hand: Actions tab > "Build Aurora (Windows installer)" > Run workflow.
 # The installer shows up under "Artifacts" at the bottom of the finished run.
@@ -75,7 +75,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release create "v${VERSION}" stage/Aurora_Setup_x64.exe \
-            --title "Aurora ${VERSION}" --generate-notes --latest
+            --title "Aura ${VERSION}" --generate-notes --latest
 
       - name: Upload portable folder
         uses: actions/upload-artifact@v7

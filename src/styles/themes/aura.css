@@ -1,22 +1,22 @@
 /* Aura: pale cool grey paper, graphite ink, hairline rules. The concept's colours, as the app's tokens.
  * Everything is square (--radius 0). The shape of buttons, inputs and panels lives in styles/aura.css. */
 :root[data-theme='aura'] {
-    --radius: 0;
+    --radius: 1rem;
 
-    --background: #eceef0;
+    --background: #ffffff;
     --foreground: #1f2226;
-    --card: #f4f5f6;
+    --card: #ffffff;
     --card-foreground: #1f2226;
-    --profile-card: #f4f5f6;
-    --popover: #f6f6f7;
+    --profile-card: #ffffff;
+    --popover: #ffffff;
     --popover-foreground: #1f2226;
     --primary: #1f2226;
     --primary-foreground: #f6f6f7;
-    --secondary: #e4e6e9;
+    --secondary: #f2f3f5;
     --secondary-foreground: #1f2226;
-    --muted: #e7e9ec;
+    --muted: #f2f3f5;
     --muted-foreground: #646970;
-    --accent: #e4e6e9;
+    --accent: #f2f3f5;
     --accent-foreground: #1f2226;
     --destructive: #9a3b36;
     --destructive-foreground: #f6f6f7;

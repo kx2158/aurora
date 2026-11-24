@@ -8,7 +8,7 @@
                 @dragover.prevent="dragOver = true"
                 @dragleave="dragOver = false"
                 @drop.prevent="onDrop">
-                <input ref="inputRef" type="file" :accept="ACCEPT" style="display: none" @change="onPick" />
+                <input ref="inputRef" type="file" :accept="acceptTypes" style="display: none" @change="onPick" />
                 <Sparkles class="size-6 opacity-70" />
                 <div class="text-sm font-medium">
                     {{ loading ? t('view.sticker_maker.reading') : t('view.sticker_maker.drop') }}
@@ -138,7 +138,7 @@
                     <RotateCcw /> {{ t('view.sticker_maker.other_file') }}
                 </Button>
                 <div class="flex-1"></div>
-                <Button v-if="gifBusy || convertedGif" variant="outline" size="sm" :disabled="gifBusy" @click="saveGif">
+                <Button v-if="gifBusy || convertedGif || videoFile" variant="outline" size="sm" :disabled="gifBusy" @click="saveGif">
                     <Download /> {{ gifBusy ? t('view.sticker_maker.converting') : t('view.sticker_maker.save_gif') }}
                 </Button>
                 <Button v-if="source && mode === 'emoji'" variant="outline" size="sm" :disabled="busy || !sheetBlob" @click="saveSheet">
@@ -183,6 +183,9 @@
     const emit = defineEmits(['uploaded']);
     const { t } = useI18n();
 
+    // stickers take still pictures only; the emoji tab takes anything that moves too
+    const STILL_ACCEPT = 'image/png,image/jpeg,image/webp,image/gif,.png,.jpg,.jpeg,.webp,.gif';
+    const acceptTypes = computed(() => (props.kind === 'sticker' ? STILL_ACCEPT : ACCEPT));
     const ACCEPT = 'image/gif,image/webp,image/png,image/apng,image/jpeg,video/mp4,video/webm,video/quicktime,.gif,.webp,.png,.apng,.jpg,.jpeg,.mp4,.m4v,.mov,.webm,.mkv,.avi,.wmv';
     const PREVIEW = 220;
 
@@ -192,6 +195,7 @@
     const gifBusy = ref(false);
     // a video is turned into a GIF as soon as it is opened; that GIF is what the maker works from
     const convertedGif = ref(null);
+    const videoFile = ref(null);
     const source = ref(null);
     const fileName = ref('');
 
@@ -280,6 +284,10 @@
         try {
             dispose();
             const src = await openSource(file);
+            if (props.kind === 'sticker' && src.kind !== 'still') {
+                toast.error(t('view.sticker_maker.still_only'));
+                return;
+            }
             convertedGif.value = null;
             source.value = src;
             fileName.value = file.name;
@@ -293,7 +301,8 @@
             offX.value = [0];
             offY.value = [0];
             await render();
-            if (src.kind === 'video') convertInBackground(src, file);
+            // the GIF is only made when asked for, so the upload is not competing with it for the CPU
+            videoFile.value = src.kind === 'video' ? file : null;
         } catch (err) {
             console.error('sticker maker: could not read', err);
             toast.error(t(isVideoType(kind) ? 'view.sticker_maker.video_failed' : 'view.sticker_maker.not_supported'));
@@ -437,7 +446,10 @@
         }
     }
 
-    function saveGif() {
+    async function saveGif() {
+        if (!convertedGif.value && videoFile.value && source.value) {
+            await convertInBackground(source.value, videoFile.value);
+        }
         if (!convertedGif.value) return;
         const url = URL.createObjectURL(convertedGif.value);
         const a = document.createElement('a');
@@ -466,6 +478,7 @@
         source.value?.dispose?.();
         source.value = null;
         convertedGif.value = null;
+        videoFile.value = null;
         gifBusy.value = false;
         sheetBlob.value = null;
         if (previewUrl.value) URL.revokeObjectURL(previewUrl.value);

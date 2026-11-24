@@ -755,7 +755,11 @@
                 "purchase_history_description": "View items you have purchased from the VRChat store and marketplace",
                 "info_push": "Info Push",
                 "info_push_description": "Browse VRChat info push announcements and content"
-            }
+            },
+            "dev_placeholder": "Developer password",
+            "dev_unlock": "Unlock",
+            "dev_lock": "Lock developer tools",
+            "dev_wrong": "Wrong password"
         },
         "profile": {
             "profile": {
@@ -1758,7 +1762,8 @@
             "title_emoji": "Animated emoji",
             "desc_emoji": "Turn a GIF or short video into a VRChat animated emoji. VRChat only animates emoji, not stickers, so animations live here.",
             "converting": "Making GIF...",
-            "save_gif": "Save GIF"
+            "save_gif": "Save GIF",
+            "still_only": "Stickers take still pictures only. Moving pictures and videos go in the Emoji tab."
         },
         "space_drag": {
             "title": "Space drag",
@@ -4333,7 +4338,11 @@
             "offline": "offline",
             "instances": "INSTANCES",
             "none": "nobody is in a world right now",
-            "unknown_world": "world"
+            "unknown_world": "world",
+            "music": "Music events",
+            "no_music": "No music events right now.",
+            "loading": "Looking for events...",
+            "live": "On now"
         },
         "feed": {
             "title": "feed",

@@ -1,7 +1,7 @@
 <template>
     <div class="au-page">
         <section class="au-left">
-            <div class="aura-label">今 · {{ today }}</div>
+            <div class="aura-label">{{ today }}</div>
             <h1 class="au-big">{{ t('aura.now.here', { n: here }) }}</h1>
             <p class="au-sub">{{ t('aura.now.in', { n: instances.length }) }}</p>
             <div class="au-counts">
@@ -9,50 +9,31 @@
                 <div><b>{{ offline }}</b>&nbsp; {{ t('aura.now.offline') }}</div>
             </div>
 
-            <div class="aura-label au-gap">{{ t('aura.now.instances') }}</div>
-            <div v-if="!instances.length" class="au-empty">{{ t('aura.now.none') }}</div>
-            <div v-for="(i, n) in instances" :key="i.tag" class="au-item">
-                <div class="au-num">{{ String(n + 1).padStart(2, '0') }}</div>
+            <div class="aura-label au-gap">{{ t('aura.now.music') }}</div>
+            <div v-if="!events.length" class="au-empty">{{ loadingEvents ? t('aura.now.loading') : t('aura.now.no_music') }}</div>
+            <div v-for="e in events" :key="e.id" class="au-item">
+                <div class="au-num">{{ e.when }}</div>
                 <div class="au-grow">
-                    <div class="au-title">{{ names[i.tag] || t('aura.now.unknown_world') }}</div>
-                    <div class="au-meta">{{ i.access }}</div>
+                    <div class="au-title">{{ e.title }}</div>
+                    <div class="au-meta">{{ e.live ? t('aura.now.live') : e.day }}</div>
                 </div>
-                <div class="au-people">
-                    <span v-for="p in i.people.slice(0, 3)" :key="p.id">{{ p.name }}</span>
-                    <span v-if="i.people.length > 3" class="au-meta">+{{ i.people.length - 3 }}</span>
-                </div>
-                <button type="button" class="au-link" @click="launch.showLaunchDialog(i.tag)">{{ t('aura.join') }}</button>
             </div>
         </section>
 
-        <AuraStage kanji="気配" :size="300" offset="7%">
-            <!-- you in the middle, a thin line out to every instance, a pane of frost at each end -->
-            <svg viewBox="0 0 100 100" preserveAspectRatio="none" fill="none">
-                <line x1="14" y1="6" x2="14" y2="94" class="s-dash" />
-                <path v-for="n in nodes" :key="'l' + n.tag" :d="n.path" class="s-line" />
-            </svg>
-            <span class="s-me" :style="{ left: ME[0] + '%', top: ME[1] + '%' }"></span>
-            <div v-for="n in nodes" :key="'c' + n.tag" class="s-pane" :style="{ left: n.x + '%', top: n.y + '%' }">
-                <span class="s-pane-dot"></span>
-                <b>{{ n.label }}</b>
-                <small>{{ n.people }}</small>
-            </div>
-        </AuraStage>
     </div>
 </template>
 
 <script setup>
-    import { computed, reactive, watch } from 'vue';
+    import { computed, onMounted, ref } from 'vue';
     import { storeToRefs } from 'pinia';
     import { useI18n } from 'vue-i18n';
 
-    import AuraStage from '../../components/AuraStage.vue';
+    import { groupRequest } from '../../api';
+    import { upcomingMusic } from '../../services/musicEvents';
     import { isRealInstance } from '../../shared/utils/instance';
-    import { getWorldName } from '../../shared/utils/world';
-    import { useFriendStore, useLaunchStore } from '../../stores';
+    import { useFriendStore } from '../../stores';
 
     const { t } = useI18n();
-    const launch = useLaunchStore();
     const { onlineFriends, vipFriends, activeFriends, offlineFriends } = storeToRefs(useFriendStore());
 
     const today = computed(() =>
@@ -62,60 +43,31 @@
     const here = computed(() => inGame.value.length);
     const away = computed(() => activeFriends.value.length);
     const offline = computed(() => offlineFriends.value.length);
-
     const instances = computed(() => {
-        const by = new Map();
+        const tags = new Set();
         for (const f of inGame.value) {
-            const L = f.ref?.$location;
-            const tag = L?.tag;
-            if (!tag || !isRealInstance(tag)) continue;
-            if (!by.has(tag)) by.set(tag, { tag, access: L.accessTypeName || '', people: [] });
-            by.get(tag).people.push({ id: f.id, name: f.ref.displayName || f.name || f.id });
+            const tag = f.ref?.$location?.tag;
+            if (tag && isRealInstance(tag)) tags.add(tag);
         }
-        return [...by.values()].sort((a, b) => b.people.length - a.people.length).slice(0, 12);
+        return [...tags];
     });
 
-    const names = reactive({});
-    const asked = new Set();
-    watch(
-        instances,
-        (list) => {
-            for (const i of list) {
-                if (asked.has(i.tag)) continue;
-                asked.add(i.tag);
-                getWorldName(i.tag).then((n) => {
-                    if (n) names[i.tag] = n;
-                });
-            }
-        },
-        { immediate: true }
-    );
-
-    // you sit at the left of the stage, every instance floats out to the right, taken from the concept board
-    const ME = [24, 52];
-    const SLOTS = [
-        [58, 16],
-        [66, 36],
-        [56, 56],
-        [68, 74],
-        [48, 88],
-        [74, 54]
-    ];
-    const nodes = computed(() =>
-        instances.value.slice(0, SLOTS.length).map((i, k) => {
-            const [x, y] = SLOTS[k];
-            const mx = (ME[0] + x) / 2;
-            return {
-                tag: i.tag,
-                x,
-                y,
-                path: `M${ME[0]} ${ME[1]} C${mx} ${ME[1]} ${mx} ${y} ${x} ${y}`,
-                label: names[i.tag] || i.access || '',
-                people: i.people
-                    .slice(0, 3)
-                    .map((p) => p.name)
-                    .join(', ')
-            };
-        })
-    );
+    // music events from VRChat's featured calendar: what is on now and what is coming
+    const calendar = ref([]);
+    const loadingEvents = ref(true);
+    const events = computed(() => upcomingMusic(calendar.value, Date.now()));
+    onMounted(async () => {
+        try {
+            const args = await groupRequest.getFeaturedGroupCalendars({
+                n: 100,
+                offset: 0,
+                date: new Date().toISOString().replace(/\.\d+Z$/, 'Z')
+            });
+            calendar.value = args?.json?.results || args?.results || [];
+        } catch (err) {
+            console.error('music events', err);
+        } finally {
+            loadingEvents.value = false;
+        }
+    });
 </script>

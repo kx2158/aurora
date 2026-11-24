@@ -4,6 +4,7 @@
             <span class="header">{{ t('view.tools.header') }}</span>
 
             <div class="mt-5 px-5">
+                <AuroraStealth class="mb-6" />
                 <AuroraHeight class="mb-6" />
                 <AuroraSpaceDrag class="mb-6" />
                 <div v-for="category in categories" :key="category.key" class="mb-6">
@@ -76,42 +77,70 @@
                         </ToolItem>
                     </div>
                 </div>
+                <div class="mb-6 flex items-center gap-2">
+                    <template v-if="!devUnlocked">
+                        <input
+                            v-model="devPassword"
+                            type="password"
+                            class="a-input"
+                            :placeholder="t('view.tools.dev_placeholder')"
+                            @keydown.enter="submitDev" />
+                        <button type="button" class="a-btn" @click="submitDev">{{ t('view.tools.dev_unlock') }}</button>
+                    </template>
+                    <button v-else type="button" class="a-btn" @click="lockDev">{{ t('view.tools.dev_lock') }}</button>
+                </div>
             </div>
         </div>
     </div>
 </template>
 
 <script setup>
-    import { onMounted, ref } from 'vue';
+    import { computed, onMounted, ref } from 'vue';
+    import { toast } from 'vue-sonner';
     import { useI18n } from 'vue-i18n';
 
     import { Button } from '@/components/ui/button';
     import { TooltipWrapper } from '@/components/ui/tooltip';
     import ToolItem from './components/ToolItem.vue';
+    import AuroraStealth from '../../components/AuroraStealth.vue';
     import AuroraHeight from '../../components/AuroraHeight.vue';
     import AuroraSpaceDrag from '../../components/AuroraSpaceDrag.vue';
     import { useToolActions } from '../../composables/useToolActions';
     import { useToolNavPinning } from '../../composables/useToolNavPinning';
     import { getToolsByCategory, toolCategories } from '../../shared/constants';
     import configRepository from '../../services/config.js';
+    import { devUnlocked, initDevLock, lockDev, tryUnlock } from '../../services/devLock';
 
     const { t } = useI18n();
     const { triggerTool } = useToolActions();
     const { pinToolToNav, pinnedToolKeys, refreshPinnedState, unpinToolFromNav } = useToolNavPinning();
-    const toolsCategoryCollapsedConfigKey = 'VRCX_toolsCategoryCollapsed';
-
-    const categories = toolCategories.map((category) => ({
-        ...category,
-        tools: getToolsByCategory(category.key)
-    }));
+    // a new key so everything starts closed, even for people who had opened sections before
+    const toolsCategoryCollapsedConfigKey = 'Aura_toolsCollapsed';
+    // shortcuts and exports go to the bottom
+    const BOTTOM = ['shortcuts', 'user'];
+    // developer-only categories stay hidden until the developer password is entered
+    const DEV_ONLY = ['system'];
+    const allCategories = [...toolCategories]
+        .sort((a, b) => BOTTOM.indexOf(a.key) - BOTTOM.indexOf(b.key) || 0)
+        .map((category) => ({
+            ...category,
+            tools: getToolsByCategory(category.key)
+        }));
+    const categories = computed(() => allCategories.filter((c) => devUnlocked.value || !DEV_ONLY.includes(c.key)));
+    const devPassword = ref('');
+    async function submitDev() {
+        const ok = await tryUnlock(devPassword.value);
+        devPassword.value = '';
+        if (!ok) toast.error(t('view.tools.dev_wrong'));
+    }
 
     const categoryCollapsed = ref({
-        group: false,
-        image: false,
-        shortcuts: false,
-        system: false,
-        user: false,
-        other: false
+        group: true,
+        image: true,
+        shortcuts: true,
+        system: true,
+        user: true,
+        other: true
     });
 
     const toggleCategory = (category) => {
@@ -120,6 +149,7 @@
     };
 
     onMounted(async () => {
+        initDevLock();
         await refreshPinnedState();
         const storedValue = await configRepository.getString(toolsCategoryCollapsedConfigKey, '{}');
         try {

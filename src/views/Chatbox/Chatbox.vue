@@ -191,7 +191,7 @@
 
     const { t } = useI18n();
     const game = useGameStore();
-    const tokens = ['time', 'date', 'world', 'players', 'friends', 'uptime', 'window', 'app', 'music', 'song', 'artist', 'cpu', 'ram', 'battery', 'afk'];
+    const tokens = ['time', 'date', 'world', 'players', 'friends', 'uptime', 'window', 'app', 'music', 'song', 'artist', 'cpu', 'ram', 'battery', 'afk', 'sparkle', 'dots', 'cursor', 'spin'];
     const focused = ref(0);
     const manual = ref('');
 

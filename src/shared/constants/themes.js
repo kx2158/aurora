@@ -15,12 +15,12 @@ export const THEME_CONFIG = {
     },
     xraydark: {
         isDark: true,
-        name: 'Aurora Dark',
+        name: 'Aura Classic Dark',
         file: 'xray-dark.css'
     },
     xray: {
         isDark: false,
-        name: 'Aurora Light',
+        name: 'Aura Classic Light',
         file: 'xray.css'
     },
     light: {

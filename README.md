@@ -1,12 +1,12 @@
 <div align="center">
 
-# <img src="./images/aurora/icon.png" width="64" height="64" alt=""> Aurora
+# <img src="./images/aurora/icon.png" width="64" height="64" alt=""> Aura
 
 A minimal, privacy-first VRChat companion: your friends and history, clear insights, a mic mixer with noise suppression and chatbox tools.
 
 </div>
 
-Aurora is a personal fork of [VRCX](https://github.com/vrcx-team/VRCX) (MIT licensed) by xoliexen. It keeps VRCX's features (friends, worlds, the feed, the game log, favorites, moderation) under a new, minimal interface. It is not made by or affiliated with VRChat Inc. or the VRCX team.
+Aura (formerly Aurora) is a personal fork of [VRCX](https://github.com/vrcx-team/VRCX) (MIT licensed) by xoliexen. It keeps VRCX's features (friends, worlds, the feed, the game log, favorites, moderation) under a new, minimal interface. It is not made by or affiliated with VRChat Inc. or the VRCX team.
 
 ## What is different
 

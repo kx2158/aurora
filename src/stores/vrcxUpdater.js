@@ -254,6 +254,8 @@ export const useVRCXUpdaterStore = defineStore('VRCXUpdater', () => {
         }
         if (
             !currentVersion.value ||
+            currentVersion.value === 'Aura Nightly Build' ||
+            currentVersion.value === 'Aura Build' ||
             currentVersion.value === 'Aurora Nightly Build' ||
             currentVersion.value === 'Aurora Build'
         ) {

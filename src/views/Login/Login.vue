@@ -186,7 +186,7 @@
                 >
             </p>
             <p>
-                Aurora fork &copy; 2026
+                Aura &copy; 2026
                 <a
                     class="cursor-pointer text-foreground hover:underline"
                     @click="openExternalLink('https://github.com/kx2158')"

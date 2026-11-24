@@ -121,12 +121,25 @@
                         :model-value="chatboxInterval"
                         class="nx-small"
                         @update:modelValue="setChatboxInterval" />
+                    <label class="nx-meta">{{ t('view.chatbox.pad') }}</label>
+                    <Input type="number" min="0" max="30" :model-value="chatboxPad" class="nx-small" @update:modelValue="setChatboxPad" />
+                    <label class="nx-meta">{{ t('view.chatbox.typeout') }}</label>
+                    <Switch :model-value="chatboxTypeout" :ariaLabel="t('view.chatbox.typeout')" @update:modelValue="setChatboxTypeout" />
+                    <label class="nx-meta">{{ t('view.chatbox.live') }}</label>
+                    <Switch :model-value="chatboxLive" :ariaLabel="t('view.chatbox.live')" @update:modelValue="setChatboxLive" />
+                    <label class="nx-meta">{{ t('view.chatbox.no_bg') }}</label>
+                    <Switch :model-value="chatboxNoBg" :ariaLabel="t('view.chatbox.no_bg')" @update:modelValue="setChatboxNoBg" />
+                    <label class="nx-meta">{{ t('view.chatbox.typing_indicator') }}</label>
+                    <Switch
+                        :model-value="chatboxTypingIndicator"
+                        :ariaLabel="t('view.chatbox.typing_indicator')"
+                        @update:modelValue="setChatboxTypingIndicator" />
                     <label class="nx-meta">{{ t('view.chatbox.anim_speed') }}</label>
                     <Input
                         type="number"
-                        min="100"
+                        min="1000"
                         max="5000"
-                        step="50"
+                        step="100"
                         :model-value="chatboxAnimMs"
                         class="nx-small"
                         @update:modelValue="setChatboxAnimMs" />
@@ -157,7 +170,7 @@
                         v-model="manual"
                         maxlength="144"
                         :placeholder="t('view.chatbox.manual_ph')"
-                        @input="setTyping(true)"
+                        @input="onManualInput"
                         @keydown.enter="sendManual" />
                     <div class="nx-actions">
                         <button type="button" class="nx-add" @click="sendManual">{{ t('view.chatbox.send') }}</button>
@@ -179,6 +192,11 @@
         afkMinutes,
         chatboxEnabled,
         chatboxAnimMs,
+        chatboxLive,
+        chatboxPad,
+        chatboxTypeout,
+        chatboxNoBg,
+        chatboxTypingIndicator,
         chatboxInterval,
         chatboxNotify,
         chatboxPageIndex,
@@ -190,6 +208,12 @@
         sendChatboxNow,
         setChatboxEnabled,
         setChatboxAnimMs,
+        liveTypeSend,
+        setChatboxLive,
+        setChatboxPad,
+        setChatboxTypeout,
+        setChatboxNoBg,
+        setChatboxTypingIndicator,
         setChatboxInterval,
         setChatboxNotify,
         setAfkMinutes,
@@ -252,6 +276,14 @@
     function insertToken(tok) {
         const i = Math.min(focused.value, pages.value.length - 1);
         editPage(i, (pages.value[i] || '') + '{' + tok + '}');
+    }
+    // live typing sends every change as it happens; otherwise only the typing bubble shows until Enter
+    function onManualInput() {
+        if (chatboxLive.value) {
+            liveTypeSend(manual.value);
+        } else {
+            setTyping(true);
+        }
     }
     function sendManual() {
         if (!manual.value.trim()) {

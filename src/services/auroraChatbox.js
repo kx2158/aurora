@@ -7,12 +7,31 @@ import { ref, watch } from 'vue';
 
 import configRepository from './config';
 import { animFrame, hasAnimation } from './chatboxAnim';
+import { typeoutDuration, typeoutSteps } from './chatboxTypeout';
 import { useFriendStore, useGameStore, useLocationStore } from '../stores';
 
 export const chatboxEnabled = ref(false);
 export const chatboxTemplate = ref('{time} | {world} | {friends} friends online');
 export const chatboxInterval = ref(5);
 export const chatboxNotify = ref(false);
+// the two control characters VRChat reads as "draw this text without the bubble behind it"
+export const NO_BG_SUFFIX = '\u0003\u001f';
+export const chatboxNoBg = ref(false);
+export const chatboxTypingIndicator = ref(true);
+export const chatboxLive = ref(false);
+export const chatboxTypeout = ref(false);
+let typeoutTimers = [];
+let typeoutUntil = 0;
+let liveTimer = null;
+let liveAt = 0;
+export const chatboxPad = ref(0);
+/** Spaces in front of the text, then the no-background marker when that is on; always within 144 characters. */
+export function withBackgroundSetting(text, noBg, pad = chatboxPad.value) {
+    const lead = ' '.repeat(Math.max(0, Math.min(30, Number(pad) || 0)));
+    const room = 144 - (noBg ? NO_BG_SUFFIX.length : 0);
+    const body = (lead + String(text ?? '')).slice(0, room);
+    return noBg ? body + NO_BG_SUFFIX : body;
+}
 export const chatboxPreview = ref('');
 /** Pages rotate every interval, like a slideshow of lines. */
 export const chatboxPages = ref(['{time} | {world} | {friends} friends online']);
@@ -38,10 +57,10 @@ let lastSent = '';
 let lastSentAt = 0;
 let nudgeTimer = null;
 // VRChat rate-limits chatbox updates (about 5 per 5 seconds, and stricter since 2024), so under about 1.1 s updates may be dropped
-// and can earn a "timed out for spam" pause. It is still allowed on purpose: the speed is a setting, 100 ms by default and at the lowest.
-export const ANIM_MIN_MS = 100;
+// and can earn a "timed out for spam" pause. It is still allowed on purpose: the speed is a setting, 1.2 s by default, 1 s at the lowest.
+export const ANIM_MIN_MS = 1000;
 export const ANIM_MAX_MS = 5000;
-export const chatboxAnimMs = ref(100);
+export const chatboxAnimMs = ref(1200);
 const MIN_GAP = () => chatboxAnimMs.value;
 // a message you send through Aurora stays up at least this long before anything else replaces it
 export const HOLD_MS = 7000;
@@ -72,7 +91,12 @@ export async function initChatbox() {
         chatboxPageSlots.value = chatboxPages.value.map(() => 'rotate');
     }
     afkMinutes.value = await configRepository.getInt('Neon_afkMinutes', 5);
-    chatboxAnimMs.value = clampAnim(await configRepository.getInt('Aurora_chatboxAnimMs', 100));
+    chatboxPad.value = await configRepository.getInt('Aurora_chatboxPad', 0);
+    chatboxTypeout.value = await configRepository.getBool('Aurora_chatboxTypeout', false);
+    chatboxLive.value = await configRepository.getBool('Aurora_chatboxLive', false);
+    chatboxNoBg.value = await configRepository.getBool('Aurora_chatboxNoBg', false);
+    chatboxTypingIndicator.value = await configRepository.getBool('Aurora_chatboxTyping', true);
+    chatboxAnimMs.value = clampAnim(await configRepository.getInt('Aurora_chatboxAnimMs', 1200));
     watch([chatboxEnabled, chatboxInterval, chatboxAnimMs], restart);
     startSysInfo();
     restart();
@@ -80,11 +104,34 @@ export async function initChatbox() {
 
 export function clampAnim(v) {
     const n = Math.round(Number(v));
-    return Number.isFinite(n) ? Math.min(ANIM_MAX_MS, Math.max(ANIM_MIN_MS, n)) : 100;
+    return Number.isFinite(n) ? Math.min(ANIM_MAX_MS, Math.max(ANIM_MIN_MS, n)) : 1200;
 }
 export function setChatboxAnimMs(v) {
     chatboxAnimMs.value = clampAnim(v);
     configRepository.setInt('Aurora_chatboxAnimMs', chatboxAnimMs.value);
+}
+
+export function setChatboxTypeout(v) {
+    chatboxTypeout.value = !!v;
+    configRepository.setBool('Aurora_chatboxTypeout', chatboxTypeout.value);
+}
+export function setChatboxPad(v) {
+    chatboxPad.value = Math.max(0, Math.min(30, Math.round(Number(v) || 0)));
+    configRepository.setInt('Aurora_chatboxPad', chatboxPad.value);
+    lastSent = '';
+}
+export function setChatboxLive(v) {
+    chatboxLive.value = !!v;
+    configRepository.setBool('Aurora_chatboxLive', chatboxLive.value);
+}
+export function setChatboxNoBg(v) {
+    chatboxNoBg.value = !!v;
+    configRepository.setBool('Aurora_chatboxNoBg', chatboxNoBg.value);
+    lastSent = '';
+}
+export function setChatboxTypingIndicator(v) {
+    chatboxTypingIndicator.value = !!v;
+    configRepository.setBool('Aurora_chatboxTyping', chatboxTypingIndicator.value);
 }
 
 export function setChatboxEnabled(v) {
@@ -114,11 +161,12 @@ export function setChatboxPages(pages, slots) {
 
 /** Sends one line right now (for the manual box). */
 export function sendChatboxNow(text, typingFirst = false) {
+    clearTimeout(liveTimer);
     const line = String(text || '').slice(0, 144);
     if (!line) {
         return;
     }
-    AppApi.SendOscChatbox(renderChatbox(line), true, chatboxNotify.value, 9000);
+    AppApi.SendOscChatbox(withBackgroundSetting(renderChatbox(line), chatboxNoBg.value), true, chatboxNotify.value, 9000);
     // keep this message on screen: nothing else (rotation, animation, nudges) may replace it for a while
     holdUntil = Date.now() + HOLD_MS;
     lastSentAt = Date.now();
@@ -128,7 +176,38 @@ export function sendChatboxNow(text, typingFirst = false) {
     }
 }
 
+/**
+ * Live typing: the text in the box goes to VRChat as it is typed. VRChat limits updates, so it goes out at most once per
+ * animation-speed gap, and the newest text is always sent last (trailing send), never an old half-word.
+ */
+export function liveTypeSend(text) {
+    clearTimeout(liveTimer);
+    const t = String(text ?? '');
+    if (!t.trim()) {
+        return;
+    }
+    const send = () => {
+        liveAt = Date.now();
+        holdUntil = Date.now() + HOLD_MS;
+        lastSent = '';
+        try {
+            AppApi.SendOscChatbox(withBackgroundSetting(t, chatboxNoBg.value), true, false, 9000);
+        } catch (e) {
+            console.error('live typing failed', e);
+        }
+    };
+    const wait = chatboxAnimMs.value - (Date.now() - liveAt);
+    if (wait <= 0) {
+        send();
+    } else {
+        liveTimer = setTimeout(send, wait);
+    }
+}
+
 export function setTyping(on) {
+    if (on && !chatboxTypingIndicator.value) {
+        return;
+    }
     try {
         AppApi.SendOscTyping(!!on, 9000);
     } catch (e) {
@@ -202,9 +281,31 @@ export function chatboxNudge() {
     nudgeTimer = setTimeout(() => tick(false), Math.max(0, wait));
 }
 
+/** Plays the type-out preset: clear, typing bubble, then the new status word by word. */
+function playTypeout(text) {
+    typeoutTimers.forEach(clearTimeout);
+    const steps = typeoutSteps(text, { typingMs: 5000, gapMs: chatboxAnimMs.value });
+    typeoutUntil = Date.now() + typeoutDuration(steps) + chatboxAnimMs.value;
+    typeoutTimers = steps.map((st) =>
+        setTimeout(() => {
+            try {
+                if (st.kind === 'clear') {
+                    AppApi.SendOscChatbox('', true, false, 9000);
+                } else if (st.kind === 'typing') {
+                    AppApi.SendOscTyping(st.on, 9000);
+                } else {
+                    AppApi.SendOscChatbox(withBackgroundSetting(st.text, chatboxNoBg.value), true, st.text === text.trimEnd() ? chatboxNotify.value : false, 9000);
+                }
+            } catch (e) {
+                console.error('type-out failed', e);
+            }
+        }, st.at)
+    );
+}
+
 function tick(advance = true) {
-    if (Date.now() < holdUntil) {
-        return; // a message you sent is still on screen
+    if (Date.now() < holdUntil || Date.now() < typeoutUntil) {
+        return; // a message you sent, or a type-out, is still on screen
     }
     // with integrations plugged in, pinned lines stay and the rotating ones take turns
     // a nudge re-sends the item that is showing now, it does not skip ahead
@@ -227,8 +328,12 @@ function tick(advance = true) {
     }
     lastSent = text;
     lastSentAt = Date.now();
+    if (chatboxTypeout.value && advance) {
+        playTypeout(text);
+        return;
+    }
     try {
-        AppApi.SendOscChatbox(text, true, chatboxNotify.value, 9000);
+        AppApi.SendOscChatbox(withBackgroundSetting(text, chatboxNoBg.value), true, chatboxNotify.value, 9000);
     } catch (e) {
         console.error('Neon chatbox failed', e);
     }

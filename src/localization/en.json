@@ -1457,6 +1457,17 @@
                     "header": "Group invites",
                     "auto_reject": "Auto reject group invites",
                     "auto_reject_desc": "Declines every group invite the moment it arrives. No popup, nothing left in your notifications."
+                },
+                "stealth": {
+                    "header": "Stealth mode",
+                    "on": "Stealth mode",
+                    "on_desc": "Hides your status text, bio, banner, profile icon, languages, groups, favourites and badges. Turning it off puts everything back as it was. It cannot change your avatar or account age.",
+                    "busy": "Working on it, this takes a minute because VRChat limits how fast things can change.",
+                    "failed": "Could not change {step}: {error}",
+                    "badges": "Keep badges hidden",
+                    "badges_desc": "Checks your badges every few minutes and hides any that VRChat made visible again.",
+                    "on_tip": "Stealth mode on",
+                    "off_tip": "Stealth mode off"
                 }
             }
         },
@@ -1986,7 +1997,13 @@
                 "search": "Search groups",
                 "note": "Mark groups to keep or leave, add a note, and leave from here.",
                 "empty": "No groups match.",
-                "leave": "Leave"
+                "leave": "Leave",
+                "new_folder": "New folder name",
+                "add_folder": "Add folder",
+                "remove_folder": "Remove folder",
+                "folder_empty": "Empty. Move groups in with the menu on each group.",
+                "move": "Move to folder",
+                "no_folder": "No folder"
             }
         }
     },

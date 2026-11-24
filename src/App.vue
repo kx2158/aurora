@@ -35,6 +35,8 @@
     import { TooltipProvider } from './components/ui/tooltip';
     import { createGlobalStores } from './stores';
     import { initNoty } from './plugins/noty';
+    import { initBadgeGuard } from './services/badgeGuard';
+    import { initStealth } from './services/stealthMode';
     import { initChatbox } from './services/auroraChatbox';
     import { backupDatabase } from './services/auroraBackup';
     import { initMusicMic, watchGameForMic } from './services/auroraMusicMic';
@@ -66,6 +68,8 @@
 
     initNoty();
     initChatbox();
+    initStealth();
+    initBadgeGuard();
     initIntegrations();
     initAccent();
     initMusicMic();

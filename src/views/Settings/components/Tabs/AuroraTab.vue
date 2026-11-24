@@ -102,6 +102,31 @@
             </SettingsItem>
         </SettingsGroup>
 
+        <SettingsGroup id="nx-stealth" :title="t('view.settings.aurora.stealth.header')">
+            <SettingsItem
+                :label="t('view.settings.aurora.stealth.on')"
+                :description="stealthBusy ? t('view.settings.aurora.stealth.busy') : t('view.settings.aurora.stealth.on_desc')"
+                toggle>
+                <Switch
+                    :model-value="stealth.on"
+                    :disabled="stealthBusy"
+                    :ariaLabel="t('view.settings.aurora.stealth.on')"
+                    @update:modelValue="setStealth" />
+            </SettingsItem>
+            <p v-for="f in stealthFailures" :key="f.step" class="text-xs text-muted-foreground px-1">
+                {{ t('view.settings.aurora.stealth.failed', { step: f.step, error: f.error }) }}
+            </p>
+            <SettingsItem
+                :label="t('view.settings.aurora.stealth.badges')"
+                :description="t('view.settings.aurora.stealth.badges_desc')"
+                toggle>
+                <Switch
+                    :model-value="keepBadgesHidden"
+                    :ariaLabel="t('view.settings.aurora.stealth.badges')"
+                    @update:modelValue="setKeepBadgesHidden" />
+            </SettingsItem>
+        </SettingsGroup>
+
         <SettingsGroup id="nx-invites" :title="t('view.settings.aurora.invites.header')">
             <SettingsItem
                 :label="t('view.settings.aurora.invites.auto_reject')"
@@ -184,6 +209,8 @@
     import { ACCENT_PRESETS, accent, setAccent } from '@/services/auroraAccent';
     import { CLEANUP_KEYS, cleanCategories, countCategory } from '@/services/auroraCleanup';
     import { autoRejectGroupInvites, loadGroupInviteSetting, setAutoRejectGroupInvites } from '@/services/groupInvites';
+    import { keepBadgesHidden, setKeepBadgesHidden } from '@/services/badgeGuard';
+    import { initStealth, setStealth, stealth, stealthBusy, stealthFailures } from '@/services/stealthMode';
     import { isValidPin } from '@/services/auroraSecurity';
     import { getDeskHotkey, setDeskHotkey, toggleDeskOverlay } from '@/services/auroraVrBridge';
     import { useAuroraSettingsStore } from '@/stores';
@@ -195,6 +222,7 @@
 
     const { t } = useI18n();
     loadGroupInviteSetting();
+    initStealth();
     const store = useAuroraSettingsStore();
     const { appLockEnabled, autoLockMinutes, cleanupSelected, cleanupKeepDays, cleanupAuto } = storeToRefs(store);
     const { setAutoLockMinutes, lockNow, toggleCleanup, setCleanupKeepDays, setCleanupAuto } = store;

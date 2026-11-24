@@ -275,17 +275,7 @@
     color: var(--aura-mute);
 }
 
-/* sharp corners for every surface, the same as the window */
-:root:is([data-theme='aura'], [data-theme='auradark']) *,
-:root:is([data-theme='aura'], [data-theme='auradark']) *::before,
-:root:is([data-theme='aura'], [data-theme='auradark']) *::after {
-    border-radius: 0 !important;
-}
-:root:is([data-theme='aura'], [data-theme='auradark']) html,
-:root:is([data-theme='aura'], [data-theme='auradark']) body,
-:root:is([data-theme='aura'], [data-theme='auradark']) #app {
-    border-radius: 0;
-}
+/* the window itself stays square (see WinformThemer); everything inside it is round, see the liquid glass section at the end */
 
 /* ---------- Now, feed and people: big thin type, rows separated by space, no lines ---------- */
 .au-page {
@@ -1133,4 +1123,239 @@
     border-radius: 50% !important;
     background: var(--aura-paper);
     box-shadow: 0 0 0 1px var(--aura-ink);
+}
+
+/* =====================================================================
+   Liquid glass, everywhere. Following Apple's Liquid Glass principles:
+   - glass is for the layer that floats above content: controls, navigation, menus, small circles.
+     Content itself (text, lists, the page) stays plain so it never fights the glass.
+   - controls are capsules and circles, never squares. Shapes sit concentric: bigger sheets have
+     big radii, what sits inside them is fully round.
+   - a bright rim along the top-left, a soft dark rim along the bottom-right, a drop shadow under it
+   - interactive: it brightens on hover, lifts a little, and squashes when pressed
+   - tint is kept for the main action only
+   - glass does not sit on glass: a glass sheet holds plain things, and its buttons are the glass
+   ===================================================================== */
+
+/* every button is a bubble */
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='button'],
+:root:is([data-theme='aura'], [data-theme='auradark']) .a-btn,
+:root:is([data-theme='aura'], [data-theme='auradark']) .au-link,
+:root:is([data-theme='aura'], [data-theme='auradark']) .nx-chip,
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='toggle-group-item'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='tabs-trigger'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='badge'] {
+    border-radius: 999px !important;
+    background: var(--lg-fill) !important;
+    -webkit-backdrop-filter: blur(14px) saturate(1.7);
+    backdrop-filter: blur(14px) saturate(1.7);
+    box-shadow: var(--lg-rim), var(--lg-drop) !important;
+    color: var(--aura-ink);
+    padding-inline: 1.15em;
+    transition:
+        transform 0.22s cubic-bezier(0.3, 1.5, 0.5, 1),
+        background 0.2s ease,
+        box-shadow 0.2s ease;
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='button']:hover,
+:root:is([data-theme='aura'], [data-theme='auradark']) .a-btn:hover,
+:root:is([data-theme='aura'], [data-theme='auradark']) .au-link:hover,
+:root:is([data-theme='aura'], [data-theme='auradark']) .nx-chip:hover,
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='toggle-group-item']:hover,
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='tabs-trigger']:hover {
+    background: var(--lg-fill-hover) !important;
+    transform: translateY(-1px) scale(1.03);
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='button']:active,
+:root:is([data-theme='aura'], [data-theme='auradark']) .a-btn:active,
+:root:is([data-theme='aura'], [data-theme='auradark']) .au-link:active,
+:root:is([data-theme='aura'], [data-theme='auradark']) .nx-chip:active,
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='toggle-group-item']:active,
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='tabs-trigger']:active {
+    transform: scale(0.94);
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='tabs-trigger'][data-state='active'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='toggle-group-item'][data-state='on'] {
+    background: var(--lg-fill-on) !important;
+    box-shadow: var(--lg-rim), var(--lg-drop) !important;
+}
+/* the one main action gets the tint */
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='button'][data-variant='default'] {
+    background:
+        var(--lg-fill),
+        linear-gradient(var(--aura-ink), var(--aura-ink)) !important;
+    background-blend-mode: soft-light, normal;
+    color: var(--aura-paper);
+}
+
+/* fields and pickers are capsules too */
+:root:is([data-theme='aura'], [data-theme='auradark']) input:not([type='checkbox']):not([type='radio']):not([type='range']),
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='input'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='select-trigger'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='number-field'],
+:root:is([data-theme='aura'], [data-theme='auradark']) .a-input {
+    border-radius: 999px !important;
+    background: var(--lg-fill) !important;
+    -webkit-backdrop-filter: blur(12px) saturate(1.5);
+    backdrop-filter: blur(12px) saturate(1.5);
+    box-shadow: var(--lg-rim) !important;
+    padding-inline: 1.1em;
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) textarea,
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='textarea'] {
+    border-radius: 24px !important;
+    background: var(--lg-fill) !important;
+    box-shadow: var(--lg-rim) !important;
+}
+
+/* every little circle is a bead of glass: avatars, status dots, switch thumbs, icon buttons */
+:root:is([data-theme='aura'], [data-theme='auradark']) .rounded-full,
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='avatar'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='avatar-image'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='avatar-fallback'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='switch-thumb'] {
+    border-radius: 999px !important;
+    box-shadow:
+        var(--lg-rim),
+        0 0 0 2px rgba(255, 255, 255, 0.45),
+        0 8px 18px -8px rgba(31, 34, 38, 0.45);
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='avatar'] {
+    position: relative;
+    overflow: hidden;
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='avatar']::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: var(--lg-bead);
+    mix-blend-mode: soft-light;
+    opacity: 0.9;
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='switch'] {
+    border-radius: 999px !important;
+    background: var(--lg-fill) !important;
+    box-shadow: var(--lg-rim) !important;
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='switch'][data-state='checked'] {
+    background: var(--lg-fill-on) !important;
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='switch-thumb'] {
+    background: var(--lg-bead) !important;
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) .a-toggle {
+    border-radius: 999px !important;
+    background: var(--lg-fill);
+    box-shadow: var(--lg-rim);
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) .a-toggle.on {
+    background: var(--lg-fill-on);
+}
+
+/* the sidebar floats as one glass sheet, and each category is a capsule inside it */
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='sidebar-inner'] {
+    border-radius: 34px !important;
+    margin: 12px 0 12px 12px;
+    width: calc(100% - 12px) !important;
+    height: calc(100% - 24px) !important;
+    background: var(--lg-fill) !important;
+    box-shadow: var(--lg-rim), var(--lg-drop) !important;
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='sidebar-menu-button'] {
+    border-radius: 999px !important;
+    box-shadow: none;
+    transition:
+        background 0.2s ease,
+        transform 0.22s cubic-bezier(0.3, 1.5, 0.5, 1);
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='sidebar-menu-button']:hover {
+    background: var(--lg-fill) !important;
+    box-shadow: var(--lg-rim) !important;
+    letter-spacing: 0.04em;
+    transform: translateX(2px);
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='sidebar-menu-button'][data-active='true'] {
+    background: var(--lg-fill-on) !important;
+    box-shadow: var(--lg-rim), var(--lg-drop) !important;
+    font-weight: 500;
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='sidebar-group-label'] {
+    box-shadow: none;
+}
+
+/* menus, dialogs, popovers: big rounded sheets */
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='dialog-content'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='alert-dialog-content'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='sheet-content'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='popover-content'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='dropdown-menu-content'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='dropdown-menu-sub-content'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='context-menu-content'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='select-content'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='hover-card-content'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='command'] {
+    border-radius: 28px !important;
+    background: var(--aura-glass-strong) !important;
+    box-shadow: var(--lg-rim), 0 30px 80px -30px var(--aura-shadow) !important;
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='dropdown-menu-item'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='dropdown-menu-checkbox-item'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='select-item'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='dropdown-menu-sub-trigger'] {
+    border-radius: 999px !important;
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='tooltip-content'] {
+    border-radius: 999px !important;
+    background: var(--aura-glass-strong) !important;
+    color: var(--aura-ink) !important;
+    box-shadow: var(--lg-rim), var(--lg-drop) !important;
+}
+
+/* scrollbars: thin glass pills */
+:root:is([data-theme='aura'], [data-theme='auradark']) ::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: var(--lg-fill);
+    box-shadow: var(--lg-rim);
+}
+
+/* a theme bubble that is always on screen */
+.aura-theme-bubble {
+    position: fixed;
+    right: 18px;
+    bottom: 18px;
+    z-index: 60;
+    display: flex;
+    gap: 6px;
+    padding: 6px;
+    border-radius: 999px;
+    background: var(--aura-glass-strong, rgba(128, 128, 128, 0.3));
+    -webkit-backdrop-filter: blur(24px) saturate(1.7);
+    backdrop-filter: blur(24px) saturate(1.7);
+    box-shadow: var(--lg-rim), var(--lg-drop);
+}
+.aura-theme-bubble button {
+    width: 34px;
+    height: 34px;
+    border-radius: 999px;
+    font-size: 15px;
+    line-height: 1;
+    color: var(--aura-ink);
+    background: var(--lg-fill, rgba(255, 255, 255, 0.15));
+    box-shadow: var(--lg-rim, none);
+    transition: transform 0.22s cubic-bezier(0.3, 1.5, 0.5, 1);
+}
+.aura-theme-bubble button:hover {
+    transform: scale(1.1);
+}
+.aura-theme-bubble button:active {
+    transform: scale(0.9);
+}
+.aura-theme-bubble button.on {
+    background: var(--lg-fill-on);
+}
+@media (prefers-reduced-motion: reduce) {
+    :root:is([data-theme='aura'], [data-theme='auradark']) * {
+        transition: none !important;
+    }
 }

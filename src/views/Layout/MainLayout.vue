@@ -8,6 +8,7 @@
                 class="relative flex-1 h-full min-w-0 min-h-0"
                 @update:open="handleSidebarOpenChange">
                 <NavMenu />
+                <AuraThemeBubble />
 
                 <div
                     v-show="sidebarOpen"
@@ -112,6 +113,7 @@
     import LaunchOptionsDialog from '../Settings/dialogs/LaunchOptionsDialog.vue';
     import MainDialogContainer from '../../components/dialogs/MainDialogContainer.vue';
     import ModerationReportDialog from '../../components/dialogs/ModerationReportDialog.vue';
+    import AuraThemeBubble from '../../components/AuraThemeBubble.vue';
     import NavMenu from '../../components/nav-menu/NavMenu.vue';
     import PrimaryPasswordDialog from '../Settings/dialogs/PrimaryPasswordDialog.vue';
     import SendBoopDialog from '../../components/dialogs/SendBoopDialog.vue';

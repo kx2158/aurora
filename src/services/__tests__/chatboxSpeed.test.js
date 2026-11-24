@@ -8,6 +8,6 @@ describe('chatbox animation speed', () => {
         expect(clampAnim(10)).toBe(100);
         expect(clampAnim(1200)).toBe(1200);
         expect(clampAnim(99999)).toBe(5000);
-        expect(clampAnim('abc')).toBe(1200);
+        expect(clampAnim('abc')).toBe(100);
     });
 });

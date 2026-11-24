@@ -7,7 +7,7 @@ import { ref, watch } from 'vue';
 
 import configRepository from './config';
 import { animFrame, hasAnimation } from './chatboxAnim';
-import { typeoutDuration, typeoutSteps } from './chatboxTypeout';
+import { clampMs, revealText, TYPEOUT_DEFAULTS, typewriterPlan } from './chatboxTypeout';
 import { useFriendStore, useGameStore, useLocationStore } from '../stores';
 
 export const chatboxEnabled = ref(false);
@@ -20,8 +20,11 @@ export const chatboxNoBg = ref(false);
 export const chatboxTypingIndicator = ref(true);
 export const chatboxLive = ref(false);
 export const chatboxTypeout = ref(false);
-let typeoutTimers = [];
-let typeoutUntil = 0;
+export const chatboxTypeMs = ref(TYPEOUT_DEFAULTS.typeMs);
+export const chatboxHoldMs = ref(TYPEOUT_DEFAULTS.holdMs);
+export const chatboxEraseMs = ref(TYPEOUT_DEFAULTS.eraseMs);
+let twTimers = [];
+let twActive = false;
 let liveTimer = null;
 let liveAt = 0;
 export const chatboxPad = ref(0);
@@ -93,6 +96,9 @@ export async function initChatbox() {
     afkMinutes.value = await configRepository.getInt('Neon_afkMinutes', 5);
     chatboxPad.value = await configRepository.getInt('Aurora_chatboxPad', 0);
     chatboxTypeout.value = await configRepository.getBool('Aurora_chatboxTypeout', false);
+    chatboxTypeMs.value = clampMs(await configRepository.getInt('Aurora_chatboxTypeMs', TYPEOUT_DEFAULTS.typeMs), TYPEOUT_DEFAULTS.typeMs);
+    chatboxHoldMs.value = clampMs(await configRepository.getInt('Aurora_chatboxHoldMs', TYPEOUT_DEFAULTS.holdMs), TYPEOUT_DEFAULTS.holdMs);
+    chatboxEraseMs.value = clampMs(await configRepository.getInt('Aurora_chatboxEraseMs', TYPEOUT_DEFAULTS.eraseMs), TYPEOUT_DEFAULTS.eraseMs);
     chatboxLive.value = await configRepository.getBool('Aurora_chatboxLive', false);
     chatboxNoBg.value = await configRepository.getBool('Aurora_chatboxNoBg', false);
     chatboxTypingIndicator.value = await configRepository.getBool('Aurora_chatboxTyping', true);
@@ -114,6 +120,22 @@ export function setChatboxAnimMs(v) {
 export function setChatboxTypeout(v) {
     chatboxTypeout.value = !!v;
     configRepository.setBool('Aurora_chatboxTypeout', chatboxTypeout.value);
+    if (loaded) {
+        restart();
+    }
+}
+/** Sets how long the typewriter types, holds and erases (milliseconds). */
+export function setTypewriterTimes(kind, v) {
+    const target = { type: chatboxTypeMs, hold: chatboxHoldMs, erase: chatboxEraseMs }[kind];
+    const key = { type: 'Aurora_chatboxTypeMs', hold: 'Aurora_chatboxHoldMs', erase: 'Aurora_chatboxEraseMs' }[kind];
+    if (!target) {
+        return;
+    }
+    target.value = clampMs(v, target.value);
+    configRepository.setInt(key, target.value);
+    if (loaded) {
+        startTypewriter();
+    }
 }
 export function setChatboxPad(v) {
     chatboxPad.value = Math.max(0, Math.min(30, Math.round(Number(v) || 0)));
@@ -281,31 +303,71 @@ export function chatboxNudge() {
     nudgeTimer = setTimeout(() => tick(false), Math.max(0, wait));
 }
 
-/** Plays the type-out preset: clear, typing bubble, then the new status word by word. */
-function playTypeout(text) {
-    typeoutTimers.forEach(clearTimeout);
-    const steps = typeoutSteps(text, { typingMs: 5000, gapMs: chatboxAnimMs.value });
-    typeoutUntil = Date.now() + typeoutDuration(steps) + chatboxAnimMs.value;
-    typeoutTimers = steps.map((st) =>
+function stopTypewriter() {
+    twTimers.forEach(clearTimeout);
+    twTimers = [];
+    if (twActive) {
+        twActive = false;
+        setTyping(false);
+    }
+}
+
+/** Typewriter preset: the status is typed, held, erased, then the next one is typed. Every other line stays on screen. */
+function startTypewriter() {
+    stopTypewriter();
+    if (!chatboxEnabled.value || !chatboxTypeout.value) {
+        return;
+    }
+    twActive = true;
+    twCycle();
+}
+
+function twCycle() {
+    if (!twActive) {
+        return;
+    }
+    const plan = typewriterPlan({ typeMs: chatboxTypeMs.value, holdMs: chatboxHoldMs.value, eraseMs: chatboxEraseMs.value, gapMs: chatboxAnimMs.value });
+    const counter = rotateCounter.value;
+    twTimers = plan.steps.map((st) => setTimeout(() => twStep(st, counter), st.at));
+    twTimers.push(
         setTimeout(() => {
-            try {
-                if (st.kind === 'clear') {
-                    AppApi.SendOscChatbox('', true, false, 9000);
-                } else if (st.kind === 'typing') {
-                    AppApi.SendOscTyping(st.on, 9000);
-                } else {
-                    AppApi.SendOscChatbox(withBackgroundSetting(st.text, chatboxNoBg.value), true, st.text === text.trimEnd() ? chatboxNotify.value : false, 9000);
-                }
-            } catch (e) {
-                console.error('type-out failed', e);
-            }
-        }, st.at)
+            rotateCounter.value++;
+            twCycle();
+        }, plan.total)
     );
 }
 
+function twStep(st, counter) {
+    let text;
+    if (composer) {
+        text = composer(counter, st.fraction);
+    } else {
+        const pages = chatboxPages.value;
+        text = revealText(renderChatbox(pages[counter % pages.length] || ''), st.fraction);
+    }
+    chatboxPreview.value = text;
+    if (!chatboxEnabled.value || !useGameStore().isGameRunning) {
+        return;
+    }
+    if (st.typing !== undefined) {
+        setTyping(st.typing);
+    }
+    if (Date.now() < holdUntil || text === lastSent) {
+        return;
+    }
+    lastSent = text;
+    lastSentAt = Date.now();
+    try {
+        // an erased status with nothing else on screen is sent as a single space so the old text goes away
+        AppApi.SendOscChatbox(withBackgroundSetting(text || ' ', chatboxNoBg.value), true, chatboxNotify.value && st.fraction === 1 && st.typing !== false, 9000);
+    } catch (e) {
+        console.error('typewriter failed', e);
+    }
+}
+
 function tick(advance = true) {
-    if (Date.now() < holdUntil || Date.now() < typeoutUntil) {
-        return; // a message you sent, or a type-out, is still on screen
+    if (twActive || Date.now() < holdUntil) {
+        return; // the typewriter drives the chatbox, or a message you sent is still on screen
     }
     // with integrations plugged in, pinned lines stay and the rotating ones take turns
     // a nudge re-sends the item that is showing now, it does not skip ahead
@@ -328,10 +390,6 @@ function tick(advance = true) {
     }
     lastSent = text;
     lastSentAt = Date.now();
-    if (chatboxTypeout.value && advance) {
-        playTypeout(text);
-        return;
-    }
     try {
         AppApi.SendOscChatbox(withBackgroundSetting(text, chatboxNoBg.value), true, chatboxNotify.value, 9000);
     } catch (e) {
@@ -352,5 +410,6 @@ function restart() {
         frame++;
         tick(false);
     }, MIN_GAP());
+    startTypewriter();
     tick();
 }

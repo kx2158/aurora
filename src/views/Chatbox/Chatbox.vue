@@ -125,6 +125,14 @@
                     <Input type="number" min="0" max="30" :model-value="chatboxPad" class="nx-small" @update:modelValue="setChatboxPad" />
                     <label class="nx-meta">{{ t('view.chatbox.typeout') }}</label>
                     <Switch :model-value="chatboxTypeout" :ariaLabel="t('view.chatbox.typeout')" @update:modelValue="setChatboxTypeout" />
+                    <template v-if="chatboxTypeout">
+                        <label class="nx-meta">{{ t('view.chatbox.type_ms') }}</label>
+                        <Input type="number" min="500" max="30000" step="500" :model-value="chatboxTypeMs" class="nx-small" @update:modelValue="(v) => setTypewriterTimes('type', v)" />
+                        <label class="nx-meta">{{ t('view.chatbox.hold_ms') }}</label>
+                        <Input type="number" min="500" max="30000" step="500" :model-value="chatboxHoldMs" class="nx-small" @update:modelValue="(v) => setTypewriterTimes('hold', v)" />
+                        <label class="nx-meta">{{ t('view.chatbox.erase_ms') }}</label>
+                        <Input type="number" min="500" max="30000" step="500" :model-value="chatboxEraseMs" class="nx-small" @update:modelValue="(v) => setTypewriterTimes('erase', v)" />
+                    </template>
                     <label class="nx-meta">{{ t('view.chatbox.live') }}</label>
                     <Switch :model-value="chatboxLive" :ariaLabel="t('view.chatbox.live')" @update:modelValue="setChatboxLive" />
                     <label class="nx-meta">{{ t('view.chatbox.no_bg') }}</label>
@@ -195,6 +203,10 @@
         chatboxLive,
         chatboxPad,
         chatboxTypeout,
+        chatboxTypeMs,
+        chatboxHoldMs,
+        chatboxEraseMs,
+        setTypewriterTimes,
         chatboxNoBg,
         chatboxTypingIndicator,
         chatboxInterval,

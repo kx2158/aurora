@@ -1650,7 +1650,13 @@
             "checks_desc": "Aura also looks at who is online by itself, so friends who were already online are not missed. The keep away list is checked the same way, and your status goes back once they are offline.",
             "check_start": "Check who is online when I start the game",
             "check_every_a": "Check again every",
-            "check_every_b": "minutes (0 = off)"
+            "check_every_b": "minutes (0 = off)",
+            "invite": "Auto invite",
+            "invite_desc": "When one of these friends comes online while you are in an instance, they get an invite to it. Each person has their own limit, so nobody is pinged forever.",
+            "invite_add": "Add a friend",
+            "invite_count": "{sent} of {max} invites sent",
+            "invite_max": "Most invites",
+            "invite_reset": "Reset"
         },
         "insights": {
             "title": "Insights",

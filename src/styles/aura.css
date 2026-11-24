@@ -286,3 +286,14 @@
 :root:is([data-theme='aura'], [data-theme='auradark']) #app {
     border-radius: 0;
 }
+
+/* ---------- the top bar replaces the sidebar: it stays mounted for its dialogs and shortcuts, just out of sight ---------- */
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='sidebar-wrapper'] > [data-slot='sidebar'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='sidebar-wrapper'] > div:has(> [data-slot='sidebar']) {
+    display: none !important;
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='sidebar-inset'] {
+    background: transparent;
+    margin: 0;
+    box-shadow: none;
+}

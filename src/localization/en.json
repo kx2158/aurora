@@ -1933,7 +1933,25 @@
             "mk_nomemo": "No memo",
             "mk_locked": "Locked",
             "st_join_me": "Join me",
-            "st_ask_me": "Ask me"
+            "st_ask_me": "Ask me",
+            "tab_alerts": "Alerts",
+            "alerts": {
+                "search": "Search friends",
+                "only_marked": "Marked only",
+                "note": "Marked friends always get a notification for the events you pick, even when that kind of notification is off in settings.",
+                "empty": "No friends match.",
+                "more": "{n} more - search to narrow it down",
+                "all_on": "all",
+                "all_off": "none",
+                "kind": {
+                    "online": "comes online",
+                    "offline": "goes offline",
+                    "moves": "changes world",
+                    "joinsMe": "joins me",
+                    "boop": "boops me",
+                    "status": "status change"
+                }
+            }
         }
     },
     "dialog": {
@@ -4236,5 +4254,15 @@
         "stickers": "Stickers",
         "emoji": "Emoji",
         "friends_manager": "Friends manager"
+    },
+    "aura": {
+        "more": "more",
+        "settings": "Settings",
+        "section": {
+            "people": "people",
+            "worlds": "worlds",
+            "insights": "insights",
+            "aurora": "aura"
+        }
     }
 }

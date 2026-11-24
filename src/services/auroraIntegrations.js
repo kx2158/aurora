@@ -147,14 +147,15 @@ export const INTEGRATIONS = [
     {
         id: 'weather',
         name: 'Weather',
-        desc: 'Display local weather details like temperature, feels-like, wind and humidity.',
+        desc: 'Shows only the temperature (never the city), and picks Celsius or Fahrenheit by itself.',
         desktop: true,
         vr: true,
         icon: 'ri-sun-cloudy-line',
-        defaults: { enabled: false, city: '', fahrenheit: false },
+        defaults: { enabled: false, city: '', fahrenheit: false, auto: true },
         options: [
-            { key: 'city', label: 'City', type: 'text' },
-            { key: 'fahrenheit', label: 'Fahrenheit', type: 'bool' }
+            { key: 'city', label: 'City (used to look up the temperature, never shown)', type: 'text' },
+            { key: 'auto', label: 'Switch between C and F automatically', type: 'bool' },
+            { key: 'fahrenheit', label: 'Fahrenheit (when automatic is off)', type: 'bool' }
         ]
     },
     {
@@ -376,7 +377,7 @@ function mediaLine() {
         return '';
     }
     const parts = [];
-    const artist = chosen.artist && !m.noArtist?.[chosen.id] ? chosen.artist : '';
+    const artist = chosen.artist && !m.noArtist?.[chosen.id] ? cleanArtist(chosen.artist, chosen.id) : '';
     const title = !m.noTitle?.[chosen.id] ? chosen.title : '';
     const order = m.titleFirst ? [title, artist] : [artist, title];
     const song = order.filter(Boolean).join(nl(m.separator ?? ' - '));
@@ -396,6 +397,18 @@ function mediaLine() {
 }
 
 // ---------- weather (open-meteo, no key needed) ----------
+const FAHRENHEIT_COUNTRIES = new Set(['US', 'LR', 'MM', 'BS', 'BZ', 'KY', 'PW', 'FM', 'MH']);
+/** Fahrenheit where the place uses it, Celsius everywhere else. */
+export function usesFahrenheit(countryCode) {
+    return FAHRENHEIT_COUNTRIES.has(String(countryCode || '').toUpperCase());
+}
+/** Apple Music puts "Artist - Album" into the artist field; keep only the artist. */
+export function cleanArtist(artist, sessionId) {
+    const a = String(artist || '');
+    if (!/apple/i.test(String(sessionId || ''))) return a;
+    return a.split(/\s[\u2014\u2013-]\s/)[0].trim();
+}
+
 async function fetchWeather() {
     const w = state.weather;
     if (!w?.enabled || !w.city) {
@@ -409,7 +422,8 @@ async function fetchWeather() {
             weather.value = '';
             return;
         }
-        const unit = w.fahrenheit ? '&temperature_unit=fahrenheit' : '';
+        const useF = w.auto === false ? !!w.fahrenheit : usesFahrenheit(place.country_code);
+        const unit = useF ? '&temperature_unit=fahrenheit' : '';
         const data = await (
             await fetch(
                 `https://api.open-meteo.com/v1/forecast?latitude=${place.latitude}&longitude=${place.longitude}&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m${unit}`
@@ -417,8 +431,7 @@ async function fetchWeather() {
         ).json();
         const c = data?.current;
         if (c) {
-            const deg = w.fahrenheit ? 'F' : 'C';
-            weather.value = `${place.name} ${Math.round(c.temperature_2m)}${deg} (feels ${Math.round(c.apparent_temperature)}${deg}) wind ${Math.round(c.wind_speed_10m)} km/h hum ${c.relative_humidity_2m}%`;
+            weather.value = `${Math.round(c.temperature_2m)}\u00b0${useF ? 'F' : 'C'}`;
         }
     } catch {
         weather.value = '';

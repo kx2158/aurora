@@ -8,6 +8,9 @@ import Chatbox from './../views/Chatbox/Chatbox.vue';
 import Mic from './../views/Mic/Mic.vue';
 import Automations from './../views/Automations/Automations.vue';
 import Stickers from './../views/Stickers/Stickers.vue';
+import AuraFeed from './../views/Aura/AuraFeed.vue';
+import AuraNow from './../views/Aura/AuraNow.vue';
+import AuraPeople from './../views/Aura/AuraPeople.vue';
 import Home from './../views/Home/Home.vue';
 import Feed from './../views/Feed/Feed.vue';
 import FriendList from './../views/FriendList/FriendList.vue';
@@ -38,7 +41,10 @@ const routes = [
         component: MainLayout,
         meta: { requiresAuth: true },
         children: [
-            { path: '', redirect: { name: 'home' } },
+            { path: '', redirect: { name: 'aura-now' } },
+            { path: 'now', name: 'aura-now', component: AuraNow },
+            { path: 'log', name: 'aura-feed', component: AuraFeed },
+            { path: 'people', name: 'aura-people', component: AuraPeople },
             { path: 'home', name: 'home', component: Home },
             { path: 'feed', name: 'feed', component: Feed },
             { path: 'neon', name: 'neon', redirect: { name: 'mic' } },
@@ -164,7 +170,7 @@ router.beforeEach((to) => {
     }
 
     if (to.name === 'login' && watchState.isLoggedIn) {
-        return { name: 'feed' };
+        return { name: 'aura-now' };
     }
 
     const requiresAuth = to.matched.some((record) => record.meta?.requiresAuth);

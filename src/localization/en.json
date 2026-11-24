@@ -4282,6 +4282,51 @@
             "worlds": "worlds",
             "insights": "insights",
             "aurora": "aura"
+        },
+        "join": "join",
+        "tab": {
+            "now": "now",
+            "feed": "feed",
+            "people": "people"
+        },
+        "now": {
+            "here": "{n} here",
+            "in": "in {n} instances",
+            "away": "away",
+            "offline": "offline",
+            "instances": "INSTANCES",
+            "none": "nobody is in a world right now",
+            "unknown_world": "world"
+        },
+        "feed": {
+            "title": "feed",
+            "empty": "nothing yet",
+            "today": "today",
+            "yesterday": "yesterday",
+            "f_all": "all",
+            "f_moves": "moves",
+            "f_status": "status",
+            "f_profile": "profile",
+            "v_online": "came online",
+            "v_offline": "went offline",
+            "v_moved": "moved",
+            "v_status": "changed status",
+            "v_bio": "changed bio",
+            "v_avatar": "changed avatar"
+        },
+        "people": {
+            "count": "{n} PEOPLE",
+            "search": "search",
+            "since": "friends since",
+            "together": "time together",
+            "joins": "worlds together",
+            "last": "last seen",
+            "note": "note",
+            "profile": "profile",
+            "alerts": "ALERTS",
+            "s_online": "here",
+            "s_active": "away",
+            "s_offline": "offline"
         }
     }
 }

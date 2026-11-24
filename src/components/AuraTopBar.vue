@@ -60,11 +60,15 @@
     const { currentUser } = storeToRefs(useUserStore());
 
     // the four things you reach for every day sit in the bar, everything else lives under "more"
-    const TAB_KEYS = ['home', 'feed', 'friends-locations', 'friend-list'];
-    const tabs = computed(() => TAB_KEYS.map((k) => navDefinitions.find((n) => n.key === k)).filter(Boolean));
+    const tabs = [
+        { key: 'now', routeName: 'aura-now', labelKey: 'aura.tab.now' },
+        { key: 'feed', routeName: 'aura-feed', labelKey: 'aura.tab.feed' },
+        { key: 'people', routeName: 'aura-people', labelKey: 'aura.tab.people' }
+    ];
+    const TAB_KEYS = [];
 
     const groups = computed(() => {
-        const rest = navDefinitions.filter((n) => !TAB_KEYS.includes(n.key) && n.routeName);
+        const rest = navDefinitions.filter((n) => n.routeName);
         const by = new Map();
         for (const item of rest) {
             const key = item.section || '';
@@ -74,7 +78,7 @@
         return [...by.entries()].map(([section, items]) => ({ section, items }));
     });
 
-    const activeKey = computed(() => tabs.value.find((x) => x.routeName === route.name)?.key ?? '');
+    const activeKey = computed(() => tabs.find((x) => x.routeName === route.name)?.key ?? '');
     const moreActive = computed(() => !activeKey.value && route.name !== 'login');
 
     const STATUS = { 'join me': 'join me', active: 'visible', 'ask me': 'ask me', busy: 'busy', offline: 'offline' };

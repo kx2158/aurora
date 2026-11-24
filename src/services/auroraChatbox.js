@@ -24,10 +24,13 @@ let typeoutTimers = [];
 let typeoutUntil = 0;
 let liveTimer = null;
 let liveAt = 0;
-/** Adds the no-background marker (it costs 2 of the 144 characters) when that is switched on. */
-export function withBackgroundSetting(text, noBg) {
-    const t = String(text ?? '');
-    return noBg ? t.slice(0, 144 - NO_BG_SUFFIX.length) + NO_BG_SUFFIX : t.slice(0, 144);
+export const chatboxPad = ref(0);
+/** Spaces in front of the text, then the no-background marker when that is on; always within 144 characters. */
+export function withBackgroundSetting(text, noBg, pad = chatboxPad.value) {
+    const lead = ' '.repeat(Math.max(0, Math.min(30, Number(pad) || 0)));
+    const room = 144 - (noBg ? NO_BG_SUFFIX.length : 0);
+    const body = (lead + String(text ?? '')).slice(0, room);
+    return noBg ? body + NO_BG_SUFFIX : body;
 }
 export const chatboxPreview = ref('');
 /** Pages rotate every interval, like a slideshow of lines. */
@@ -88,6 +91,7 @@ export async function initChatbox() {
         chatboxPageSlots.value = chatboxPages.value.map(() => 'rotate');
     }
     afkMinutes.value = await configRepository.getInt('Neon_afkMinutes', 5);
+    chatboxPad.value = await configRepository.getInt('Aurora_chatboxPad', 0);
     chatboxTypeout.value = await configRepository.getBool('Aurora_chatboxTypeout', false);
     chatboxLive.value = await configRepository.getBool('Aurora_chatboxLive', false);
     chatboxNoBg.value = await configRepository.getBool('Aurora_chatboxNoBg', false);
@@ -110,6 +114,11 @@ export function setChatboxAnimMs(v) {
 export function setChatboxTypeout(v) {
     chatboxTypeout.value = !!v;
     configRepository.setBool('Aurora_chatboxTypeout', chatboxTypeout.value);
+}
+export function setChatboxPad(v) {
+    chatboxPad.value = Math.max(0, Math.min(30, Math.round(Number(v) || 0)));
+    configRepository.setInt('Aurora_chatboxPad', chatboxPad.value);
+    lastSent = '';
 }
 export function setChatboxLive(v) {
     chatboxLive.value = !!v;

@@ -21,3 +21,12 @@ describe('chatbox background marker', () => {
         expect(withBackgroundSetting('x'.repeat(200), false).length).toBe(144);
     });
 });
+
+describe('chatbox padding', () => {
+    it('puts spaces in front and still fits 144 characters with the marker', async () => {
+        const { withBackgroundSetting, NO_BG_SUFFIX } = await import('../auroraChatbox');
+        expect(withBackgroundSetting('hi', false, 3)).toBe('   hi');
+        expect(withBackgroundSetting('x'.repeat(200), true, 5).length).toBe(144);
+        expect(withBackgroundSetting('hi', true, 2)).toBe('  hi' + NO_BG_SUFFIX);
+    });
+});

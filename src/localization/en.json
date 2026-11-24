@@ -1537,7 +1537,8 @@
             "no_bg": "Hide the bubble behind the text (uses 2 of the 144 characters)",
             "typing_indicator": "Show the typing bubble while I type in the box below",
             "live": "Live typing: people see your text as you type it in the box below",
-            "typeout": "Type-out preset: when the status changes, clear it, show the typing bubble for 5 seconds, then type the new one out word by word"
+            "typeout": "Type-out preset: when the status changes, clear it, show the typing bubble for 5 seconds, then type the new one out word by word",
+            "pad": "Spaces in front of the text (0 to 30), in case the chatbox looks off"
         },
         "dock": {
             "title": "DOCK",

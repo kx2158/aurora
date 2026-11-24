@@ -1,0 +1,66 @@
+/* Aura Dark: the same paper after the lights go out - graphite, pale ink. The concept's colours, as the app's tokens.
+ * Everything is square (--radius 0). The shape of buttons, inputs and panels lives in styles/aura.css. */
+:root[data-theme='auradark'] {
+    --radius: 0;
+
+    --background: #14161a;
+    --foreground: #e6e8eb;
+    --card: #1a1d21;
+    --card-foreground: #e6e8eb;
+    --profile-card: #1a1d21;
+    --popover: #1a1d21;
+    --popover-foreground: #e6e8eb;
+    --primary: #e6e8eb;
+    --primary-foreground: #14161a;
+    --secondary: #22262b;
+    --secondary-foreground: #e6e8eb;
+    --muted: #1f2328;
+    --muted-foreground: #8d939b;
+    --accent: #22262b;
+    --accent-foreground: #e6e8eb;
+    --destructive: #d4756f;
+    --destructive-foreground: #14161a;
+    --border: #2a2e34;
+    --input: #2a2e34;
+    --ring: #e6e8eb;
+    --chart-1: #e6e8eb;
+    --chart-2: #8d939b;
+    --chart-3: #6a7078;
+    --chart-4: #4a4f56;
+    --chart-5: #33373d;
+    --sidebar: transparent;
+    --sidebar-foreground: #e6e8eb;
+    --sidebar-primary: #e6e8eb;
+    --sidebar-primary-foreground: #14161a;
+    --sidebar-accent: #22262b;
+    --sidebar-accent-foreground: #e6e8eb;
+    --sidebar-border: #2a2e34;
+    --sidebar-ring: #e6e8eb;
+
+    /* the three rules of the concept */
+    --aura-ink: #e6e8eb;
+    --aura-mute: #8d939b;
+    --aura-rule: #3a3f46;
+    --aura-rule-soft: #2a2e34;
+    --aura-paper: #14161a;
+    --aura-tint: rgba(230, 232, 235, 0.07);
+    --aura-hover: rgba(230, 232, 235, 0.08);
+    --aura-veil: rgba(10, 11, 13, 0.7);
+    --aura-shadow: rgba(0, 0, 0, 0.6);
+    --aura-top: #181b1f;
+    --aura-mid: #121417;
+    --aura-bot: #0c0d0f;
+    --aura-glow: rgba(70, 76, 86, 0.35);
+    --aura-pool: rgba(40, 44, 52, 0.6);
+    --aura-grain: 0.12;
+    --aura-grain-blend: screen;
+
+    --status-online: #e6e8eb;
+    --status-joinme: #e6e8eb;
+    --status-active: #8d939b;
+    --status-askme: #8d939b;
+    --status-busy: #d4756f;
+    --status-offline: #9aa0a7;
+    --status-offline-alt: #9aa0a7;
+    --status-offline-card: #9aa0a7;
+}

@@ -132,6 +132,11 @@
     </template>
 
     <div class="@container">
+        <!-- Aura: mark this friend for alerts (online, joins me, boops...) -->
+        <div v-if="userDialog.isFriend && currentUser.id !== userDialog.id" class="rounded-xl bg-(--profile-card) p-3 mb-2.5">
+            <div class="mb-2 text-[10px] font-bold uppercase tracking-wide">{{ t('view.friends_manager.alerts.title') }}</div>
+            <FriendAlertToggles :user-id="userDialog.id" />
+        </div>
         <div class="grid gap-2.5 grid-cols-1 @[560px]:grid-cols-[minmax(0,1fr)_230px]" style="align-items: start">
             <div class="flex flex-col gap-2.5">
                 <div class="rounded-xl bg-(--profile-card) p-3">
@@ -459,6 +464,7 @@
 <script setup>
     import { Copy, Info, Languages, Pencil, Trash2, User } from 'lucide-vue-next';
     import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+    import FriendAlertToggles from '@/components/FriendAlertToggles.vue';
     import IconFrame from '@/components/IconFrame.vue';
     import { ref, watch } from 'vue';
     import { Button } from '@/components/ui/button';

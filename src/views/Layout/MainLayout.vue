@@ -1,6 +1,7 @@
 <template>
     <template v-if="watchState.isLoggedIn">
         <div class="flex flex-col flex-1 h-full min-h-0 min-w-0 overflow-hidden">
+            <AuraTopBar />
             <SidebarProvider
                 :open="sidebarOpen"
                 :width="navWidth"
@@ -112,6 +113,7 @@
     import LaunchOptionsDialog from '../Settings/dialogs/LaunchOptionsDialog.vue';
     import MainDialogContainer from '../../components/dialogs/MainDialogContainer.vue';
     import ModerationReportDialog from '../../components/dialogs/ModerationReportDialog.vue';
+    import AuraTopBar from '../../components/AuraTopBar.vue';
     import NavMenu from '../../components/nav-menu/NavMenu.vue';
     import PrimaryPasswordDialog from '../Settings/dialogs/PrimaryPasswordDialog.vue';
     import SendBoopDialog from '../../components/dialogs/SendBoopDialog.vue';

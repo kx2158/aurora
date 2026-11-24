@@ -1329,7 +1329,7 @@
         <div class="vr-dash">
             <div class="vr-dash-head">
                 <AuroraLogo :size="44" />
-                <span class="vr-dash-name">aurora</span>
+                <span class="vr-dash-name">aura</span>
                 <span class="vr-dash-clock">{{ clock.hm }}</span>
             </div>
             <div class="vr-dash-sub">

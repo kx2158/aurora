@@ -38,6 +38,8 @@
     import { initBadgeGuard } from './services/badgeGuard';
     import { initStealth } from './services/stealthMode';
     import { initChatbox } from './services/auroraChatbox';
+    import { initDevLock } from './services/devLock';
+    import { initUnmuteCounter } from './services/unmuteCounter';
     import { backupDatabase } from './services/auroraBackup';
     import { initMusicMic, watchGameForMic } from './services/auroraMusicMic';
     import { initAccent } from './services/auroraAccent';
@@ -68,6 +70,8 @@
 
     initNoty();
     initChatbox();
+    initUnmuteCounter();
+    initDevLock();
     initStealth();
     initBadgeGuard();
     initIntegrations();

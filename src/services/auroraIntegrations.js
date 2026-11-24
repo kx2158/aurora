@@ -6,6 +6,7 @@
 import { reactive, ref, watch } from 'vue';
 
 import configRepository from './config';
+import { revealText } from './chatboxTypeout';
 import { chatboxEnabled, chatboxNudge, chatboxPages, chatboxPageSlots, registerComposer, renderChatbox, sysInfo } from './auroraChatbox';
 import { useGameStore, useLocationStore } from '../stores';
 
@@ -514,11 +515,16 @@ function lineFor(id, statusText) {
 }
 
 /** Builds the chatbox text from every enabled integration. statusText is the current Personal status page. */
+/** Typewriter: shows only the first part of a status line (reveal 0 to 1); null shows all of it. */
+function maskStatus(text, reveal) {
+    return reveal == null ? text : revealText(text, reveal);
+}
+
 /**
  * Builds the chatbox text. Every item has a slot:
  *  top and bottom are always shown, rotate items take turns in the middle (one at a time).
  */
-function compose(counter = 0) {
+function compose(counter = 0, reveal = null) {
     const top = [];
     const bottom = [];
     const rotate = [];
@@ -530,14 +536,14 @@ function compose(counter = 0) {
         (slot === 'top' ? top : slot === 'bottom' ? bottom : rotate).push(line);
     };
     if (!loaded) {
-        return renderChatbox(chatboxPages.value[counter % chatboxPages.value.length] || '');
+        return maskStatus(renderChatbox(chatboxPages.value[counter % chatboxPages.value.length] || ''), reveal);
     }
     for (const def of INTEGRATIONS) {
         if (!state[def.id]?.enabled) {
             continue;
         }
         if (def.id === 'status') {
-            chatboxPages.value.forEach((page, i) => put(chatboxPageSlots.value[i] || 'rotate', renderChatbox(page)));
+            chatboxPages.value.forEach((page, i) => put(chatboxPageSlots.value[i] || 'rotate', maskStatus(renderChatbox(page), reveal)));
         } else {
             put(state[def.id].slot, lineFor(def.id, ''));
         }

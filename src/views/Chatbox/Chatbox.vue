@@ -107,7 +107,7 @@
 
                 <h2 class="nx-h2 nx-mt">{{ t('view.chatbox.insert') }}</h2>
                 <div class="nx-chips">
-                    <button v-for="tok in tokens" :key="tok" type="button" class="nx-chip" @click="insertToken(tok)">{{ '{' + tok + '}' }}</button>
+                    <button v-for="tok in shownTokens" :key="tok" type="button" class="nx-chip" @click="insertToken(tok)">{{ '{' + tok + '}' }}</button>
                 </div>
 
                 <div class="nx-opts">
@@ -125,6 +125,14 @@
                     <Input type="number" min="0" max="30" :model-value="chatboxPad" class="nx-small" @update:modelValue="setChatboxPad" />
                     <label class="nx-meta">{{ t('view.chatbox.typeout') }}</label>
                     <Switch :model-value="chatboxTypeout" :ariaLabel="t('view.chatbox.typeout')" @update:modelValue="setChatboxTypeout" />
+                    <template v-if="chatboxTypeout">
+                        <label class="nx-meta">{{ t('view.chatbox.type_ms') }}</label>
+                        <Input type="number" min="500" max="30000" step="500" :model-value="chatboxTypeMs" class="nx-small" @update:modelValue="(v) => setTypewriterTimes('type', v)" />
+                        <label class="nx-meta">{{ t('view.chatbox.hold_ms') }}</label>
+                        <Input type="number" min="500" max="30000" step="500" :model-value="chatboxHoldMs" class="nx-small" @update:modelValue="(v) => setTypewriterTimes('hold', v)" />
+                        <label class="nx-meta">{{ t('view.chatbox.erase_ms') }}</label>
+                        <Input type="number" min="500" max="30000" step="500" :model-value="chatboxEraseMs" class="nx-small" @update:modelValue="(v) => setTypewriterTimes('erase', v)" />
+                    </template>
                     <label class="nx-meta">{{ t('view.chatbox.live') }}</label>
                     <Switch :model-value="chatboxLive" :ariaLabel="t('view.chatbox.live')" @update:modelValue="setChatboxLive" />
                     <label class="nx-meta">{{ t('view.chatbox.no_bg') }}</label>
@@ -195,6 +203,10 @@
         chatboxLive,
         chatboxPad,
         chatboxTypeout,
+        chatboxTypeMs,
+        chatboxHoldMs,
+        chatboxEraseMs,
+        setTypewriterTimes,
         chatboxNoBg,
         chatboxTypingIndicator,
         chatboxInterval,
@@ -221,10 +233,12 @@
         setTyping
     } from '@/services/auroraChatbox';
     import { friendlyApp, initIntegrations, INTEGRATIONS, mediaSessions, setEnabled, setOption, setSlot, state } from '@/services/auroraIntegrations';
+    import { devUnlocked } from '@/services/devLock';
     import { useGameStore } from '@/stores';
 
     const { t } = useI18n();
     const game = useGameStore();
+    const shownTokens = computed(() => (devUnlocked.value ? [...tokens, 'unmutes'] : tokens));
     const tokens = ['time', 'date', 'world', 'players', 'friends', 'uptime', 'window', 'app', 'music', 'song', 'artist', 'cpu', 'ram', 'battery', 'afk', 'sparkle', 'dots', 'cursor', 'spin'];
     const focused = ref(0);
     const manual = ref('');

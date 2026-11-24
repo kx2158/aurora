@@ -1787,3 +1787,27 @@ i.x-user-status.busy {
 .vr-range {
     border-radius: 0;
 }
+
+.vr-tabs {
+    display: flex;
+    gap: 10px;
+}
+.vr-tab {
+    flex: 1;
+    min-height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 28px;
+    background: rgba(230, 232, 235, 0.07);
+    color: #8d939b;
+    font-size: 22px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+.vr-tab.on {
+    background: #e6e8eb;
+    color: #111;
+}

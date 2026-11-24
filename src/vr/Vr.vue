@@ -1336,7 +1336,19 @@
                 <span>{{ clock.day }}, {{ clock.date }}</span>
                 <span v-if="neonState.nextAlarm">Next alarm {{ neonState.nextAlarm }}</span>
             </div>
-            <div v-for="g in dashGroups" :key="g.title" class="vr-group">
+            <div class="vr-tabs" role="tablist">
+                <button
+                    v-for="t in dashTabs"
+                    :key="t.id"
+                    type="button"
+                    role="tab"
+                    class="vr-tab"
+                    :class="{ on: dashTab === t.id }"
+                    @click="dashTab = t.id">
+                    {{ t.label }}
+                </button>
+            </div>
+            <div v-for="g in visibleGroups" :key="g.title" class="vr-group">
                 <div class="vr-group-title">{{ g.title }}</div>
                 <div class="vr-grid">
                     <!-- avatar height: a real slider, drag it with the laser -->
@@ -1730,9 +1742,17 @@
         if (wait <= 0) go();
         else heightTimer = setTimeout(go, wait);
     }
+    // the dashboard is one overlay, so it gets its own tabs: Space has drag + height, Main has mic and chatbox, More the rest
+    const dashTabs = [
+        { id: 'space', label: 'Space' },
+        { id: 'main', label: 'Main' },
+        { id: 'more', label: 'More' }
+    ];
+    const dashTab = ref('space');
     const dashGroups = computed(() => [
         {
             title: 'Mic',
+            tab: 'main',
             buttons: [
                 { cmd: 'mmToggle', icon: 'power', label: 'Mic mix', state: onOffWord(neonState.mm), on: neonState.mm },
                 { cmd: 'mmMute', icon: neonState.mmMuted ? 'mute' : 'mic', label: 'Mute', state: onOffWord(neonState.mmMuted), on: neonState.mmMuted, warn: neonState.mmMuted },
@@ -1743,6 +1763,7 @@
         },
         {
             title: 'Chatbox',
+            tab: 'main',
             buttons: [
                 { cmd: 'chatbox', icon: 'chat', label: 'Chatbox', state: onOffWord(neonState.chatbox), on: neonState.chatbox },
                 { cmd: 'brb', icon: 'arrow', label: 'Send BRB' },
@@ -1753,6 +1774,7 @@
         },
         {
             title: 'Timers',
+            tab: 'more',
             buttons: [
                 { cmd: 'timer5', icon: 'alarm', label: '5 min' },
                 { cmd: 'timer15', icon: 'alarm', label: '15 min' },
@@ -1763,6 +1785,7 @@
         },
         {
             title: 'Space drag',
+            tab: 'space',
             buttons: [
                 { cmd: 'dragToggle', icon: 'power', label: 'Space drag', state: dragStateWord.value, on: neonState.drag, warn: neonState.dragState === 'missing' },
                 { cmd: 'dragReset', icon: 'refresh', label: 'Reset space', state: 'Put it back' }
@@ -1770,6 +1793,7 @@
         },
         {
             title: 'Size / Overlay',
+            tab: 'space',
             slider: true,
             buttons: [
                 { cmd: 'sounds', icon: 'speaker', label: 'Beeps', state: onOffWord(neonState.sounds), on: neonState.sounds },
@@ -1777,6 +1801,7 @@
             ]
         }
     ]);
+    const visibleGroups = computed(() => dashGroups.value.filter((g) => g.tab === dashTab.value));
     const musicLine = computed(() =>
         neonState.song ? `${neonState.artist ? neonState.artist + ' - ' : ''}${neonState.song}` : 'nothing playing'
     );

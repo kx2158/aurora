@@ -4338,7 +4338,11 @@
             "offline": "offline",
             "instances": "INSTANCES",
             "none": "nobody is in a world right now",
-            "unknown_world": "world"
+            "unknown_world": "world",
+            "music": "Music events",
+            "no_music": "No music events right now.",
+            "loading": "Looking for events...",
+            "live": "On now"
         },
         "feed": {
             "title": "feed",

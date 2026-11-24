@@ -8,7 +8,6 @@ import Chatbox from './../views/Chatbox/Chatbox.vue';
 import Mic from './../views/Mic/Mic.vue';
 import Automations from './../views/Automations/Automations.vue';
 import Stickers from './../views/Stickers/Stickers.vue';
-import AuraFeed from './../views/Aura/AuraFeed.vue';
 import AuraNow from './../views/Aura/AuraNow.vue';
 import AuraPeople from './../views/Aura/AuraPeople.vue';
 import Home from './../views/Home/Home.vue';
@@ -43,7 +42,7 @@ const routes = [
         children: [
             { path: '', redirect: { name: 'aura-now' } },
             { path: 'now', name: 'aura-now', component: AuraNow },
-            { path: 'log', name: 'aura-feed', component: AuraFeed },
+            { path: 'log', name: 'aura-feed', redirect: { name: 'feed' } },
             { path: 'people', name: 'aura-people', component: AuraPeople },
             { path: 'home', name: 'home', component: Home },
             { path: 'feed', name: 'feed', component: Feed },

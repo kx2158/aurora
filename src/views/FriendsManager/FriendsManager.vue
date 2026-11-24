@@ -20,6 +20,12 @@
                     <button type="button" :class="{ on: tab === 'changes' }" @click="tab = 'changes'">
                         {{ t('view.friends_manager.tab_changes') }}
                     </button>
+                    <button type="button" :class="{ on: tab === 'review' }" @click="tab = 'review'">
+                        {{ t('view.friends_manager.tab_review') }}
+                    </button>
+                    <button type="button" :class="{ on: tab === 'groups' }" @click="tab = 'groups'">
+                        {{ t('view.friends_manager.tab_groups') }}
+                    </button>
                     <button type="button" :class="{ on: tab === 'alerts' }" @click="tab = 'alerts'">
                         {{ t('view.friends_manager.tab_alerts') }}
                     </button>
@@ -168,9 +174,11 @@
             <div v-else-if="tab === 'suggested'" class="a-note warn">{{ t('view.friends_manager.suggest_note') }}</div>
 
             <FriendAlerts v-if="tab === 'alerts'" :rows="rows" />
+            <FriendReview v-if="tab === 'review'" :rows="rows" :busy="busy" @unfriend="confirmUnfriendIds" />
+            <GroupsManager v-if="tab === 'groups'" />
             <FriendChanges v-if="tab === 'changes'" :rows="rows" :busy="busy" @unfriend="confirmUnfriendIds" />
 
-            <section v-else-if="tab !== 'alerts'" class="a-card">
+            <section v-else-if="!['alerts', 'review', 'groups'].includes(tab)" class="a-card">
                 <h2 class="a-h2">
                     {{ listTitle }}
                     <span class="a-h2-aside">{{ shown.length }}</span>
@@ -259,8 +267,11 @@
 
     import FriendAlerts from './FriendAlerts.vue';
     import FriendChanges from './FriendChanges.vue';
+    import FriendReview from './FriendReview.vue';
+    import GroupsManager from './GroupsManager.vue';
     import { friendRequest } from '../../api';
     import { fmtDuration } from '../../services/auroraStats';
+    import { initDecisions } from '../../services/decisionNotes';
     import { initFriendLocks, lockedIds, setLocked, setManyLocked } from '../../services/friendLocks';
     import { handleFriendDelete } from '../../coordinators/friendRelationshipCoordinator';
     import { showUserDialog } from '../../coordinators/userCoordinator';
@@ -551,6 +562,7 @@
     onMounted(() => {
         now.value = Date.now();
         initFriendLocks();
+        initDecisions();
         load();
     });
 

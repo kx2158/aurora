@@ -1951,6 +1951,25 @@
                     "boop": "boops me",
                     "status": "status change"
                 }
+            },
+            "tab_review": "Keep or cut",
+            "tab_groups": "Groups",
+            "review": {
+                "keep": "keep",
+                "cut": "get rid of",
+                "note": "note",
+                "f_all": "all",
+                "f_keep": "keep",
+                "f_cut": "get rid of",
+                "f_none": "unmarked",
+                "unfriend_cut": "Unfriend {n} marked",
+                "note_text": "Mark who to keep and who to get rid of, and say why. Nothing is removed until you press unfriend, and locked friends are always skipped."
+            },
+            "groups": {
+                "search": "Search groups",
+                "note": "Mark groups to keep or leave, add a note, and leave from here.",
+                "empty": "No groups match.",
+                "leave": "Leave"
             }
         }
     },

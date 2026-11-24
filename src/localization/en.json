@@ -1536,7 +1536,8 @@
             "anim_speed": "Animation speed (ms, 1000 is the fastest VRChat allows)",
             "no_bg": "Hide the bubble behind the text (uses 2 of the 144 characters)",
             "typing_indicator": "Show the typing bubble while I type in the box below",
-            "live": "Live typing: people see your text as you type it in the box below"
+            "live": "Live typing: people see your text as you type it in the box below",
+            "typeout": "Type-out preset: when the status changes, clear it, show the typing bubble for 5 seconds, then type the new one out word by word"
         },
         "dock": {
             "title": "DOCK",

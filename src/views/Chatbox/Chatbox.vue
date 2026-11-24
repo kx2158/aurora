@@ -121,6 +121,8 @@
                         :model-value="chatboxInterval"
                         class="nx-small"
                         @update:modelValue="setChatboxInterval" />
+                    <label class="nx-meta">{{ t('view.chatbox.typeout') }}</label>
+                    <Switch :model-value="chatboxTypeout" :ariaLabel="t('view.chatbox.typeout')" @update:modelValue="setChatboxTypeout" />
                     <label class="nx-meta">{{ t('view.chatbox.live') }}</label>
                     <Switch :model-value="chatboxLive" :ariaLabel="t('view.chatbox.live')" @update:modelValue="setChatboxLive" />
                     <label class="nx-meta">{{ t('view.chatbox.no_bg') }}</label>
@@ -189,6 +191,7 @@
         chatboxEnabled,
         chatboxAnimMs,
         chatboxLive,
+        chatboxTypeout,
         chatboxNoBg,
         chatboxTypingIndicator,
         chatboxInterval,
@@ -204,6 +207,7 @@
         setChatboxAnimMs,
         liveTypeSend,
         setChatboxLive,
+        setChatboxTypeout,
         setChatboxNoBg,
         setChatboxTypingIndicator,
         setChatboxInterval,

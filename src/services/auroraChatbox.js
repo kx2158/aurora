@@ -7,6 +7,7 @@ import { ref, watch } from 'vue';
 
 import configRepository from './config';
 import { animFrame, hasAnimation } from './chatboxAnim';
+import { typeoutDuration, typeoutSteps } from './chatboxTypeout';
 import { useFriendStore, useGameStore, useLocationStore } from '../stores';
 
 export const chatboxEnabled = ref(false);
@@ -18,6 +19,9 @@ export const NO_BG_SUFFIX = '\u0003\u001f';
 export const chatboxNoBg = ref(false);
 export const chatboxTypingIndicator = ref(true);
 export const chatboxLive = ref(false);
+export const chatboxTypeout = ref(false);
+let typeoutTimers = [];
+let typeoutUntil = 0;
 let liveTimer = null;
 let liveAt = 0;
 /** Adds the no-background marker (it costs 2 of the 144 characters) when that is switched on. */
@@ -84,6 +88,7 @@ export async function initChatbox() {
         chatboxPageSlots.value = chatboxPages.value.map(() => 'rotate');
     }
     afkMinutes.value = await configRepository.getInt('Neon_afkMinutes', 5);
+    chatboxTypeout.value = await configRepository.getBool('Aurora_chatboxTypeout', false);
     chatboxLive.value = await configRepository.getBool('Aurora_chatboxLive', false);
     chatboxNoBg.value = await configRepository.getBool('Aurora_chatboxNoBg', false);
     chatboxTypingIndicator.value = await configRepository.getBool('Aurora_chatboxTyping', true);
@@ -102,6 +107,10 @@ export function setChatboxAnimMs(v) {
     configRepository.setInt('Aurora_chatboxAnimMs', chatboxAnimMs.value);
 }
 
+export function setChatboxTypeout(v) {
+    chatboxTypeout.value = !!v;
+    configRepository.setBool('Aurora_chatboxTypeout', chatboxTypeout.value);
+}
 export function setChatboxLive(v) {
     chatboxLive.value = !!v;
     configRepository.setBool('Aurora_chatboxLive', chatboxLive.value);
@@ -263,9 +272,31 @@ export function chatboxNudge() {
     nudgeTimer = setTimeout(() => tick(false), Math.max(0, wait));
 }
 
+/** Plays the type-out preset: clear, typing bubble, then the new status word by word. */
+function playTypeout(text) {
+    typeoutTimers.forEach(clearTimeout);
+    const steps = typeoutSteps(text, { typingMs: 5000, gapMs: chatboxAnimMs.value });
+    typeoutUntil = Date.now() + typeoutDuration(steps) + chatboxAnimMs.value;
+    typeoutTimers = steps.map((st) =>
+        setTimeout(() => {
+            try {
+                if (st.kind === 'clear') {
+                    AppApi.SendOscChatbox('', true, false, 9000);
+                } else if (st.kind === 'typing') {
+                    AppApi.SendOscTyping(st.on, 9000);
+                } else {
+                    AppApi.SendOscChatbox(withBackgroundSetting(st.text, chatboxNoBg.value), true, st.text === text.trimEnd() ? chatboxNotify.value : false, 9000);
+                }
+            } catch (e) {
+                console.error('type-out failed', e);
+            }
+        }, st.at)
+    );
+}
+
 function tick(advance = true) {
-    if (Date.now() < holdUntil) {
-        return; // a message you sent is still on screen
+    if (Date.now() < holdUntil || Date.now() < typeoutUntil) {
+        return; // a message you sent, or a type-out, is still on screen
     }
     // with integrations plugged in, pinned lines stay and the rotating ones take turns
     // a nudge re-sends the item that is showing now, it does not skip ahead
@@ -288,6 +319,10 @@ function tick(advance = true) {
     }
     lastSent = text;
     lastSentAt = Date.now();
+    if (chatboxTypeout.value && advance) {
+        playTypeout(text);
+        return;
+    }
     try {
         AppApi.SendOscChatbox(withBackgroundSetting(text, chatboxNoBg.value), true, chatboxNotify.value, 9000);
     } catch (e) {

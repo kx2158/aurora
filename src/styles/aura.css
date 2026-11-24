@@ -545,7 +545,8 @@
 
 /* the characters, behind the whole app */
 :root:is([data-theme='aura'], [data-theme='auradark'])::before {
-    content: '気配';
+    content: none;
+    display: none;
     position: fixed;
     right: 4vw;
     top: -4vh;
@@ -1388,37 +1389,6 @@
     }
 }
 
-.aura-theme-bubble {
-    position: fixed;
-    right: 14px;
-    bottom: 34px;
-    z-index: 60;
-    display: flex;
-    gap: 4px;
-    opacity: 0.55;
-    transition: opacity 0.2s ease;
-}
-.aura-theme-bubble:hover {
-    opacity: 1;
-}
-.aura-theme-bubble button {
-    display: grid;
-    place-items: center;
-    width: 26px;
-    height: 26px;
-    border-radius: 999px;
-    color: var(--aura-mute, currentColor);
-    background: transparent;
-    -webkit-backdrop-filter: blur(14px);
-    backdrop-filter: blur(14px);
-}
-.aura-theme-bubble button:hover {
-    color: var(--aura-ink, currentColor);
-}
-.aura-theme-bubble button.on {
-    color: var(--aura-paper, #fff);
-    background: var(--aura-ink, #222);
-}
 
 /* ---------- round two: nothing keeps a grey block behind it ---------- */
 :root:is([data-theme='aura'], [data-theme='auradark']) [class*='bg-background'],
@@ -1479,4 +1449,15 @@
         opacity: 0.22;
         pointer-events: none;
     }
+}
+
+/* no characters anywhere: plain, clean background */
+.stage-kanji,
+.stage-frost,
+.au-kanji {
+    display: none !important;
+}
+:root:is([data-theme='aura']) body,
+:root:is([data-theme='aura']) #app {
+    background: #ffffff;
 }

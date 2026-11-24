@@ -1,7 +1,7 @@
 <template>
     <div class="au-page">
         <section class="au-left au-listcol">
-            <div class="aura-label">人 · {{ t('aura.people.count', { n: people.length }) }}</div>
+            <div class="aura-label">{{ t('aura.people.count', { n: people.length }) }}</div>
             <input v-model="q" class="au-search" :placeholder="t('aura.people.search')" />
             <div class="au-scroll">
                 <button

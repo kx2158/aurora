@@ -1,7 +1,7 @@
 <template>
     <div class="au-page">
         <section class="au-left">
-            <div class="aura-label">今 · {{ today }}</div>
+            <div class="aura-label">{{ today }}</div>
             <h1 class="au-big">{{ t('aura.now.here', { n: here }) }}</h1>
             <p class="au-sub">{{ t('aura.now.in', { n: instances.length }) }}</p>
             <div class="au-counts">

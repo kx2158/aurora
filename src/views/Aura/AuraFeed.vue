@@ -1,7 +1,7 @@
 <template>
     <div class="au-page">
         <section class="au-left">
-            <div class="aura-label">記録 · LOG</div>
+            <div class="aura-label">LOG</div>
             <h1 class="au-big au-mid">{{ t('aura.feed.title') }}</h1>
             <div class="au-tabs">
                 <button

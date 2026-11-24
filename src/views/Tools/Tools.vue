@@ -4,6 +4,7 @@
             <span class="header">{{ t('view.tools.header') }}</span>
 
             <div class="mt-5 px-5">
+                <AuroraStealth class="mb-6" />
                 <AuroraHeight class="mb-6" />
                 <AuroraSpaceDrag class="mb-6" />
                 <div v-for="category in categories" :key="category.key" class="mb-6">
@@ -88,6 +89,7 @@
     import { Button } from '@/components/ui/button';
     import { TooltipWrapper } from '@/components/ui/tooltip';
     import ToolItem from './components/ToolItem.vue';
+    import AuroraStealth from '../../components/AuroraStealth.vue';
     import AuroraHeight from '../../components/AuroraHeight.vue';
     import AuroraSpaceDrag from '../../components/AuroraSpaceDrag.vue';
     import { useToolActions } from '../../composables/useToolActions';
@@ -98,20 +100,24 @@
     const { t } = useI18n();
     const { triggerTool } = useToolActions();
     const { pinToolToNav, pinnedToolKeys, refreshPinnedState, unpinToolFromNav } = useToolNavPinning();
-    const toolsCategoryCollapsedConfigKey = 'VRCX_toolsCategoryCollapsed';
-
-    const categories = toolCategories.map((category) => ({
-        ...category,
-        tools: getToolsByCategory(category.key)
-    }));
+    // a new key so everything starts closed, even for people who had opened sections before
+    const toolsCategoryCollapsedConfigKey = 'Aura_toolsCollapsed';
+    // shortcuts and exports go to the bottom
+    const BOTTOM = ['shortcuts', 'user'];
+    const categories = [...toolCategories]
+        .sort((a, b) => BOTTOM.indexOf(a.key) - BOTTOM.indexOf(b.key) || 0)
+        .map((category) => ({
+            ...category,
+            tools: getToolsByCategory(category.key)
+        }));
 
     const categoryCollapsed = ref({
-        group: false,
-        image: false,
-        shortcuts: false,
-        system: false,
-        user: false,
-        other: false
+        group: true,
+        image: true,
+        shortcuts: true,
+        system: true,
+        user: true,
+        other: true
     });
 
     const toggleCategory = (category) => {

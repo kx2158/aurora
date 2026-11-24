@@ -287,17 +287,6 @@
     border-radius: 0;
 }
 
-/* ---------- the top bar replaces the sidebar: it stays mounted for its dialogs and shortcuts, just out of sight ---------- */
-:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='sidebar-wrapper'] > [data-slot='sidebar'],
-:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='sidebar-wrapper'] > div:has(> [data-slot='sidebar']) {
-    display: none !important;
-}
-:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='sidebar-inset'] {
-    background: transparent;
-    margin: 0;
-    box-shadow: none;
-}
-
 /* ---------- Now, feed and people: big thin type, rows separated by space, no lines ---------- */
 .au-page {
     display: flex;
@@ -553,4 +542,152 @@
     display: flex;
     gap: 16px;
     margin: 36px 0 8px;
+}
+
+/* =====================================================================
+   Frosted glass over Japanese characters.
+   A huge character sits behind everything, and every panel is a sheet of
+   frosted glass over it, so the letters blur and sharpen as panels pass over them.
+   ===================================================================== */
+:root:is([data-theme='aura'], [data-theme='auradark']) {
+    --aura-glass-bg: var(--aura-glass);
+}
+
+/* the characters, behind the whole app */
+:root:is([data-theme='aura'], [data-theme='auradark'])::before {
+    content: '気配';
+    position: fixed;
+    right: 4vw;
+    top: -4vh;
+    z-index: 0;
+    pointer-events: none;
+    writing-mode: vertical-rl;
+    font-family: 'Hiragino Mincho ProN', 'Yu Mincho', 'Noto Serif JP', 'Noto Serif CJK JP', serif;
+    font-size: 72vh;
+    font-weight: 200;
+    line-height: 1;
+    letter-spacing: -0.04em;
+    color: var(--aura-kanji);
+    -webkit-mask-image: linear-gradient(180deg, #000 55%, transparent 100%);
+    mask-image: linear-gradient(180deg, #000 55%, transparent 100%);
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) #app {
+    position: relative;
+    z-index: 1;
+    background: transparent;
+}
+
+/* every surface that used to be a flat colour becomes glass */
+:root:is([data-theme='aura'], [data-theme='auradark']) .bg-background,
+:root:is([data-theme='aura'], [data-theme='auradark']) .bg-card,
+:root:is([data-theme='aura'], [data-theme='auradark']) .bg-sidebar,
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='sidebar-inner'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='card'],
+:root:is([data-theme='aura'], [data-theme='auradark']) .a-card,
+:root:is([data-theme='aura'], [data-theme='auradark']) .au-glass {
+    background: var(--aura-glass) !important;
+    -webkit-backdrop-filter: var(--aura-blur);
+    backdrop-filter: var(--aura-blur);
+    box-shadow:
+        inset 0 1px 0 var(--aura-edge),
+        0 24px 60px -34px var(--aura-shadow) !important;
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='sidebar-inset'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='sidebar-wrapper'],
+:root:is([data-theme='aura'], [data-theme='auradark']) .bg-muted\/30,
+:root:is([data-theme='aura'], [data-theme='auradark']) .bg-muted\/50 {
+    background: transparent !important;
+}
+/* menus and dialogs: thicker glass so text stays easy to read */
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='dialog-content'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='alert-dialog-content'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='sheet-content'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='popover-content'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='dropdown-menu-content'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='context-menu-content'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='select-content'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='hover-card-content'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='command'] {
+    background: var(--aura-glass-strong) !important;
+    -webkit-backdrop-filter: blur(34px) saturate(1.6);
+    backdrop-filter: blur(34px) saturate(1.6);
+    box-shadow:
+        inset 0 1px 0 var(--aura-edge),
+        0 30px 80px -30px var(--aura-shadow);
+}
+
+/* sidebar: the categories, every button, and the theme menu all stay */
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='sidebar-inner'] {
+    font-weight: 300;
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='sidebar-group-label'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-sidebar='group-label'] {
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--aura-mute);
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='sidebar-menu-button'] {
+    font-size: 13.5px;
+    font-weight: 300;
+    letter-spacing: 0.04em;
+    background: transparent;
+    border: 0;
+    text-transform: none;
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='sidebar-menu-button']:hover {
+    background: var(--aura-hover);
+    color: var(--aura-ink);
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='sidebar-menu-button'][data-active='true'] {
+    background: var(--aura-glass-strong);
+    color: var(--aura-ink);
+    font-weight: 500;
+    box-shadow: inset 0 1px 0 var(--aura-edge);
+}
+
+/* ---------- pages: panels of glass over the big letters ---------- */
+.au-page {
+    position: relative;
+    gap: 28px;
+    padding: 28px 32px 36px;
+    align-content: flex-start;
+}
+.au-kanji {
+    display: none;
+}
+.au-glass {
+    position: relative;
+    z-index: 1;
+    padding: 40px 44px 52px !important;
+}
+.au-main {
+    max-width: 780px;
+    margin-right: auto;
+}
+.au-list {
+    flex: 0 1 400px;
+    max-height: calc(100vh - 120px);
+    padding: 36px 24px 12px 28px !important;
+}
+.au-detail {
+    flex: 1 1 480px;
+    min-width: 0;
+    padding: 40px 48px 52px !important;
+    background: var(--aura-glass-strong) !important;
+}
+.au-big {
+    font-size: clamp(56px, 8vw, 112px);
+    font-weight: 200;
+}
+.au-name-big {
+    font-size: clamp(48px, 6vw, 88px);
+}
+.au-item:nth-child(odd),
+.au-line:nth-child(even) {
+    background: var(--aura-hover);
+}
+.au-person.on {
+    background: var(--aura-glass-strong);
+    box-shadow: inset 0 1px 0 var(--aura-edge);
 }

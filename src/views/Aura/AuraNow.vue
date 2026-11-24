@@ -1,6 +1,6 @@
 <template>
     <div class="au-page">
-        <section class="au-main">
+        <section class="au-main au-glass">
             <div class="aura-label">今 · {{ today }}</div>
             <h1 class="au-big">{{ t('aura.now.here', { n: here }) }}</h1>
             <p class="au-sub">{{ t('aura.now.in', { n: instances.length }) }}</p>
@@ -26,7 +26,6 @@
                 </button>
             </div>
         </section>
-        <aside class="au-side" aria-hidden="true"><span>気配</span></aside>
     </div>
 </template>
 

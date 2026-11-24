@@ -4246,7 +4246,7 @@
         "now_playing": "Now Playing"
     },
     "nav_aurora": {
-        "home": "Home",
+        "home": "Overview",
         "feed": "Feed",
         "friends": "Friends",
         "notifications": "Notifications",
@@ -4273,7 +4273,10 @@
         "section_aurora": "Aura",
         "stickers": "Stickers",
         "emoji": "Emoji",
-        "friends_manager": "Friends manager"
+        "friends_manager": "Friends manager",
+        "now": "Now",
+        "log": "Log",
+        "circle": "Circle"
     },
     "aura": {
         "more": "more",

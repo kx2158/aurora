@@ -1,6 +1,6 @@
 <template>
     <div class="au-page">
-        <section class="au-list">
+        <section class="au-list au-glass">
             <div class="aura-label">人 · {{ t('aura.people.count', { n: people.length }) }}</div>
             <input v-model="q" class="au-search" :placeholder="t('aura.people.search')" />
             <div class="au-scroll">
@@ -19,7 +19,7 @@
             </div>
         </section>
 
-        <section v-if="sel" class="au-detail">
+        <section v-if="sel" class="au-detail au-glass">
             <div class="aura-label">{{ stateText(sel.state).toUpperCase() }}{{ sel.where ? ' · ' + sel.where : '' }}</div>
             <h2 class="au-name-big">{{ sel.name }}</h2>
             <div class="au-facts">
@@ -38,7 +38,6 @@
             <div class="aura-label au-gap">{{ t('aura.people.alerts') }}</div>
             <FriendAlertToggles :user-id="sel.id" />
         </section>
-        <aside v-else class="au-side" aria-hidden="true"><span>人</span></aside>
     </div>
 </template>
 

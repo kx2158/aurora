@@ -1,6 +1,6 @@
 <template>
     <div class="au-page">
-        <section class="au-main">
+        <section class="au-main au-glass">
             <div class="aura-label">記録 · LOG</div>
             <h1 class="au-big au-mid">{{ t('aura.feed.title') }}</h1>
             <div class="au-tabs">
@@ -29,7 +29,6 @@
                 </div>
             </template>
         </section>
-        <aside class="au-side" aria-hidden="true"><span>記録</span></aside>
     </div>
 </template>
 

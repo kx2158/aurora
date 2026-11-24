@@ -52,6 +52,11 @@
     --aura-bot: #dee0e3;
     --aura-glow: rgba(255, 255, 255, 0.95);
     --aura-pool: rgba(190, 194, 200, 0.5);
+    --aura-glass: rgba(255, 255, 255, 0.42);
+    --aura-glass-strong: rgba(255, 255, 255, 0.62);
+    --aura-edge: rgba(255, 255, 255, 0.85);
+    --aura-kanji: rgba(31, 34, 38, 0.62);
+    --aura-blur: blur(26px) saturate(1.5);
     --aura-grain: 0.3;
     --aura-grain-blend: multiply;
 

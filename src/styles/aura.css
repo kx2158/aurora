@@ -1126,34 +1126,51 @@
 }
 
 /* =====================================================================
-   Liquid glass, everywhere. Following Apple's Liquid Glass principles:
-   - glass is for the layer that floats above content: controls, navigation, menus, small circles.
-     Content itself (text, lists, the page) stays plain so it never fights the glass.
-   - controls are capsules and circles, never squares. Shapes sit concentric: bigger sheets have
-     big radii, what sits inside them is fully round.
-   - a bright rim along the top-left, a soft dark rim along the bottom-right, a drop shadow under it
-   - interactive: it brightens on hover, lifts a little, and squashes when pressed
-   - tint is kept for the main action only
-   - glass does not sit on glass: a glass sheet holds plain things, and its buttons are the glass
+   Minimal. Quiet and flat: plain text, thin lines, round circles.
+   Glass is kept for what floats above the page (menus, dialogs, tooltips), nothing else.
    ===================================================================== */
 
-/* every button is a bubble */
+/* the page is one calm surface, nothing is boxed or lifted */
+:root:is([data-theme='aura'], [data-theme='auradark']) .bg-background,
+:root:is([data-theme='aura'], [data-theme='auradark']) .bg-card,
+:root:is([data-theme='aura'], [data-theme='auradark']) .bg-sidebar,
+:root:is([data-theme='aura'], [data-theme='auradark']) .bg-muted,
+:root:is([data-theme='aura'], [data-theme='auradark']) .bg-accent,
+:root:is([data-theme='aura'], [data-theme='auradark']) .bg-secondary,
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='sidebar-inner'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='card'],
+:root:is([data-theme='aura'], [data-theme='auradark']) .a-card,
+:root:is([data-theme='aura'], [data-theme='auradark']) .au-glass {
+    background: transparent !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    box-shadow: none !important;
+    background-image: none !important;
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='sidebar-inner']::after {
+    display: none;
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='sidebar-inner'] {
+    border-radius: 0 !important;
+    margin: 0;
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* buttons: quiet capsules with one thin line, no fill, no shadow */
 :root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='button'],
 :root:is([data-theme='aura'], [data-theme='auradark']) .a-btn,
 :root:is([data-theme='aura'], [data-theme='auradark']) .au-link,
 :root:is([data-theme='aura'], [data-theme='auradark']) .nx-chip,
-:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='toggle-group-item'],
-:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='tabs-trigger'],
-:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='badge'] {
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='toggle-group-item'] {
     border-radius: 999px !important;
-    background: var(--lg-fill) !important;
-    -webkit-backdrop-filter: blur(14px) saturate(1.7);
-    backdrop-filter: blur(14px) saturate(1.7);
-    box-shadow: var(--lg-rim), var(--lg-drop) !important;
+    background: transparent !important;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    box-shadow: inset 0 0 0 1px var(--aura-line) !important;
     color: var(--aura-ink);
-    padding-inline: 1.15em;
+    padding-inline: 1.1em;
     transition:
-        transform 0.22s cubic-bezier(0.3, 1.5, 0.5, 1),
         background 0.2s ease,
         box-shadow 0.2s ease;
 }
@@ -1161,130 +1178,179 @@
 :root:is([data-theme='aura'], [data-theme='auradark']) .a-btn:hover,
 :root:is([data-theme='aura'], [data-theme='auradark']) .au-link:hover,
 :root:is([data-theme='aura'], [data-theme='auradark']) .nx-chip:hover,
-:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='toggle-group-item']:hover,
-:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='tabs-trigger']:hover {
-    background: var(--lg-fill-hover) !important;
-    transform: translateY(-1px) scale(1.03);
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='toggle-group-item']:hover {
+    background: var(--aura-hover) !important;
+    box-shadow: inset 0 0 0 1px var(--aura-ink) !important;
+    transform: none;
 }
 :root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='button']:active,
 :root:is([data-theme='aura'], [data-theme='auradark']) .a-btn:active,
-:root:is([data-theme='aura'], [data-theme='auradark']) .au-link:active,
-:root:is([data-theme='aura'], [data-theme='auradark']) .nx-chip:active,
-:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='toggle-group-item']:active,
-:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='tabs-trigger']:active {
-    transform: scale(0.94);
+:root:is([data-theme='aura'], [data-theme='auradark']) .au-link:active {
+    background: var(--aura-tint) !important;
+    transform: none;
 }
-:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='tabs-trigger'][data-state='active'],
-:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='toggle-group-item'][data-state='on'] {
-    background: var(--lg-fill-on) !important;
-    box-shadow: var(--lg-rim), var(--lg-drop) !important;
-}
-/* the one main action gets the tint */
+/* the one main action is solid ink */
 :root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='button'][data-variant='default'] {
-    background:
-        var(--lg-fill),
-        linear-gradient(var(--aura-ink), var(--aura-ink)) !important;
-    background-blend-mode: soft-light, normal;
-    color: var(--aura-paper);
+    background: var(--aura-ink) !important;
+    color: var(--aura-paper) !important;
+    box-shadow: none !important;
+}
+/* ghost and icon buttons in headers and tables carry no line at all */
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='button'][data-variant='ghost'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='table-head'] [data-slot='button'],
+:root:is([data-theme='aura'], [data-theme='auradark']) th [data-slot='button'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='button'][data-size^='icon'] {
+    box-shadow: none !important;
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='button'][data-variant='ghost']:hover,
+:root:is([data-theme='aura'], [data-theme='auradark']) th [data-slot='button']:hover,
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='button'][data-size^='icon']:hover {
+    box-shadow: none !important;
+    background: var(--aura-hover) !important;
 }
 
-/* fields and pickers are capsules too */
+/* tabs and segmented switches: text, the chosen one has an ink underline */
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='tabs-trigger'] {
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    color: var(--aura-mute);
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='tabs-trigger'][data-state='active'] {
+    background: transparent !important;
+    color: var(--aura-ink);
+    box-shadow: inset 0 -1px 0 var(--aura-ink) !important;
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='toggle-group-item'][data-state='on'] {
+    background: var(--aura-ink) !important;
+    color: var(--aura-paper);
+    box-shadow: none !important;
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='badge'] {
+    border-radius: 999px !important;
+    background: transparent !important;
+    box-shadow: inset 0 0 0 1px var(--aura-line) !important;
+}
+
+/* fields: just a line underneath */
 :root:is([data-theme='aura'], [data-theme='auradark']) input:not([type='checkbox']):not([type='radio']):not([type='range']),
 :root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='input'],
 :root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='select-trigger'],
 :root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='number-field'],
-:root:is([data-theme='aura'], [data-theme='auradark']) .a-input {
-    border-radius: 999px !important;
-    background: var(--lg-fill) !important;
-    -webkit-backdrop-filter: blur(12px) saturate(1.5);
-    backdrop-filter: blur(12px) saturate(1.5);
-    box-shadow: var(--lg-rim) !important;
-    padding-inline: 1.1em;
-}
+:root:is([data-theme='aura'], [data-theme='auradark']) .a-input,
 :root:is([data-theme='aura'], [data-theme='auradark']) textarea,
 :root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='textarea'] {
-    border-radius: 24px !important;
-    background: var(--lg-fill) !important;
-    box-shadow: var(--lg-rim) !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    box-shadow: inset 0 -1px 0 var(--aura-line) !important;
+    padding-inline: 2px;
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) input:focus,
+:root:is([data-theme='aura'], [data-theme='auradark']) textarea:focus,
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='select-trigger']:focus-visible {
+    box-shadow: inset 0 -1px 0 var(--aura-ink) !important;
+    outline: none;
 }
 
-/* every little circle is a bead of glass: avatars, status dots, switch thumbs, icon buttons */
+/* switches you can actually read: an empty ring when off, solid ink when on */
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='switch'],
+:root:is([data-theme='aura'], [data-theme='auradark']) .a-toggle {
+    border-radius: 999px !important;
+    background: transparent !important;
+    box-shadow: inset 0 0 0 1px var(--aura-mute) !important;
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='switch'][data-state='checked'],
+:root:is([data-theme='aura'], [data-theme='auradark']) .a-toggle.on {
+    background: var(--aura-ink) !important;
+    box-shadow: none !important;
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='switch-thumb'] {
+    border-radius: 999px !important;
+    background: var(--aura-mute) !important;
+    box-shadow: none !important;
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='switch'][data-state='checked'] [data-slot='switch-thumb'] {
+    background: var(--aura-paper) !important;
+}
+
+/* circles stay round and plain: a soft ring, nothing else */
 :root:is([data-theme='aura'], [data-theme='auradark']) .rounded-full,
 :root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='avatar'],
 :root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='avatar-image'],
-:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='avatar-fallback'],
-:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='switch-thumb'] {
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='avatar-fallback'] {
     border-radius: 999px !important;
-    box-shadow:
-        var(--lg-rim),
-        0 0 0 2px rgba(255, 255, 255, 0.45),
-        0 8px 18px -8px rgba(31, 34, 38, 0.45);
-}
-:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='avatar'] {
-    position: relative;
-    overflow: hidden;
+    box-shadow: 0 0 0 1px var(--aura-line);
 }
 :root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='avatar']::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    background: var(--lg-bead);
-    mix-blend-mode: soft-light;
-    opacity: 0.9;
+    display: none;
 }
-:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='switch'] {
-    border-radius: 999px !important;
-    background: var(--lg-fill) !important;
-    box-shadow: var(--lg-rim) !important;
-}
-:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='switch'][data-state='checked'] {
-    background: var(--lg-fill-on) !important;
-}
-:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='switch-thumb'] {
-    background: var(--lg-bead) !important;
-}
-:root:is([data-theme='aura'], [data-theme='auradark']) .a-toggle {
-    border-radius: 999px !important;
-    background: var(--lg-fill);
-    box-shadow: var(--lg-rim);
-}
-:root:is([data-theme='aura'], [data-theme='auradark']) .a-toggle.on {
-    background: var(--lg-fill-on);
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='avatar-fallback'] {
+    background: var(--aura-tint) !important;
+    color: var(--aura-mute);
 }
 
-/* the sidebar floats as one glass sheet, and each category is a capsule inside it */
-:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='sidebar-inner'] {
-    border-radius: 34px !important;
-    margin: 12px 0 12px 12px;
-    width: calc(100% - 12px) !important;
-    height: calc(100% - 24px) !important;
-    background: var(--lg-fill) !important;
-    box-shadow: var(--lg-rim), var(--lg-drop) !important;
-}
+/* sidebar: just text, the open page is the one in full ink with a small dot */
 :root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='sidebar-menu-button'] {
-    border-radius: 999px !important;
-    box-shadow: none;
-    transition:
-        background 0.2s ease,
-        transform 0.22s cubic-bezier(0.3, 1.5, 0.5, 1);
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    color: var(--aura-mute);
+    font-weight: 300;
+    letter-spacing: 0.03em;
+    transition: color 0.2s ease;
 }
 :root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='sidebar-menu-button']:hover {
-    background: var(--lg-fill) !important;
-    box-shadow: var(--lg-rim) !important;
-    letter-spacing: 0.04em;
-    transform: translateX(2px);
+    color: var(--aura-ink);
+    background: transparent !important;
+    transform: none;
+    letter-spacing: 0.03em;
 }
 :root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='sidebar-menu-button'][data-active='true'] {
-    background: var(--lg-fill-on) !important;
-    box-shadow: var(--lg-rim), var(--lg-drop) !important;
-    font-weight: 500;
+    color: var(--aura-ink);
+    font-weight: 400;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='sidebar-menu-button'][data-active='true']::before {
+    content: '';
+    width: 5px;
+    height: 5px;
+    margin-right: 2px;
+    border-radius: 50%;
+    background: var(--aura-ink);
 }
 :root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='sidebar-group-label'] {
     box-shadow: none;
+    padding-bottom: 0;
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) .aurora-brand-name {
+    letter-spacing: 0.4em;
+    font-weight: 300;
 }
 
-/* menus, dialogs, popovers: big rounded sheets */
+/* friend names must always be readable, whatever rank colour VRChat gave them */
+:root:is([data-theme='aura'], [data-theme='auradark']) [class*='friend'] span[style*='color'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='sidebar-inset'] span[style*='color'] {
+    color: var(--aura-ink) !important;
+}
+
+/* lists and tables: only a thin line between rows, no fills, no stripes, no hover blocks */
+:root:is([data-theme='aura'], [data-theme='auradark']) tr,
+:root:is([data-theme='aura'], [data-theme='auradark']) [role='row'],
+:root:is([data-theme='aura'], [data-theme='auradark']) .au-item,
+:root:is([data-theme='aura'], [data-theme='auradark']) .au-line,
+:root:is([data-theme='aura'], [data-theme='auradark']) .au-person {
+    background: transparent !important;
+    box-shadow: inset 0 -1px 0 var(--aura-line);
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) tr:hover,
+:root:is([data-theme='aura'], [data-theme='auradark']) tr[data-state='selected'] {
+    box-shadow: inset 0 -1px 0 var(--aura-ink);
+}
+
+/* floating things are the one place glass lives */
 :root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='dialog-content'],
 :root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='alert-dialog-content'],
 :root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='sheet-content'],
@@ -1294,10 +1360,13 @@
 :root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='context-menu-content'],
 :root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='select-content'],
 :root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='hover-card-content'],
-:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='command'] {
-    border-radius: 28px !important;
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='command'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='tooltip-content'] {
+    border-radius: 22px !important;
     background: var(--aura-glass-strong) !important;
-    box-shadow: var(--lg-rim), 0 30px 80px -30px var(--aura-shadow) !important;
+    -webkit-backdrop-filter: blur(30px) saturate(1.6) !important;
+    backdrop-filter: blur(30px) saturate(1.6) !important;
+    box-shadow: var(--lg-rim), 0 24px 60px -28px var(--aura-shadow) !important;
 }
 :root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='dropdown-menu-item'],
 :root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='dropdown-menu-checkbox-item'],
@@ -1307,55 +1376,46 @@
 }
 :root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='tooltip-content'] {
     border-radius: 999px !important;
-    background: var(--aura-glass-strong) !important;
     color: var(--aura-ink) !important;
-    box-shadow: var(--lg-rim), var(--lg-drop) !important;
 }
-
-/* scrollbars: thin glass pills */
 :root:is([data-theme='aura'], [data-theme='auradark']) ::-webkit-scrollbar-thumb {
     border-radius: 999px;
-    background: var(--lg-fill);
-    box-shadow: var(--lg-rim);
-}
-
-/* a theme bubble that is always on screen */
-.aura-theme-bubble {
-    position: fixed;
-    right: 18px;
-    bottom: 18px;
-    z-index: 60;
-    display: flex;
-    gap: 6px;
-    padding: 6px;
-    border-radius: 999px;
-    background: var(--aura-glass-strong, rgba(128, 128, 128, 0.3));
-    -webkit-backdrop-filter: blur(24px) saturate(1.7);
-    backdrop-filter: blur(24px) saturate(1.7);
-    box-shadow: var(--lg-rim), var(--lg-drop);
-}
-.aura-theme-bubble button {
-    width: 34px;
-    height: 34px;
-    border-radius: 999px;
-    font-size: 15px;
-    line-height: 1;
-    color: var(--aura-ink);
-    background: var(--lg-fill, rgba(255, 255, 255, 0.15));
-    box-shadow: var(--lg-rim, none);
-    transition: transform 0.22s cubic-bezier(0.3, 1.5, 0.5, 1);
-}
-.aura-theme-bubble button:hover {
-    transform: scale(1.1);
-}
-.aura-theme-bubble button:active {
-    transform: scale(0.9);
-}
-.aura-theme-bubble button.on {
-    background: var(--lg-fill-on);
+    background: var(--aura-line);
 }
 @media (prefers-reduced-motion: reduce) {
     :root:is([data-theme='aura'], [data-theme='auradark']) * {
         transition: none !important;
     }
+}
+
+.aura-theme-bubble {
+    position: fixed;
+    right: 14px;
+    bottom: 34px;
+    z-index: 60;
+    display: flex;
+    gap: 4px;
+    opacity: 0.55;
+    transition: opacity 0.2s ease;
+}
+.aura-theme-bubble:hover {
+    opacity: 1;
+}
+.aura-theme-bubble button {
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 999px;
+    color: var(--aura-mute, currentColor);
+    background: transparent;
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+}
+.aura-theme-bubble button:hover {
+    color: var(--aura-ink, currentColor);
+}
+.aura-theme-bubble button.on {
+    color: var(--aura-paper, #fff);
+    background: var(--aura-ink, #222);
 }

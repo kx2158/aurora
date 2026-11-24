@@ -3,7 +3,7 @@
         <SidebarHeader class="px-2 pt-3 pb-1">
             <div class="aurora-brand" :class="{ 'justify-center': isCollapsed }">
                 <AuroraLogo :size="isCollapsed ? 24 : 26" />
-                <span v-show="!isCollapsed" class="aurora-brand-name">aurora</span>
+                <span v-show="!isCollapsed" class="aurora-brand-name">aura</span>
             </div>
         </SidebarHeader>
         <!-- new dashboards are made from the sidebar's right-click menu -->

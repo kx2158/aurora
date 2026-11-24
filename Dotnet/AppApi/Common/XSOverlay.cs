@@ -40,7 +40,7 @@ namespace VRCX
                 title = title,
                 content = content,
                 height = height,
-                sourceApp = "Aurora",
+                sourceApp = "Aura",
                 timeout = timeout,
                 audioPath = string.Empty,
                 useBase64Icon = useBase64Icon,

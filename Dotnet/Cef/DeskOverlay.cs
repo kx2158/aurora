@@ -45,7 +45,7 @@ namespace VRCX
             StartPosition = FormStartPosition.Manual;
             BackColor = Color.FromArgb(24, 25, 29);
             Size = new Size(400, 620);
-            Text = "Aurora overlay";
+            Text = "Aura overlay";
             try
             {
                 Icon = MainForm.Instance?.Icon;

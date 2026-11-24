@@ -17,10 +17,10 @@
     VIProductVersion "${PRODUCT_VERSION}"
     VIFileVersion "${VERSION}"
     VIAddVersionKey "FileVersion" "${VERSION}"
-    VIAddVersionKey "ProductName" "Aurora"
+    VIAddVersionKey "ProductName" "Aura"
     VIAddVersionKey "ProductVersion" "${PRODUCT_VERSION}"
-    VIAddVersionKey "LegalCopyright" "Aurora (MIT licensed, see LICENSE)"
-    VIAddVersionKey "FileDescription" "Aurora - your VRChat companion"
+    VIAddVersionKey "LegalCopyright" "Aura (MIT licensed, see LICENSE)"
+    VIAddVersionKey "FileDescription" "Aura - your VRChat companion"
 
 ;--------------------------------
 ;Include Modern UI
@@ -37,7 +37,7 @@
     SetCompressor /SOLID lzma
     SetCompressorDictSize 16
     Unicode True
-    Name "Aurora"
+    Name "Aura"
     OutFile "Aurora_Setup_x64.exe"
     InstallDir "$LOCALAPPDATA\Programs\Aurora"
     InstallDirRegKey HKCU "Software\Aurora" "InstallDir"
@@ -78,7 +78,7 @@
 
     ; Checkbox to launch Aurora.
     !define MUI_FINISHPAGE_RUN
-    !define MUI_FINISHPAGE_RUN_TEXT "Launch Aurora"
+    !define MUI_FINISHPAGE_RUN_TEXT "Launch Aura"
     !define MUI_FINISHPAGE_RUN_FUNCTION launchAurora
 
     ; Checkbox to create desktop shortcut.
@@ -139,7 +139,7 @@ Function .onInit
     StrCmp $R0 "" noVersionCheck
         ${VersionCompare} "$R0" "${VERSION}" $R2
         ${If} $R2 = 1
-            MessageBox MB_YESNO|MB_ICONQUESTION "A newer Aurora ($R0) is already installed. Install the older ${VERSION} anyway?" /SD IDNO IDYES noVersionCheck
+            MessageBox MB_YESNO|MB_ICONQUESTION "A newer Aura ($R0) is already installed. Install the older ${VERSION} anyway?" /SD IDNO IDYES noVersionCheck
             Abort
         ${EndIf}
     noVersionCheck:
@@ -158,7 +158,7 @@ Function .onInit
         Pop $R1
     ${EndIf}
     ${If} $R1 = 0
-        MessageBox MB_OKCANCEL|MB_ICONEXCLAMATION "Aurora is still running. $\n$\nClick `OK` to kill the running process or `Cancel` to cancel this installer." /SD IDOK IDCANCEL cancel
+        MessageBox MB_OKCANCEL|MB_ICONEXCLAMATION "Aura is still running. $\n$\nClick `OK` to kill the running process or `Cancel` to cancel this installer." /SD IDOK IDCANCEL cancel
             nsExec::ExecToStack "taskkill /IM Aurora.exe"
             nsExec::ExecToStack "taskkill /IM Neon.exe"
             nsExec::ExecToStack "taskkill /IM VRCX.exe"
@@ -186,7 +186,7 @@ Function .onInstSuccess
 FunctionEnd
 
 Function createDesktopShortcut
-    CreateShortcut "$DESKTOP\Aurora.lnk" "$INSTDIR\Aurora.exe"
+    CreateShortcut "$DESKTOP\Aura.lnk" "$INSTDIR\Aurora.exe"
 FunctionEnd
 
 Function launchAurora
@@ -257,8 +257,8 @@ Section "Install" SecInstall
 
     WriteRegStr HKCU "Software\Aurora" "InstallDir" $INSTDIR
     WriteUninstaller "$INSTDIR\Uninstall.exe"
-    WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Aurora" "DisplayName" "Aurora"
-    WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Aurora" "Publisher" "Aurora"
+    WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Aurora" "DisplayName" "Aura"
+    WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Aurora" "Publisher" "Aura"
     WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Aurora" "DisplayVersion" "${VERSION}"
     WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Aurora" "DisplayArch" "x64"
     WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Aurora" "InstallLocation" "$INSTDIR"
@@ -274,9 +274,11 @@ Section "Install" SecInstall
     StrCmp $3 "true" noShortcut
         Delete "$SMPROGRAMS\VRCX.lnk"
         Delete "$DESKTOP\VRCX.lnk"
-        CreateShortCut "$SMPROGRAMS\Aurora.lnk" "$INSTDIR\Aurora.exe"
-        ApplicationID::Set "$SMPROGRAMS\Aurora.lnk" "Aurora"
-        CreateShortCut "$DESKTOP\Aurora.lnk" "$INSTDIR\Aurora.exe"
+        Delete "$SMPROGRAMS\Aurora.lnk"
+        Delete "$DESKTOP\Aurora.lnk"
+        CreateShortCut "$SMPROGRAMS\Aura.lnk" "$INSTDIR\Aurora.exe"
+        ApplicationID::Set "$SMPROGRAMS\Aura.lnk" "Aurora"
+        CreateShortCut "$DESKTOP\Aura.lnk" "$INSTDIR\Aurora.exe"
     noShortcut:
 
     WriteRegStr HKCU "Software\Classes\vrcx" "" "URL:vrcx"
@@ -297,7 +299,7 @@ Section "Uninstall"
     nsProcess::_FindProcess "$1"
     Pop $R1
     ${If} $R1 = 0
-        MessageBox MB_OK|MB_ICONEXCLAMATION "Aurora is still running. Cannot uninstall this software.$\nPlease close Aurora and try again." /SD IDOK
+        MessageBox MB_OK|MB_ICONEXCLAMATION "Aura is still running. Cannot uninstall this software.$\nPlease close Aurora and try again." /SD IDOK
         Abort
     ${EndIf}
 
@@ -314,5 +316,7 @@ Section "Uninstall"
         Delete "$DESKTOP\Neon.lnk"
         Delete "$SMPROGRAMS\Aurora.lnk"
         Delete "$DESKTOP\Aurora.lnk"
+        Delete "$SMPROGRAMS\Aura.lnk"
+        Delete "$DESKTOP\Aura.lnk"
     ${EndIf}
 SectionEnd

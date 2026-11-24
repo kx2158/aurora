@@ -11,13 +11,13 @@
     <UseWindowsForms>true</UseWindowsForms>
     <ApplicationRevision>0</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
-    <AssemblyTitle>Aurora</AssemblyTitle>
-    <Product>Aurora</Product>
-    <Copyright>Aurora (MIT licensed, see LICENSE)</Copyright>
+    <AssemblyTitle>Aura</AssemblyTitle>
+    <Product>Aura</Product>
+    <Copyright>Aura (MIT licensed, see LICENSE)</Copyright>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
-    <Title>Aurora</Title>
-    <Description>Aurora</Description>
+    <Title>Aura</Title>
+    <Description>Aura</Description>
     <PackageIcon>..\images\Neon.png</PackageIcon>
     <RepositoryUrl>https://github.com/kx2158/aurora</RepositoryUrl>
     <ResourceLanguages>en</ResourceLanguages>
@@ -26,7 +26,7 @@
     <AssemblyName>Aurora</AssemblyName>
     <RootNamespace>VRCX</RootNamespace>
     <PackageId>Aurora</PackageId>
-    <Company>Aurora</Company>
+    <Company>Aura</Company>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
     <!-- Fix fail fast exception -->

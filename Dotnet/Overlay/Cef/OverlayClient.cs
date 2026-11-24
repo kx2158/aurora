@@ -37,7 +37,7 @@ public static class OverlayClient
         });
         _websocketClient = new WebsocketClient(WebsocketUri, clientFactory)
         {
-            Name = "Aurora Overlay Client",
+            Name = "Aura Overlay Client",
             ReconnectTimeout = null,
             ErrorReconnectTimeout = TimeSpan.FromMilliseconds(300)
         };

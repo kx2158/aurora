@@ -8,6 +8,10 @@
  *   3. nobody joined after N minutes   -> the "fallback" status (for example Ask me)
  *   4. all of them went offline        -> your status goes back to what it was (optional)
  *
+ * Besides presence events, the rules also look at who is online when you start the game and every
+ * few minutes (checkMin), so friends who were already online are not missed. Anyone on the keep away
+ * list who is online wins at any time, and your status goes back once they are all offline.
+ *
  * The first active rule in the list decides. Changing your status by hand pauses the rules
  * until the people involved go offline. Everything stays on this machine.
  */
@@ -15,6 +19,7 @@ import { ref, watch } from 'vue';
 
 import { userRequest } from '../api';
 import { useFriendStore } from '../stores/friend';
+import { useGameStore } from '../stores/game';
 import { useUserStore } from '../stores/user';
 import configRepository from './config';
 
@@ -43,6 +48,9 @@ export function newRule(partial = {}) {
 /** settings: { enabled, rules: [...], avoid: { people: [], langs: [], status, desc } } */
 export const statusRules = ref({
     enabled: true,
+    // look at who is online when the game starts, and every checkMin minutes (0 = never)
+    startCheck: true,
+    checkMin: 15,
     rules: [],
     avoid: { people: [], langs: [], status: 'ask me', desc: '' }
 });
@@ -108,6 +116,74 @@ export async function initStatusRules() {
     }
     save();
     watch(statusRules, save, { deep: true });
+    startPeriodicCheck();
+    try {
+        const game = useGameStore();
+        watch(
+            () => game.isGameRunning,
+            (running) => {
+                if (!running || !statusRules.value.startCheck) {
+                    return;
+                }
+                // the friend list fills in a little after the game starts, so look a few times
+                for (const wait of [5000, 25000, 90000]) {
+                    setTimeout(() => syncFromStore(), wait);
+                }
+            },
+            { immediate: true }
+        );
+    } catch {
+        // game store not ready, the periodic check still runs
+    }
+}
+
+let periodic = null;
+function startPeriodicCheck() {
+    clearInterval(periodic);
+    periodic = null;
+    const min = Number(statusRules.value.checkMin);
+    if (min > 0) {
+        periodic = setInterval(() => syncFromStore(), Math.max(1, min) * 60000);
+    }
+    // changing the interval in the settings restarts the timer
+    watch(
+        () => statusRules.value.checkMin,
+        () => startPeriodicCheck(),
+        { once: true }
+    );
+}
+
+/**
+ * Compare the rules with who is really online now: start rules whose friends are already online,
+ * end rules whose friends all left, then apply. Safe to call as often as you like.
+ */
+export async function syncFromStore() {
+    if (!statusRules.value.enabled) {
+        return;
+    }
+    try {
+        onlineNow.clear();
+        for (const [id, f] of useFriendStore().friends) {
+            if (f.state === 'online') {
+                onlineNow.add(id);
+            }
+        }
+    } catch {
+        return;
+    }
+    onlineTick.value++;
+    for (const rule of statusRules.value.rules) {
+        if (!rule.enabled) {
+            continue;
+        }
+        const st = ruleState.value[rule.id];
+        if (anyOnline(rule) && !st) {
+            startWaiting(rule);
+        } else if (!anyOnline(rule) && st) {
+            endRule(rule);
+        }
+    }
+    await apply();
 }
 
 function save() {
@@ -235,6 +311,11 @@ function endRule(rule) {
 function desired() {
     if (!statusRules.value.enabled) {
         return null;
+    }
+    // anyone from the keep away list online wins, whatever the rules are doing
+    const keepAway = statusRules.value.avoid;
+    if ((keepAway.people.length || keepAway.langs?.length) && anyOnline(keepAway)) {
+        return { status: keepAway.status, desc: keepAway.desc, rule: { restore: true } };
     }
     for (const rule of statusRules.value.rules) {
         const st = ruleState.value[rule.id];

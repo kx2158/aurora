@@ -1452,7 +1452,12 @@
                 "desk_off": "Off",
                 "desk_taken": "That hotkey is taken by another app, try another one.",
                 "desk_saved": "Hotkey saved",
-                "desk_open": "Open overlay"
+                "desk_open": "Open overlay",
+                "invites": {
+                    "header": "Group invites",
+                    "auto_reject": "Auto reject group invites",
+                    "auto_reject_desc": "Declines every group invite the moment it arrives. No popup, nothing left in your notifications."
+                }
             }
         },
         "home": {
@@ -1624,7 +1629,7 @@
             "live_fallback": "Nobody joined, fallback status is on",
             "live_joined": "Together now",
             "avoid": "Keep away list",
-            "avoid_desc": "People you would rather not have following you. When someone from a rule joins you and anyone on this list is online, Aura uses this status instead.",
+            "avoid_desc": "People you would rather not have following you. Whenever anyone on this list is online, Aura uses this status, and puts yours back when they are all offline.",
             "avoid_who": "People",
             "avoid_status": "While any of them are online, use",
             "watch": "Instance watch",
@@ -1640,7 +1645,12 @@
             "langs_label": "Also anyone whose profile lists",
             "langs_now": "Online now through language: {names}",
             "speakers": "{langs} speakers",
-            "langs_add": "Add a language"
+            "langs_add": "Add a language",
+            "checks": "Checks",
+            "checks_desc": "Aura also looks at who is online by itself, so friends who were already online are not missed. The keep away list is checked the same way, and your status goes back once they are offline.",
+            "check_start": "Check who is online when I start the game",
+            "check_every_a": "Check again every",
+            "check_every_b": "minutes (0 = off)"
         },
         "insights": {
             "title": "Insights",
@@ -4246,7 +4256,7 @@
         "now_playing": "Now Playing"
     },
     "nav_aurora": {
-        "home": "Home",
+        "home": "Overview",
         "feed": "Feed",
         "friends": "Friends",
         "notifications": "Notifications",
@@ -4273,7 +4283,10 @@
         "section_aurora": "Aura",
         "stickers": "Stickers",
         "emoji": "Emoji",
-        "friends_manager": "Friends manager"
+        "friends_manager": "Friends manager",
+        "now": "Now",
+        "log": "Log",
+        "circle": "Circle"
     },
     "aura": {
         "more": "more",
@@ -4327,7 +4340,11 @@
             "alerts": "ALERTS",
             "s_online": "here",
             "s_active": "away",
-            "s_offline": "offline"
+            "s_offline": "offline",
+            "about": "ABOUT",
+            "mutual": "mutual friends",
+            "platform": "on",
+            "invite": "ask invite"
         }
     }
 }

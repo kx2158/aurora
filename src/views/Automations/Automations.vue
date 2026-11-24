@@ -170,6 +170,43 @@
             </button>
 
             <section class="a-card">
+                <h2 class="a-h2"><AuroraIcon name="refresh" :size="15" /> {{ t('view.automations.checks') }}</h2>
+                <p class="a-note mb-4">{{ t('view.automations.checks_desc') }}</p>
+                <div class="rule-steps">
+                    <div class="rule-step">
+                        <span class="rule-step-n">-</span>
+                        <div class="rule-step-body">
+                            <span class="rule-step-label">
+                                {{ t('view.automations.check_start') }}
+                                <button
+                                    type="button"
+                                    class="a-toggle"
+                                    :class="{ on: statusRules.startCheck }"
+                                    :aria-pressed="statusRules.startCheck"
+                                    @click="statusRules.startCheck = !statusRules.startCheck"></button>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="rule-step">
+                        <span class="rule-step-n">-</span>
+                        <div class="rule-step-body">
+                            <span class="rule-step-label">
+                                {{ t('view.automations.check_every_a') }}
+                                <input
+                                    v-model.number="statusRules.checkMin"
+                                    type="number"
+                                    min="0"
+                                    max="240"
+                                    class="a-input rule-min"
+                                    :aria-label="t('view.automations.minutes_label')" />
+                                {{ t('view.automations.check_every_b') }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="a-card">
                 <h2 class="a-h2"><AuroraIcon name="shield" :size="15" /> {{ t('view.automations.avoid') }}</h2>
                 <p class="a-note mb-4">{{ t('view.automations.avoid_desc') }}</p>
                 <div class="rule-steps">

@@ -6,6 +6,30 @@ import { toolNavDefinitions } from './tools';
  */
 const navDefinitions = [
     {
+        key: 'aura-now',
+        icon: 'a:instance',
+        tooltip: 'nav_aurora.now',
+        labelKey: 'nav_aurora.now',
+        routeName: 'aura-now',
+        section: ''
+    },
+    {
+        key: 'aura-feed',
+        icon: 'a:log',
+        tooltip: 'nav_aurora.log',
+        labelKey: 'nav_aurora.log',
+        routeName: 'aura-feed',
+        section: ''
+    },
+    {
+        key: 'aura-people',
+        icon: 'a:people',
+        tooltip: 'nav_aurora.circle',
+        labelKey: 'nav_aurora.circle',
+        routeName: 'aura-people',
+        section: ''
+    },
+    {
         key: 'home',
         icon: 'a:home',
         tooltip: 'nav_aurora.home',

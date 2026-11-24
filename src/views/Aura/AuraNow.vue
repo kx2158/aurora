@@ -1,12 +1,12 @@
 <template>
     <div class="au-page">
-        <section class="au-main">
+        <section class="au-left">
             <div class="aura-label">今 · {{ today }}</div>
             <h1 class="au-big">{{ t('aura.now.here', { n: here }) }}</h1>
             <p class="au-sub">{{ t('aura.now.in', { n: instances.length }) }}</p>
             <div class="au-counts">
-                <div><b>{{ away }}</b> {{ t('aura.now.away') }}</div>
-                <div><b>{{ offline }}</b> {{ t('aura.now.offline') }}</div>
+                <div><b>{{ away }}</b>&nbsp; {{ t('aura.now.away') }}</div>
+                <div><b>{{ offline }}</b>&nbsp; {{ t('aura.now.offline') }}</div>
             </div>
 
             <div class="aura-label au-gap">{{ t('aura.now.instances') }}</div>
@@ -18,15 +18,26 @@
                     <div class="au-meta">{{ i.access }}</div>
                 </div>
                 <div class="au-people">
-                    <span v-for="p in i.people.slice(0, 4)" :key="p.id">{{ p.name }}</span>
-                    <span v-if="i.people.length > 4" class="au-meta">+{{ i.people.length - 4 }}</span>
+                    <span v-for="p in i.people.slice(0, 3)" :key="p.id">{{ p.name }}</span>
+                    <span v-if="i.people.length > 3" class="au-meta">+{{ i.people.length - 3 }}</span>
                 </div>
-                <button type="button" class="au-link" @click="launch.showLaunchDialog(i.tag)">
-                    {{ t('aura.join') }}
-                </button>
+                <button type="button" class="au-link" @click="launch.showLaunchDialog(i.tag)">{{ t('aura.join') }}</button>
             </div>
         </section>
-        <aside class="au-side" aria-hidden="true"><span>気配</span></aside>
+
+        <AuraStage kanji="気配" :size="300" offset="7%">
+            <!-- you in the middle, a thin line out to every instance, a pane of frost at each end -->
+            <svg viewBox="0 0 100 100" preserveAspectRatio="none" fill="none">
+                <line x1="14" y1="6" x2="14" y2="94" class="s-dash" />
+                <path v-for="n in nodes" :key="'l' + n.tag" :d="n.path" class="s-line" />
+            </svg>
+            <span class="s-me" :style="{ left: ME[0] + '%', top: ME[1] + '%' }"></span>
+            <div v-for="n in nodes" :key="'c' + n.tag" class="s-pane" :style="{ left: n.x + '%', top: n.y + '%' }">
+                <span class="s-pane-dot"></span>
+                <b>{{ n.label }}</b>
+                <small>{{ n.people }}</small>
+            </div>
+        </AuraStage>
     </div>
 </template>
 
@@ -35,8 +46,9 @@
     import { storeToRefs } from 'pinia';
     import { useI18n } from 'vue-i18n';
 
-    import { getWorldName } from '../../shared/utils/world';
+    import AuraStage from '../../components/AuraStage.vue';
     import { isRealInstance } from '../../shared/utils/instance';
+    import { getWorldName } from '../../shared/utils/world';
     import { useFriendStore, useLaunchStore } from '../../stores';
 
     const { t } = useI18n();
@@ -46,7 +58,6 @@
     const today = computed(() =>
         new Date().toLocaleDateString(undefined, { month: '2-digit', day: '2-digit', weekday: 'short' }).toUpperCase()
     );
-
     const inGame = computed(() => [...vipFriends.value, ...onlineFriends.value]);
     const here = computed(() => inGame.value.length);
     const away = computed(() => activeFriends.value.length);
@@ -64,7 +75,6 @@
         return [...by.values()].sort((a, b) => b.people.length - a.people.length).slice(0, 12);
     });
 
-    // world names come from the API, one lookup per world, never twice
     const names = reactive({});
     const asked = new Set();
     watch(
@@ -79,5 +89,33 @@
             }
         },
         { immediate: true }
+    );
+
+    // you sit at the left of the stage, every instance floats out to the right, taken from the concept board
+    const ME = [24, 52];
+    const SLOTS = [
+        [58, 16],
+        [66, 36],
+        [56, 56],
+        [68, 74],
+        [48, 88],
+        [74, 54]
+    ];
+    const nodes = computed(() =>
+        instances.value.slice(0, SLOTS.length).map((i, k) => {
+            const [x, y] = SLOTS[k];
+            const mx = (ME[0] + x) / 2;
+            return {
+                tag: i.tag,
+                x,
+                y,
+                path: `M${ME[0]} ${ME[1]} C${mx} ${ME[1]} ${mx} ${y} ${x} ${y}`,
+                label: names[i.tag] || i.access || '',
+                people: i.people
+                    .slice(0, 3)
+                    .map((p) => p.name)
+                    .join(', ')
+            };
+        })
     );
 </script>

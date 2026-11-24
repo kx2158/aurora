@@ -37,9 +37,9 @@ let timer = null;
 let lastSent = '';
 let lastSentAt = 0;
 let nudgeTimer = null;
-// VRChat rate-limits chatbox updates (about 5 per 5 seconds, and stricter since 2024), so 1 second is the floor:
-// anything faster is dropped and can earn a "timed out for spam" pause. The speed is a setting, 1.2 s by default.
-export const ANIM_MIN_MS = 1000;
+// VRChat rate-limits chatbox updates (about 5 per 5 seconds, and stricter since 2024), so under about 1.1 s updates may be dropped
+// and can earn a "timed out for spam" pause. It is still allowed on purpose: the speed is a setting, 1.2 s by default, 100 ms at the lowest.
+export const ANIM_MIN_MS = 100;
 export const ANIM_MAX_MS = 5000;
 export const chatboxAnimMs = ref(1200);
 const MIN_GAP = () => chatboxAnimMs.value;

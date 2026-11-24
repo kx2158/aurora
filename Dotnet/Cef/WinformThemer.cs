@@ -31,6 +31,8 @@ namespace VRCX
         ///     Light = 0
         ///     Dark = 1
         ///     Midnight = 2
+        ///     Aura = 3
+        ///     Aura Dark = 4
         /// </summary>
         public static void SetGlobalTheme(int theme)
         {
@@ -91,7 +93,10 @@ namespace VRCX
 
         private const int DWMWA_USE_IMMERSIVE_DARK_MODE_BEFORE_20H1 = 19;
         private const int DWMWA_USE_IMMERSIVE_DARK_MODE = 20;
+        private const int DWMWA_WINDOW_CORNER_PREFERENCE = 33;
+        private const int DWMWA_BORDER_COLOR = 34;
         private const int DWMWA_CAPTION_COLOR = 35;
+        private const int DWMWA_TEXT_COLOR = 36;
 
         private static void SetThemeToGlobal(IntPtr handle)
         {
@@ -99,11 +104,25 @@ namespace VRCX
             var blackColor = 0x000000;
             var greyColor = 0x2B2B2B;
 
-            var isDark = currentTheme > 0 ? 1 : 0;
+            var isDark = currentTheme == 3 ? 0 : (currentTheme > 0 ? 1 : 0);
             if (PInvoke.DwmSetWindowAttribute(handle, DWMWA_USE_IMMERSIVE_DARK_MODE_BEFORE_20H1, ref isDark, sizeof(int)) != 0)
                 PInvoke.DwmSetWindowAttribute(handle, DWMWA_USE_IMMERSIVE_DARK_MODE, ref isDark, sizeof(int));
 
-            if (currentTheme == 2)
+            // Aura: square window, no frame line, and a title bar in the exact page colour so there is no band.
+            // Colours are COLORREF (0x00BBGGRR). Older Windows ignores these calls.
+            var squareCorners = 1; // DWMWCP_DONOTROUND
+            var noBorder = unchecked((int)0xFFFFFFFE); // DWMWA_COLOR_NONE
+            PInvoke.DwmSetWindowAttribute(handle, DWMWA_WINDOW_CORNER_PREFERENCE, ref squareCorners, sizeof(int));
+            PInvoke.DwmSetWindowAttribute(handle, DWMWA_BORDER_COLOR, ref noBorder, sizeof(int));
+
+            if (currentTheme == 3 || currentTheme == 4)
+            {
+                var paper = currentTheme == 3 ? 0xF7F6F6 : 0x1A1614; // #F6F6F7 / #14161A
+                var ink = currentTheme == 3 ? 0x26221F : 0xEBE8E6;   // #1F2226 / #E6E8EB
+                PInvoke.DwmSetWindowAttribute(handle, DWMWA_CAPTION_COLOR, ref paper, sizeof(int));
+                PInvoke.DwmSetWindowAttribute(handle, DWMWA_TEXT_COLOR, ref ink, sizeof(int));
+            }
+            else if (currentTheme == 2)
                 PInvoke.DwmSetWindowAttribute(handle, DWMWA_CAPTION_COLOR, ref blackColor, sizeof(int));
             else if (currentTheme == 1)
                 PInvoke.DwmSetWindowAttribute(handle, DWMWA_CAPTION_COLOR, ref greyColor, sizeof(int));

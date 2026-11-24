@@ -1,4 +1,5 @@
 import { newsFromNoty } from '../../services/auroraNews';
+import { isAlertEvent, loadFriendAlerts } from '../../services/friendAlerts';
 import { computed, ref, watch } from 'vue';
 import { defineStore } from 'pinia';
 import { toast } from 'vue-sonner';
@@ -184,6 +185,7 @@ export const useNotificationStore = defineStore('Notification', () => {
     );
 
     async function init() {
+        loadFriendAlerts();
         notificationTable.value.filters[0].value = JSON.parse(
             await configRepository.getString('VRCX_notificationTableFilters', '[]')
         );
@@ -768,10 +770,28 @@ export const useNotificationStore = defineStore('Notification', () => {
     /**
      * @param {object} noty
      */
+    /**
+     * Friends marked for alerts get a notification for the events they were marked for, whatever the filters say.
+     * @param {string} userId
+     * @param {object} noty
+     * @returns {boolean} true when an alert was played
+     */
+    function playIfAlert(userId, noty) {
+        if (!isAlertEvent(userId, noty)) {
+            return false;
+        }
+        noty.isAlert = true;
+        playNoty(noty, true);
+        return true;
+    }
+
     function queueNotificationNoty(noty) {
         newsFromNoty(noty);
         noty.isFriend = friendStore.friends.has(noty.senderUserId);
         noty.isFavorite = friendStore.localFavoriteFriends.has(noty.senderUserId);
+        if (playIfAlert(noty.senderUserId, noty)) {
+            return;
+        }
         const notyFilter = notificationsSettingsStore.sharedFeedFilters.noty;
         if (
             notyFilter[noty.type] &&
@@ -786,8 +806,9 @@ export const useNotificationStore = defineStore('Notification', () => {
     /**
      * @param noty
      */
-    function playNoty(noty) {
-        if (userStore.currentUser.status === 'busy' || !watchState.isFriendsLoaded) {
+    function playNoty(noty, force = false) {
+        // an alert the user marked on purpose still comes through while they are set to busy
+        if ((!force && userStore.currentUser.status === 'busy') || !watchState.isFriendsLoaded) {
             return;
         }
         let displayName = '';
@@ -834,7 +855,8 @@ export const useNotificationStore = defineStore('Notification', () => {
         };
 
         const playNotificationTTS = notiConditions[notificationsSettingsStore.notificationTTS]?.();
-        const playDesktopToast = notiConditions[notificationsSettingsStore.desktopToast]?.() || notiConditions['AFK']();
+        const playDesktopToast =
+            force || notiConditions[notificationsSettingsStore.desktopToast]?.() || notiConditions['AFK']();
 
         const playOverlayToast = notiConditions[notificationsSettingsStore.overlayToast]?.();
         const playOverlayNotification = notificationsSettingsStore.overlayNotifications && playOverlayToast;
@@ -1002,6 +1024,7 @@ export const useNotificationStore = defineStore('Notification', () => {
         }
         noty.isFriend = false;
         noty.isFavorite = false;
+        let alertUserId = noty.userId || '';
         if (noty.userId) {
             noty.isFriend = friendStore.friends.has(noty.userId);
             noty.isFavorite = friendStore.localFavoriteFriends.has(noty.userId);
@@ -1012,9 +1035,13 @@ export const useNotificationStore = defineStore('Notification', () => {
                 userStore.cachedUserIdsByDisplayName
             );
             if (ref) {
+                alertUserId = ref.id;
                 noty.isFriend = friendStore.friends.has(ref.id);
                 noty.isFavorite = friendStore.localFavoriteFriends.has(ref.id);
             }
+        }
+        if (playIfAlert(alertUserId, noty)) {
+            return;
         }
         const notyFilter = notificationsSettingsStore.sharedFeedFilters.noty;
         if (
@@ -1042,6 +1069,9 @@ export const useNotificationStore = defineStore('Notification', () => {
         }
         noty.isFriend = friendStore.friends.has(noty.userId);
         noty.isFavorite = friendStore.localFavoriteFriends.has(noty.userId);
+        if (playIfAlert(noty.userId, noty)) {
+            return;
+        }
         const notyFilter = notificationsSettingsStore.sharedFeedFilters.noty;
         if (
             notyFilter[noty.type] &&

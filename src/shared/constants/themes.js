@@ -3,6 +3,16 @@ export const THEME_CONFIG = {
         isDark: 'system',
         name: 'System'
     },
+    aura: {
+        isDark: false,
+        name: 'Aura',
+        file: 'aura.css'
+    },
+    auradark: {
+        isDark: true,
+        name: 'Aura Dark',
+        file: 'auradark.css'
+    },
     xraydark: {
         isDark: true,
         name: 'Aurora Dark',

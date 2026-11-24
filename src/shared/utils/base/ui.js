@@ -247,8 +247,8 @@ function applyAppCjkFontPack(packKey) {
 function changeAppThemeStyle(themeMode) {
     let isSystemMode = themeMode === 'system';
     if (isSystemMode) {
-        // follow Windows: Aurora Dark at night, Aurora by day
-        themeMode = systemIsDarkMode() ? 'xraydark' : 'xray';
+        // follow Windows: Aura Dark at night, Aura by day
+        themeMode = systemIsDarkMode() ? 'auradark' : 'aura';
     }
 
     let themeConfig = THEME_CONFIG[themeMode];
@@ -272,7 +272,11 @@ function changeAppThemeStyle(themeMode) {
     } else {
         document.documentElement.classList.remove('dark');
     }
-    if (themeConfig.name === 'Midnight') {
+    if (themeMode === 'aura') {
+        AppApi.ChangeTheme(3);
+    } else if (themeMode === 'auradark') {
+        AppApi.ChangeTheme(4);
+    } else if (themeConfig.name === 'Midnight') {
         AppApi.ChangeTheme(2);
     } else if (themeConfig.isDark) {
         AppApi.ChangeTheme(1);
@@ -496,6 +500,13 @@ async function getThemeMode(configRepository) {
         initThemeMode = 'xraydark';
         await configRepository.setString('VRCX_ThemeMode', 'xraydark');
         await configRepository.setBool('Aurora_minimalApplied', true);
+    }
+
+    // the Aura redesign: everyone moves to Aura once (the old themes stay in the list)
+    if (!(await configRepository.getBool('Aura_applied', false))) {
+        initThemeMode = 'system';
+        await configRepository.setString('VRCX_ThemeMode', 'system');
+        await configRepository.setBool('Aura_applied', true);
     }
 
     let isDarkMode;

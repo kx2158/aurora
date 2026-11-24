@@ -755,7 +755,11 @@
                 "purchase_history_description": "View items you have purchased from the VRChat store and marketplace",
                 "info_push": "Info Push",
                 "info_push_description": "Browse VRChat info push announcements and content"
-            }
+            },
+            "dev_placeholder": "Developer password",
+            "dev_unlock": "Unlock",
+            "dev_lock": "Lock developer tools",
+            "dev_wrong": "Wrong password"
         },
         "profile": {
             "profile": {

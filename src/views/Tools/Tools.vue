@@ -77,13 +77,26 @@
                         </ToolItem>
                     </div>
                 </div>
+                <div class="mb-6 flex items-center gap-2">
+                    <template v-if="!devUnlocked">
+                        <input
+                            v-model="devPassword"
+                            type="password"
+                            class="a-input"
+                            :placeholder="t('view.tools.dev_placeholder')"
+                            @keydown.enter="submitDev" />
+                        <button type="button" class="a-btn" @click="submitDev">{{ t('view.tools.dev_unlock') }}</button>
+                    </template>
+                    <button v-else type="button" class="a-btn" @click="lockDev">{{ t('view.tools.dev_lock') }}</button>
+                </div>
             </div>
         </div>
     </div>
 </template>
 
 <script setup>
-    import { onMounted, ref } from 'vue';
+    import { computed, onMounted, ref } from 'vue';
+    import { toast } from 'vue-sonner';
     import { useI18n } from 'vue-i18n';
 
     import { Button } from '@/components/ui/button';
@@ -96,6 +109,7 @@
     import { useToolNavPinning } from '../../composables/useToolNavPinning';
     import { getToolsByCategory, toolCategories } from '../../shared/constants';
     import configRepository from '../../services/config.js';
+    import { devUnlocked, initDevLock, lockDev, tryUnlock } from '../../services/devLock';
 
     const { t } = useI18n();
     const { triggerTool } = useToolActions();
@@ -104,12 +118,21 @@
     const toolsCategoryCollapsedConfigKey = 'Aura_toolsCollapsed';
     // shortcuts and exports go to the bottom
     const BOTTOM = ['shortcuts', 'user'];
-    const categories = [...toolCategories]
+    // developer-only categories stay hidden until the developer password is entered
+    const DEV_ONLY = ['system'];
+    const allCategories = [...toolCategories]
         .sort((a, b) => BOTTOM.indexOf(a.key) - BOTTOM.indexOf(b.key) || 0)
         .map((category) => ({
             ...category,
             tools: getToolsByCategory(category.key)
         }));
+    const categories = computed(() => allCategories.filter((c) => devUnlocked.value || !DEV_ONLY.includes(c.key)));
+    const devPassword = ref('');
+    async function submitDev() {
+        const ok = await tryUnlock(devPassword.value);
+        devPassword.value = '';
+        if (!ok) toast.error(t('view.tools.dev_wrong'));
+    }
 
     const categoryCollapsed = ref({
         group: true,
@@ -126,6 +149,7 @@
     };
 
     onMounted(async () => {
+        initDevLock();
         await refreshPinnedState();
         const storedValue = await configRepository.getString(toolsCategoryCollapsedConfigKey, '{}');
         try {

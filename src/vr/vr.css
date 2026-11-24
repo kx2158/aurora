@@ -1811,3 +1811,21 @@ i.x-user-status.busy {
     background: #e6e8eb;
     color: #111;
 }
+
+/* the dashboard follows the app: one soft radius on every button and panel */
+.vr-tile,
+.vr-slide,
+.vr-bubble,
+.vr-mbtn,
+.vr-slide-reset {
+    border-radius: 26px;
+}
+.vr-tile,
+.vr-mbtn,
+.vr-tab,
+.vr-slide-reset {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}

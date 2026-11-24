@@ -133,9 +133,9 @@
                     <label class="nx-meta">{{ t('view.chatbox.anim_speed') }}</label>
                     <Input
                         type="number"
-                        min="100"
+                        min="1000"
                         max="5000"
-                        step="50"
+                        step="100"
                         :model-value="chatboxAnimMs"
                         class="nx-small"
                         @update:modelValue="setChatboxAnimMs" />

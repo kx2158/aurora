@@ -83,9 +83,11 @@
             for (const i of list) {
                 if (asked.has(i.tag)) continue;
                 asked.add(i.tag);
-                getWorldName(i.tag).then((n) => {
-                    if (n) names[i.tag] = n;
-                });
+                getWorldName(i.tag)
+                    .then((n) => {
+                        if (n) names[i.tag] = n;
+                    })
+                    .catch(() => {});
             }
         },
         { immediate: true }

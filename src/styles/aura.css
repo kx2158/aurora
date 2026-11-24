@@ -1508,8 +1508,7 @@
     border-radius: 999px !important;
 }
 
-/* every button: text dead centre, both ways */
-:root:is([data-theme='aura'], [data-theme='auradark']) button,
+/* real buttons: text dead centre, both ways (menu rows, sidebar items and lists stay left-aligned) */
 :root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='button'],
 :root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='toggle'],
 :root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='tabs-trigger'] {
@@ -1584,4 +1583,18 @@
     border-radius: 5px;
     box-shadow: 0 0 0 1px var(--aura-line);
     filter: saturate(0.85);
+}
+
+/* sidebar and menu rows read from the left, icon first */
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='sidebar-menu-button'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='sidebar-menu-sub-button'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-sidebar='menu-button'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='dropdown-menu-item'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='select-item'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='command-item'] {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start !important;
+    text-align: left !important;
+    gap: 10px;
 }

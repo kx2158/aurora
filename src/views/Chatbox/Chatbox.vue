@@ -121,6 +121,13 @@
                         :model-value="chatboxInterval"
                         class="nx-small"
                         @update:modelValue="setChatboxInterval" />
+                    <label class="nx-meta">{{ t('view.chatbox.no_bg') }}</label>
+                    <Switch :model-value="chatboxNoBg" :ariaLabel="t('view.chatbox.no_bg')" @update:modelValue="setChatboxNoBg" />
+                    <label class="nx-meta">{{ t('view.chatbox.typing_indicator') }}</label>
+                    <Switch
+                        :model-value="chatboxTypingIndicator"
+                        :ariaLabel="t('view.chatbox.typing_indicator')"
+                        @update:modelValue="setChatboxTypingIndicator" />
                     <label class="nx-meta">{{ t('view.chatbox.anim_speed') }}</label>
                     <Input
                         type="number"
@@ -179,6 +186,8 @@
         afkMinutes,
         chatboxEnabled,
         chatboxAnimMs,
+        chatboxNoBg,
+        chatboxTypingIndicator,
         chatboxInterval,
         chatboxNotify,
         chatboxPageIndex,
@@ -190,6 +199,8 @@
         sendChatboxNow,
         setChatboxEnabled,
         setChatboxAnimMs,
+        setChatboxNoBg,
+        setChatboxTypingIndicator,
         setChatboxInterval,
         setChatboxNotify,
         setAfkMinutes,

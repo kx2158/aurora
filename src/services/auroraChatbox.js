@@ -13,6 +13,15 @@ export const chatboxEnabled = ref(false);
 export const chatboxTemplate = ref('{time} | {world} | {friends} friends online');
 export const chatboxInterval = ref(5);
 export const chatboxNotify = ref(false);
+// the two control characters VRChat reads as "draw this text without the bubble behind it"
+export const NO_BG_SUFFIX = '\u0003\u001f';
+export const chatboxNoBg = ref(false);
+export const chatboxTypingIndicator = ref(true);
+/** Adds the no-background marker (it costs 2 of the 144 characters) when that is switched on. */
+export function withBackgroundSetting(text, noBg) {
+    const t = String(text ?? '');
+    return noBg ? t.slice(0, 144 - NO_BG_SUFFIX.length) + NO_BG_SUFFIX : t.slice(0, 144);
+}
 export const chatboxPreview = ref('');
 /** Pages rotate every interval, like a slideshow of lines. */
 export const chatboxPages = ref(['{time} | {world} | {friends} friends online']);
@@ -72,6 +81,8 @@ export async function initChatbox() {
         chatboxPageSlots.value = chatboxPages.value.map(() => 'rotate');
     }
     afkMinutes.value = await configRepository.getInt('Neon_afkMinutes', 5);
+    chatboxNoBg.value = await configRepository.getBool('Aurora_chatboxNoBg', false);
+    chatboxTypingIndicator.value = await configRepository.getBool('Aurora_chatboxTyping', true);
     chatboxAnimMs.value = clampAnim(await configRepository.getInt('Aurora_chatboxAnimMs', 100));
     watch([chatboxEnabled, chatboxInterval, chatboxAnimMs], restart);
     startSysInfo();
@@ -85,6 +96,16 @@ export function clampAnim(v) {
 export function setChatboxAnimMs(v) {
     chatboxAnimMs.value = clampAnim(v);
     configRepository.setInt('Aurora_chatboxAnimMs', chatboxAnimMs.value);
+}
+
+export function setChatboxNoBg(v) {
+    chatboxNoBg.value = !!v;
+    configRepository.setBool('Aurora_chatboxNoBg', chatboxNoBg.value);
+    lastSent = '';
+}
+export function setChatboxTypingIndicator(v) {
+    chatboxTypingIndicator.value = !!v;
+    configRepository.setBool('Aurora_chatboxTyping', chatboxTypingIndicator.value);
 }
 
 export function setChatboxEnabled(v) {
@@ -118,7 +139,7 @@ export function sendChatboxNow(text, typingFirst = false) {
     if (!line) {
         return;
     }
-    AppApi.SendOscChatbox(renderChatbox(line), true, chatboxNotify.value, 9000);
+    AppApi.SendOscChatbox(withBackgroundSetting(renderChatbox(line), chatboxNoBg.value), true, chatboxNotify.value, 9000);
     // keep this message on screen: nothing else (rotation, animation, nudges) may replace it for a while
     holdUntil = Date.now() + HOLD_MS;
     lastSentAt = Date.now();
@@ -129,6 +150,9 @@ export function sendChatboxNow(text, typingFirst = false) {
 }
 
 export function setTyping(on) {
+    if (on && !chatboxTypingIndicator.value) {
+        return;
+    }
     try {
         AppApi.SendOscTyping(!!on, 9000);
     } catch (e) {
@@ -228,7 +252,7 @@ function tick(advance = true) {
     lastSent = text;
     lastSentAt = Date.now();
     try {
-        AppApi.SendOscChatbox(text, true, chatboxNotify.value, 9000);
+        AppApi.SendOscChatbox(withBackgroundSetting(text, chatboxNoBg.value), true, chatboxNotify.value, 9000);
     } catch (e) {
         console.error('Neon chatbox failed', e);
     }

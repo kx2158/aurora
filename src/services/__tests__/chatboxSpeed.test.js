@@ -11,3 +11,13 @@ describe('chatbox animation speed', () => {
         expect(clampAnim('abc')).toBe(100);
     });
 });
+
+describe('chatbox background marker', () => {
+    it('adds the marker only when asked, and stays inside 144 characters', async () => {
+        const { withBackgroundSetting, NO_BG_SUFFIX } = await import('../auroraChatbox');
+        expect(withBackgroundSetting('hi', false)).toBe('hi');
+        expect(withBackgroundSetting('hi', true)).toBe('hi' + NO_BG_SUFFIX);
+        expect(withBackgroundSetting('x'.repeat(200), true).length).toBe(144);
+        expect(withBackgroundSetting('x'.repeat(200), false).length).toBe(144);
+    });
+});

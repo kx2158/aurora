@@ -49,6 +49,29 @@ export function languagesOf(ref) {
 }
 
 /**
+ * Age verification as VRChat reports it: "18+" (verified adult), "verified" (verified, age not shared as 18+),
+ * "hidden", or nothing known. Friend lists often leave the field out until a profile has been opened.
+ * @returns {'18plus'|'verified'|'hidden'|'unknown'}
+ */
+export function ageOf(ref) {
+    const status = ref?.ageVerificationStatus;
+    if (status === '18+') return '18plus';
+    if (status === 'verified') return 'verified';
+    if (status === 'hidden') return 'hidden';
+    if (ref?.ageVerified) return 'verified';
+    return 'unknown';
+}
+
+/** @returns {'pc'|'android'|'ios'|''} */
+export function platformOf(ref) {
+    const p = String(ref?.last_platform || ref?.platform || '').toLowerCase();
+    if (p.includes('windows') || p === 'pc') return 'pc';
+    if (p.includes('android')) return 'android';
+    if (p.includes('ios')) return 'ios';
+    return '';
+}
+
+/**
  * One flat row per friend.
  * @param {Array<{id:string, ref:object}>} ctxs
  * @param {{favorites?: Set<string>, now?: number}} opts
@@ -81,7 +104,11 @@ export function buildRows(ctxs, { favorites = new Set(), locked = new Set(), now
             favorite: favorites.has(ctx.id) || !!ctx.isVIP,
             locked: locked.has(ctx.id),
             hasMemo: !!(ref.$memo || ref.note),
-            bio: typeof ref.bio === 'string' ? ref.bio : ''
+            bio: typeof ref.bio === 'string' ? ref.bio : '',
+            age: ageOf(ref),
+            trustName: ref.$trustLevel || '',
+            presence: ref.status || '',
+            platform: platformOf(ref)
         });
     }
     return rows;
@@ -227,6 +254,17 @@ export function filterRows(rows, f = {}) {
             if (f.language === 'none' ? r.languages.length : !r.languages.includes(f.language)) return false;
         }
         if (f.mutual && f.mutual !== 'all' && mutualBucket(r) !== f.mutual) return false;
+        if (f.age && f.age !== 'all' && r.age !== f.age) return false;
+        if (f.trust && f.trust !== 'all' && (r.trustName || 'none') !== f.trust) return false;
+        if (f.status && f.status !== 'all' && (r.presence || 'none') !== f.status) return false;
+        if (f.platform && f.platform !== 'all' && (r.platform || 'none') !== f.platform) return false;
+        if (f.mark && f.mark !== 'all') {
+            if (f.mark === 'favorite' && !r.favorite) return false;
+            if (f.mark === 'notfavorite' && r.favorite) return false;
+            if (f.mark === 'memo' && !r.hasMemo) return false;
+            if (f.mark === 'nomemo' && r.hasMemo) return false;
+            if (f.mark === 'locked' && !r.locked) return false;
+        }
         return true;
     });
     return out.sort(SORTS[f.sort] || SORTS.seen);
@@ -369,4 +407,19 @@ export function matchChanges(rows, entries, types = ['Unfriend']) {
     const wanted = new Set(entries.filter((e) => types.includes(e.type)).map((e) => e.userId));
     const matched = rows.filter((r) => wanted.has(r.id));
     return { matched, notFriends: wanted.size - matched.length };
+}
+
+/**
+ * How many friends have each value of a row field, biggest first. Empty values count as "none".
+ * @param {object[]} rows
+ * @param {string} key a row field such as "age" or "trustName"
+ * @returns {Array<{key:string,count:number}>}
+ */
+export function countBy(rows, key) {
+    const map = new Map();
+    for (const r of rows) {
+        const k = r[key] || 'none';
+        map.set(k, (map.get(k) || 0) + 1);
+    }
+    return [...map.entries()].map(([k, count]) => ({ key: k, count })).sort((a, b) => b.count - a.count);
 }

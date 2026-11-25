@@ -4,6 +4,11 @@ name: Build Aura (Windows installer)
 # The installer shows up under "Artifacts" at the bottom of the finished run.
 on:
   workflow_dispatch:
+    inputs:
+      portable:
+        description: "Also upload the portable folder (slow, big)"
+        type: boolean
+        default: false
 
 permissions:
   contents: write   # needed to publish the release the in-app updater reads
@@ -21,6 +26,7 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: 24
+          cache: npm
 
       # npm install, not npm ci: Neon adds packages (kokoro-js) that the lock file may not list yet
       - name: Install dependencies
@@ -34,6 +40,14 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
+      # restored NuGet packages are reused between runs
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('Dotnet/**/*.csproj', 'SpaceDrag/**/*.csproj', 'Dotnet/Directory.Build.props') }}
+          restore-keys: nuget-${{ runner.os }}-
+
       # Version looks like 2026.10.31.7 (date + build number), so every build counts as newer
       - name: Set version
         run: |
@@ -43,14 +57,17 @@ jobs:
           echo "VERSION=${VERSION}" >> "$GITHUB_ENV"
 
       - name: Build the Windows app (CEF)
-        run: dotnet build Dotnet/VRCX-Cef.csproj -p:Configuration=Release -p:WarningLevel=0 -p:Platform=x64 -p:PlatformTarget=x64 -t:"Clean;Build" -maxcpucount --runtime win-x64 --self-contained
+        run: dotnet build Dotnet/VRCX-Cef.csproj -p:Configuration=Release -p:WarningLevel=0 -p:Platform=x64 -p:PlatformTarget=x64 -t:Build -maxcpucount --runtime win-x64 --self-contained
 
       # Space drag helper. It builds into build/Cef/SpaceDrag, after the app build above so Clean does not remove it.
       - name: Build the space drag helper
         run: dotnet build SpaceDrag/SpaceDrag.csproj -p:Configuration=Release -p:Platform=x64 -p:PlatformTarget=x64 -p:WarningLevel=0 --runtime win-x64 --self-contained
 
       - name: Install NSIS
-        run: choco install nsis -y
+        run: |
+          if ! command -v makensis >/dev/null 2>&1 && [ ! -f "/c/Program Files (x86)/NSIS/makensis.exe" ]; then
+            choco install nsis -y
+          fi
 
       - name: Create installer
         shell: pwsh
@@ -74,6 +91,7 @@ jobs:
         with:
           name: Aurora-Setup
           path: stage
+          compression-level: 0
           if-no-files-found: error
 
       - name: Publish release (the app's updater reads this)
@@ -84,6 +102,7 @@ jobs:
             --title "Aura ${VERSION}" --generate-notes --latest
 
       - name: Upload portable folder
+        if: ${{ inputs.portable }}
         uses: actions/upload-artifact@v7
         with:
           name: Aurora-Portable

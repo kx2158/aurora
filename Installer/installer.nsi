@@ -34,8 +34,8 @@
 ;--------------------------------
 ;General
 
-    SetCompressor /SOLID lzma
-    SetCompressorDictSize 16
+    ; zlib instead of lzma: much faster to build, installer is somewhat bigger
+    SetCompressor zlib
     Unicode True
     Name "Aura"
     OutFile "Aurora_Setup_x64.exe"

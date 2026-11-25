@@ -186,10 +186,10 @@
         router.push({ name: 'tools' });
     }
 
-    // API availability check
+    // API availability check - evaluated live, not cached at module load
     const apiWarning = ref('');
-    const hasElectron = typeof window !== 'undefined' && !!window.electron;
-    const hasInterop = typeof window !== 'undefined' && !!window.interopApi;
+    const hasElectron = () => typeof window !== 'undefined' && !!window.electron;
+    const hasInterop = () => typeof window !== 'undefined' && !!window.interopApi;
 
     // Form state
     const fileQueue = ref([]); // [{ path, name, status: 'pending'|'running'|'done'|'error' }]
@@ -235,10 +235,10 @@
     // Load saved paths and auto-detect on mount
     onMounted(async () => {
         // Check API availability
-        if (!hasElectron) {
+        if (!hasElectron()) {
             apiWarning.value = 'Electron API not available - file dialogs will not work outside the desktop app.';
         }
-        if (!hasInterop) {
+        if (!hasInterop()) {
             apiWarning.value = (apiWarning.value ? apiWarning.value + ' ' : '') + '.NET interop not available - auto-detect and pipeline will not work.';
         }
 
@@ -259,7 +259,7 @@
     });
 
     async function autoDetectTools() {
-        if (!hasInterop) return;
+        if (!hasInterop()) return;
 
         autoDetectStatus.value = 'detecting';
         autoDetectMessage.value = t('dialog.vrca_bridge.detecting');
@@ -299,7 +299,7 @@
     }
 
     async function downloadAssetRipper() {
-        if (!hasInterop) {
+        if (!hasInterop()) {
             toast.error('.NET interop not available');
             return;
         }
@@ -336,7 +336,7 @@
     }
 
     async function browseFile() {
-        if (!hasElectron) {
+        if (!hasElectron()) {
             toast.error('File picker requires the desktop app');
             return;
         }
@@ -368,7 +368,7 @@
     }
 
     async function browseUnityPath() {
-        if (!hasElectron) {
+        if (!hasElectron()) {
             toast.error('Folder picker requires the desktop app');
             return;
         }
@@ -385,7 +385,7 @@
     }
 
     async function browseAssetRipperPath() {
-        if (!hasElectron) {
+        if (!hasElectron()) {
             toast.error('Folder picker requires the desktop app');
             return;
         }
@@ -406,7 +406,7 @@
     }
 
     async function processSingleFile(file) {
-        if (!hasInterop) throw new Error('.NET interop not available');
+        if (!hasInterop()) throw new Error('.NET interop not available');
 
         addLog(`\n--- ${file.name} ---`);
         addLog(`Platforms: PC${buildQuest.value ? ' + Quest' : ''}`);

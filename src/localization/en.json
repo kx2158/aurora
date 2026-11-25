@@ -754,7 +754,9 @@
                 "purchase_history": "Purchase History",
                 "purchase_history_description": "View items you have purchased from the VRChat store and marketplace",
                 "info_push": "Info Push",
-                "info_push_description": "Browse VRChat info push announcements and content"
+                "info_push_description": "Browse VRChat info push announcements and content",
+                "vrca_bridge": "VRCA Bridge",
+                "vrca_bridge_description": "Convert and upload .vrca avatar bundles to your VRChat account"
             },
             "dev_placeholder": "Developer password",
             "dev_unlock": "Unlock",
@@ -3541,6 +3543,33 @@
             "assign": "Assign",
             "remove": "Remove Link",
             "saving": "Saving..."
+        },
+        "vrca_bridge": {
+            "header": "VRCA Bridge",
+            "description": "Convert a Windows .vrca avatar bundle and upload it to your logged-in VRChat account. Supports both PC and Quest platforms.",
+            "file_label": "VRCA File",
+            "browse": "Select .vrca file...",
+            "platforms": "Build Platforms",
+            "platform_pc": "PC (Windows)",
+            "platform_quest": "Quest (Android)",
+            "unity_path": "Unity Editor Folder",
+            "unity_path_placeholder": "C:/Program Files/Unity/Hub/Editor/2022.3.22f1/Editor",
+            "unity_path_hint": "Path to Unity 2022.3.22f1 Editor folder (required by VRChat SDK)",
+            "assetripper_path": "AssetRipper Folder",
+            "assetripper_path_placeholder": "C:/Tools/AssetRipper",
+            "assetripper_hint": "Path to folder containing AssetRipperConsole.exe",
+            "close": "Close",
+            "start": "Convert & Upload",
+            "step_init": "Initializing...",
+            "step_extract": "Extracting assets with AssetRipper...",
+            "step_project": "Creating Unity project...",
+            "step_build": "Building avatar bundle(s)...",
+            "step_upload": "Uploading to VRChat...",
+            "status_running": "Pipeline running",
+            "status_done": "Complete",
+            "status_error": "Failed",
+            "toast_success": "Avatar uploaded successfully!",
+            "toast_error": "VRCA Bridge pipeline failed"
         }
     },
     "confirm": {

@@ -48,6 +48,7 @@ contextBridge.exposeInMainWorld('electron', {
     setThemeSource: (source) => ipcRenderer.invoke('app:setThemeSource', source),
     onSystemThemeChanged: (callback) => registerManagedListener('systemThemeChanged', callback),
     openFileDialog: () => ipcRenderer.invoke('dialog:openFile'),
+    openVrcaFileDialog: () => ipcRenderer.invoke('dialog:openVrcaFile'),
     openDirectoryDialog: () => ipcRenderer.invoke('dialog:openDirectory'),
     onWindowPositionChanged: (callback) => registerManagedListener('setWindowPosition', callback),
     onWindowSizeChanged: (callback) => registerManagedListener('setWindowSize', callback),

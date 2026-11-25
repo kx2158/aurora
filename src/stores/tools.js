@@ -13,7 +13,8 @@ const initialDialogState = () => ({
     autoChangeStatus: false,
     moderationReports: false,
     purchaseHistory: false,
-    infoPush: false
+    infoPush: false,
+    vrcaBridge: false
 });
 
 export const useToolsStore = defineStore('Tools', () => {

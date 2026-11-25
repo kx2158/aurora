@@ -264,6 +264,16 @@ const toolDefinitions = [
         descriptionKey: 'view.tools.other.info_push_description',
         navEligible: true,
         action: { type: 'dialog', dialogKey: 'info-push' }
+    },
+    {
+        key: 'vrca-bridge',
+        category: 'other',
+        iconKey: 'arrow-right-left',
+        navIcon: 'ri-arrow-left-right-line',
+        titleKey: 'view.tools.other.vrca_bridge',
+        descriptionKey: 'view.tools.other.vrca_bridge_description',
+        navEligible: true,
+        action: { type: 'dialog', dialogKey: 'vrca-bridge' }
     }
 ];
 

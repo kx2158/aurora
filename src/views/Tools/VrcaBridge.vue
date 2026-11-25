@@ -13,6 +13,11 @@
                 {{ t('dialog.vrca_bridge.description') }}
             </p>
 
+            <!-- Electron API warning -->
+            <div v-if="apiWarning" class="text-xs rounded bg-destructive/10 text-destructive px-3 py-2">
+                {{ apiWarning }}
+            </div>
+
             <!-- File Selection + Drop Zone -->
             <div>
                 <label class="text-sm font-medium mb-1 block">
@@ -63,11 +68,11 @@
                     {{ t('dialog.vrca_bridge.platforms') }}
                 </label>
                 <div class="flex gap-4">
-                    <label class="flex items-center gap-2 text-sm">
+                    <label class="flex items-center gap-2 text-sm cursor-pointer">
                         <input type="checkbox" v-model="buildPC" class="accent-primary" disabled checked />
                         {{ t('dialog.vrca_bridge.platform_pc') }}
                     </label>
-                    <label class="flex items-center gap-2 text-sm">
+                    <label class="flex items-center gap-2 text-sm cursor-pointer">
                         <input type="checkbox" v-model="buildQuest" class="accent-primary" />
                         {{ t('dialog.vrca_bridge.platform_quest') }}
                     </label>
@@ -181,6 +186,11 @@
         router.push({ name: 'tools' });
     }
 
+    // API availability check
+    const apiWarning = ref('');
+    const hasElectron = typeof window !== 'undefined' && !!window.electron;
+    const hasInterop = typeof window !== 'undefined' && !!window.interopApi;
+
     // Form state
     const fileQueue = ref([]); // [{ path, name, status: 'pending'|'running'|'done'|'error' }]
     const currentFileIndex = ref(0);
@@ -224,19 +234,33 @@
 
     // Load saved paths and auto-detect on mount
     onMounted(async () => {
-        const savedUnity = await configRepository.getString('VrcaBridge_unityPath', '');
-        const savedRipper = await configRepository.getString('VrcaBridge_assetRipperPath', '');
+        // Check API availability
+        if (!hasElectron) {
+            apiWarning.value = 'Electron API not available - file dialogs will not work outside the desktop app.';
+        }
+        if (!hasInterop) {
+            apiWarning.value = (apiWarning.value ? apiWarning.value + ' ' : '') + '.NET interop not available - auto-detect and pipeline will not work.';
+        }
 
-        if (savedUnity) unityEditorPath.value = savedUnity;
-        if (savedRipper) assetRipperPath.value = savedRipper;
+        try {
+            const savedUnity = await configRepository.getString('VrcaBridge_unityPath', '');
+            const savedRipper = await configRepository.getString('VrcaBridge_assetRipperPath', '');
 
-        // Auto-detect if either path is missing
-        if (!savedUnity || !savedRipper) {
-            await autoDetectTools();
+            if (savedUnity) unityEditorPath.value = savedUnity;
+            if (savedRipper) assetRipperPath.value = savedRipper;
+
+            // Auto-detect if either path is missing
+            if (!savedUnity || !savedRipper) {
+                await autoDetectTools();
+            }
+        } catch (err) {
+            console.error('VrcaBridge mount error:', err);
         }
     });
 
     async function autoDetectTools() {
+        if (!hasInterop) return;
+
         autoDetectStatus.value = 'detecting';
         autoDetectMessage.value = t('dialog.vrca_bridge.detecting');
 
@@ -275,6 +299,10 @@
     }
 
     async function downloadAssetRipper() {
+        if (!hasInterop) {
+            toast.error('.NET interop not available');
+            return;
+        }
         isDownloadingRipper.value = true;
         try {
             const result = await window.interopApi.callDotNetMethod('VrcaBridge', 'DownloadAssetRipper', []);
@@ -294,15 +322,24 @@
     }
 
     function addPathsToQueue(paths) {
+        let added = 0;
         for (const p of paths) {
             if (!p.toLowerCase().endsWith('.vrca')) continue;
             if (fileQueue.value.some(f => f.path === p)) continue;
             const parts = p.replace(/\\/g, '/').split('/');
             fileQueue.value.push({ path: p, name: parts[parts.length - 1], status: 'pending' });
+            added++;
+        }
+        if (added > 0) {
+            toast.success(`Added ${added} file${added > 1 ? 's' : ''} to queue`);
         }
     }
 
     async function browseFile() {
+        if (!hasElectron) {
+            toast.error('File picker requires the desktop app');
+            return;
+        }
         try {
             const result = await window.electron.openVrcaFileDialog();
             if (result) {
@@ -311,6 +348,7 @@
             }
         } catch (err) {
             console.error('Failed to open file dialog:', err);
+            toast.error('Failed to open file picker: ' + (err.message || err));
         }
     }
 
@@ -322,10 +360,18 @@
         isDragging.value = false;
         const files = Array.from(event.dataTransfer?.files ?? []);
         const paths = files.map(f => f.path).filter(Boolean);
+        if (paths.length === 0) {
+            toast.error('No valid file paths in drop - drag .vrca files from your file explorer');
+            return;
+        }
         addPathsToQueue(paths);
     }
 
     async function browseUnityPath() {
+        if (!hasElectron) {
+            toast.error('Folder picker requires the desktop app');
+            return;
+        }
         try {
             const dir = await window.electron.openDirectoryDialog();
             if (dir) {
@@ -334,10 +380,15 @@
             }
         } catch (err) {
             console.error('Failed to open directory dialog:', err);
+            toast.error('Failed to open folder picker: ' + (err.message || err));
         }
     }
 
     async function browseAssetRipperPath() {
+        if (!hasElectron) {
+            toast.error('Folder picker requires the desktop app');
+            return;
+        }
         try {
             const dir = await window.electron.openDirectoryDialog();
             if (dir) {
@@ -346,6 +397,7 @@
             }
         } catch (err) {
             console.error('Failed to open directory dialog:', err);
+            toast.error('Failed to open folder picker: ' + (err.message || err));
         }
     }
 
@@ -354,6 +406,8 @@
     }
 
     async function processSingleFile(file) {
+        if (!hasInterop) throw new Error('.NET interop not available');
+
         addLog(`\n--- ${file.name} ---`);
         addLog(`Platforms: PC${buildQuest.value ? ' + Quest' : ''}`);
 

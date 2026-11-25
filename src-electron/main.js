@@ -196,7 +196,8 @@ ipcMain.handle('dialog:openFile', async () => {
 });
 
 ipcMain.handle('dialog:openVrcaFile', async () => {
-    const result = await dialog.showOpenDialog({
+    const parent = BrowserWindow.getFocusedWindow() || mainWindow;
+    const result = await dialog.showOpenDialog(parent, {
         properties: ['openFile', 'multiSelections'],
         filters: [{ name: 'VRChat Avatar', extensions: ['vrca'] }]
     });
@@ -208,7 +209,8 @@ ipcMain.handle('dialog:openVrcaFile', async () => {
 });
 
 ipcMain.handle('dialog:openDirectory', async () => {
-    const result = await dialog.showOpenDialog({
+    const parent = BrowserWindow.getFocusedWindow() || mainWindow;
+    const result = await dialog.showOpenDialog(parent, {
         properties: ['openDirectory']
     });
 

@@ -18,7 +18,7 @@
         @close="closeDialog('moderationReports')" />
     <PurchaseHistoryDialog :isPurchaseHistoryDialogVisible="purchaseHistory" @close="closeDialog('purchaseHistory')" />
     <InfoPushDialog :isInfoPushDialogVisible="infoPush" @close="closeDialog('infoPush')" />
-    <VrcaBridgeDialog v-model:isVrcaBridgeDialogVisible="vrcaBridge" @close="closeDialog('vrcaBridge')" />
+    <VrcaBridgeDialog :isVrcaBridgeDialogVisible="vrcaBridge" @close="closeDialog('vrcaBridge')" />
 </template>
 
 <script setup>

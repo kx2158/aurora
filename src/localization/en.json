@@ -3569,7 +3569,13 @@
             "status_done": "Complete",
             "status_error": "Failed",
             "toast_success": "Avatar uploaded successfully!",
-            "toast_error": "VRCA Bridge pipeline failed"
+            "toast_error": "VRCA Bridge pipeline failed",
+            "detecting": "Auto-detecting Unity and AssetRipper...",
+            "detected": "Found: {tools}",
+            "download_ripper": "Auto-install",
+            "downloading": "Downloading...",
+            "ripper_downloaded": "AssetRipper downloaded successfully",
+            "ripper_download_failed": "Failed to download AssetRipper"
         }
     },
     "confirm": {

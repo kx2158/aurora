@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Net.Http;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
@@ -40,6 +42,281 @@ namespace VRCX
         };
 
         public VrcaBridge() { }
+
+        /// <summary>
+        /// Auto-detect Unity Editor and AssetRipper installations on the system.
+        /// Returns JSON: { "unityPath": "...", "assetRipperPath": "..." }
+        /// Either value may be null/empty if not found.
+        /// </summary>
+        public string FindTools()
+        {
+            try
+            {
+                var unityPath = AutoFindUnity();
+                var ripperPath = AutoFindAssetRipper();
+
+                var result = new JObject
+                {
+                    ["unityPath"] = unityPath ?? "",
+                    ["assetRipperPath"] = ripperPath ?? ""
+                };
+
+                Logger.Info($"FindTools: unity={unityPath}, ripper={ripperPath}");
+                return result.ToString();
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex, "FindTools failed");
+                return "";
+            }
+        }
+
+        /// <summary>
+        /// Download the latest AssetRipper release from GitHub to the app data directory.
+        /// Returns the directory path where it was saved, or empty string on failure.
+        /// </summary>
+        public async Task<string> DownloadAssetRipper()
+        {
+            try
+            {
+                // Target directory: same folder as Aurora's app data
+                var appDataDir = AppDomain.CurrentDomain.BaseDirectory;
+                var ripperDir = Path.Combine(appDataDir, "tools", "AssetRipper");
+                Directory.CreateDirectory(ripperDir);
+
+                // Check if already downloaded
+                var existingExe = FindAssetRipperExe(ripperDir);
+                if (!string.IsNullOrEmpty(existingExe))
+                {
+                    Logger.Info($"AssetRipper already present at: {ripperDir}");
+                    return ripperDir;
+                }
+
+                Logger.Info("Downloading AssetRipper from GitHub...");
+
+                // Get latest release from GitHub API
+                using var http = new HttpClient();
+                http.DefaultRequestHeaders.Add("User-Agent", "Aurora-VrcaBridge/1.0");
+
+                var releaseJson = await http.GetStringAsync(
+                    "https://api.github.com/repos/AssetRipper/AssetRipper/releases/latest"
+                );
+
+                var release = JObject.Parse(releaseJson);
+                var assets = release["assets"] as JArray;
+
+                if (assets == null)
+                {
+                    Logger.Error("No assets in AssetRipper release");
+                    return "";
+                }
+
+                // Pick the right asset for this OS
+                string targetPattern;
+                if (OperatingSystem.IsWindows())
+                    targetPattern = "win_x64";
+                else if (OperatingSystem.IsMacOS())
+                    targetPattern = "mac_x64";
+                else
+                    targetPattern = "linux_x64";
+
+                // Prefer the console/CLI version
+                JToken? targetAsset = null;
+                foreach (var asset in assets)
+                {
+                    var name = asset["name"]?.ToString() ?? "";
+                    if (name.Contains(targetPattern, StringComparison.OrdinalIgnoreCase)
+                        && (name.EndsWith(".zip") || name.EndsWith(".tar.gz") || name.EndsWith(".tar.bz2")))
+                    {
+                        targetAsset = asset;
+                        break;
+                    }
+                }
+
+                if (targetAsset == null)
+                {
+                    Logger.Error($"No AssetRipper asset found for pattern: {targetPattern}");
+                    return "";
+                }
+
+                var downloadUrl = targetAsset["browser_download_url"]?.ToString();
+                var assetName = targetAsset["name"]?.ToString();
+
+                if (string.IsNullOrEmpty(downloadUrl) || string.IsNullOrEmpty(assetName))
+                {
+                    Logger.Error("Invalid asset URL or name");
+                    return "";
+                }
+
+                Logger.Info($"Downloading: {downloadUrl}");
+                var zipPath = Path.Combine(ripperDir, assetName);
+
+                var fileBytes = await http.GetByteArrayAsync(downloadUrl);
+                await File.WriteAllBytesAsync(zipPath, fileBytes);
+
+                // Extract the archive
+                if (assetName.EndsWith(".zip"))
+                {
+                    System.IO.Compression.ZipFile.ExtractToDirectory(zipPath, ripperDir, true);
+                }
+                else
+                {
+                    // tar.gz / tar.bz2 - use command line
+                    var tarArgs = assetName.EndsWith(".tar.gz")
+                        ? $"-xzf \"{zipPath}\" -C \"{ripperDir}\""
+                        : $"-xjf \"{zipPath}\" -C \"{ripperDir}\"";
+                    RunProcess("tar", tarArgs, 60000);
+                }
+
+                // Make sure the exe is executable on Unix
+                if (!OperatingSystem.IsWindows())
+                {
+                    var exePath = FindAssetRipperExe(ripperDir);
+                    if (!string.IsNullOrEmpty(exePath))
+                        RunProcess("chmod", $"+x \"{exePath}\"", 5000);
+                }
+
+                File.Delete(zipPath);
+
+                Logger.Info($"AssetRipper extracted to: {ripperDir}");
+                return ripperDir;
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex, "DownloadAssetRipper failed");
+                return "";
+            }
+        }
+
+        // --- Auto-detection helpers ---
+
+        private string AutoFindUnity()
+        {
+            // Common Unity Hub install locations for 2022.3.22f1
+            var candidates = new List<string>();
+
+            if (OperatingSystem.IsWindows())
+            {
+                var hubBase = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
+                    "Unity", "Hub", "Editor"
+                );
+                var hubBase2 = @"C:\Program Files\Unity\Hub\Editor";
+                var hubBase3 = @"C:\Program Files (x86)\Unity\Hub\Editor";
+
+                foreach (var hub in new[] { hubBase, hubBase2, hubBase3 })
+                {
+                    if (Directory.Exists(hub))
+                    {
+                        // Try exact version first
+                        var exact = Path.Combine(hub, UnityVersion, "Editor");
+                        if (Directory.Exists(exact)) candidates.Add(exact);
+
+                        // Then any 2022.3.x
+                        try
+                        {
+                            foreach (var ver in Directory.GetDirectories(hub, "2022.3.*"))
+                                candidates.Add(Path.Combine(ver, "Editor"));
+                        }
+                        catch { }
+                    }
+                }
+            }
+            else if (OperatingSystem.IsMacOS())
+            {
+                var hubBase = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+                    "Applications", "Unity", "Hub", "Editor"
+                );
+                var hubBase2 = "/Applications/Unity/Hub/Editor";
+
+                foreach (var hub in new[] { hubBase, hubBase2 })
+                {
+                    if (!Directory.Exists(hub)) continue;
+                    var exact = Path.Combine(hub, UnityVersion);
+                    if (Directory.Exists(exact)) candidates.Add(exact);
+                    try
+                    {
+                        foreach (var ver in Directory.GetDirectories(hub, "2022.3.*"))
+                            candidates.Add(ver);
+                    }
+                    catch { }
+                }
+            }
+            else
+            {
+                // Linux
+                var homeHub = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+                    "Unity", "Hub", "Editor"
+                );
+                if (Directory.Exists(homeHub))
+                {
+                    var exact = Path.Combine(homeHub, UnityVersion, "Editor");
+                    if (Directory.Exists(exact)) candidates.Add(exact);
+                    try
+                    {
+                        foreach (var ver in Directory.GetDirectories(homeHub, "2022.3.*"))
+                            candidates.Add(Path.Combine(ver, "Editor"));
+                    }
+                    catch { }
+                }
+            }
+
+            foreach (var candidate in candidates)
+            {
+                var exe = FindUnityExe(candidate);
+                if (!string.IsNullOrEmpty(exe))
+                    return candidate;
+            }
+
+            return "";
+        }
+
+        private string AutoFindAssetRipper()
+        {
+            // Check Aurora's own tools directory first
+            var appDir = AppDomain.CurrentDomain.BaseDirectory;
+            var toolsDir = Path.Combine(appDir, "tools", "AssetRipper");
+            if (Directory.Exists(toolsDir))
+            {
+                var exe = FindAssetRipperExe(toolsDir);
+                if (!string.IsNullOrEmpty(exe)) return toolsDir;
+            }
+
+            // Common user locations
+            var candidates = new List<string>();
+
+            if (OperatingSystem.IsWindows())
+            {
+                var userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+                var downloads = Path.Combine(userProfile, "Downloads");
+                candidates.Add(downloads);
+                candidates.Add(Path.Combine(userProfile, "Downloads", "AssetRipper"));
+                candidates.Add(Path.Combine(userProfile, "tools", "AssetRipper"));
+                candidates.Add(Path.Combine(userProfile, "AssetRipper"));
+                candidates.Add(@"C:\Tools\AssetRipper");
+            }
+            else
+            {
+                var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+                candidates.Add(Path.Combine(home, "Downloads", "AssetRipper"));
+                candidates.Add(Path.Combine(home, ".local", "bin", "AssetRipper"));
+                candidates.Add(Path.Combine(home, "tools", "AssetRipper"));
+                candidates.Add("/usr/local/bin");
+                candidates.Add("/opt/AssetRipper");
+            }
+
+            foreach (var dir in candidates)
+            {
+                if (!Directory.Exists(dir)) continue;
+                var exe = FindAssetRipperExe(dir);
+                if (!string.IsNullOrEmpty(exe))
+                    return dir;
+            }
+
+            return "";
+        }
 
         /// <summary>
         /// Stage 1: Extract a .vrca bundle using AssetRipper CLI.

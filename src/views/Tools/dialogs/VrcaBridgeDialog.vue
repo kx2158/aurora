@@ -1,5 +1,5 @@
 <template>
-    <Dialog v-model:open="isVisible">
+    <Dialog :open="isVrcaBridgeDialogVisible" @update:open="(open) => !open && closeDialog()">
         <DialogContent class="max-w-xl">
             <DialogHeader>
                 <DialogTitle>{{ t('dialog.vrca_bridge.header') }}</DialogTitle>
@@ -77,9 +77,30 @@
                             <i class="ri-folder-open-line" />
                         </Button>
                     </div>
-                    <p class="text-xs text-muted-foreground mt-1">
-                        {{ t('dialog.vrca_bridge.assetripper_hint') }}
-                    </p>
+                    <div class="flex items-center justify-between mt-1">
+                        <p class="text-xs text-muted-foreground">
+                            {{ t('dialog.vrca_bridge.assetripper_hint') }}
+                        </p>
+                        <Button
+                            v-if="!assetRipperPath"
+                            variant="ghost"
+                            size="xs"
+                            class="text-xs h-5"
+                            :disabled="isDownloadingRipper"
+                            @click="downloadAssetRipper">
+                            <i v-if="isDownloadingRipper" class="ri-loader-4-line animate-spin mr-1" />
+                            <i v-else class="ri-download-line mr-1" />
+                            {{ isDownloadingRipper ? t('dialog.vrca_bridge.downloading') : t('dialog.vrca_bridge.download_ripper') }}
+                        </Button>
+                    </div>
+                </div>
+
+                <!-- Auto-detect status -->
+                <div v-if="autoDetectStatus" class="text-xs rounded bg-muted px-3 py-2 flex items-center gap-2">
+                    <i v-if="autoDetectStatus === 'detecting'" class="ri-loader-4-line animate-spin text-muted-foreground" />
+                    <i v-else-if="autoDetectStatus === 'found'" class="ri-check-line text-green-500" />
+                    <i v-else-if="autoDetectStatus === 'partial'" class="ri-information-line text-yellow-500" />
+                    <span class="text-muted-foreground">{{ autoDetectMessage }}</span>
                 </div>
 
                 <!-- Progress -->
@@ -100,7 +121,7 @@
             </div>
 
             <DialogFooter class="mt-4">
-                <Button variant="outline" @click="isVisible = false">
+                <Button variant="outline" @click="closeDialog">
                     {{ t('dialog.vrca_bridge.close') }}
                 </Button>
                 <Button
@@ -135,25 +156,21 @@
     const props = defineProps({
         isVrcaBridgeDialogVisible: {
             type: Boolean,
-            required: true
+            default: false
         }
     });
 
-    const emit = defineEmits(['update:isVrcaBridgeDialogVisible', 'close']);
+    const emit = defineEmits(['close']);
 
-    const isVisible = computed({
-        get: () => props.isVrcaBridgeDialogVisible,
-        set: (val) => {
-            emit('update:isVrcaBridgeDialogVisible', val);
-            if (!val) emit('close');
-        }
-    });
+    function closeDialog() {
+        emit('close');
+    }
 
     // Form state
     const selectedFilePath = ref('');
     const selectedFileName = ref('');
     const buildPC = ref(true);
-    const buildQuest = ref(true);
+    const buildQuest = ref(false);
     const unityEditorPath = ref('');
     const assetRipperPath = ref('');
 
@@ -161,6 +178,11 @@
     const bridgeStatus = ref('idle'); // idle | running | done | error
     const currentStep = ref('');
     const progressLog = ref([]);
+
+    // Auto-detect / download state
+    const autoDetectStatus = ref(''); // '' | 'detecting' | 'found' | 'partial'
+    const autoDetectMessage = ref('');
+    const isDownloadingRipper = ref(false);
 
     const canStart = computed(() => {
         return (
@@ -184,22 +206,91 @@
         }
     });
 
-    // Load saved paths
-    watch(isVisible, async (val) => {
+    // Load saved paths and auto-detect on open
+    watch(() => props.isVrcaBridgeDialogVisible, async (val) => {
         if (val) {
+            // Reset state
+            bridgeStatus.value = 'idle';
+            progressLog.value = [];
+            currentStep.value = '';
+            autoDetectStatus.value = '';
+            autoDetectMessage.value = '';
+
             const savedUnity = await configRepository.getString('VrcaBridge_unityPath', '');
             const savedRipper = await configRepository.getString('VrcaBridge_assetRipperPath', '');
+
             if (savedUnity) unityEditorPath.value = savedUnity;
             if (savedRipper) assetRipperPath.value = savedRipper;
+
+            // Auto-detect if either path is missing
+            if (!savedUnity || !savedRipper) {
+                await autoDetectTools();
+            }
         }
     });
+
+    async function autoDetectTools() {
+        autoDetectStatus.value = 'detecting';
+        autoDetectMessage.value = t('dialog.vrca_bridge.detecting');
+
+        try {
+            const result = await window.interopApi.callDotNetMethod('VrcaBridge', 'FindTools', []);
+            if (!result) {
+                autoDetectStatus.value = '';
+                return;
+            }
+
+            const found = JSON.parse(result);
+            const foundPaths = [];
+
+            if (found.unityPath && !unityEditorPath.value) {
+                unityEditorPath.value = found.unityPath;
+                await configRepository.setString('VrcaBridge_unityPath', found.unityPath);
+                foundPaths.push('Unity');
+            }
+
+            if (found.assetRipperPath && !assetRipperPath.value) {
+                assetRipperPath.value = found.assetRipperPath;
+                await configRepository.setString('VrcaBridge_assetRipperPath', found.assetRipperPath);
+                foundPaths.push('AssetRipper');
+            }
+
+            if (foundPaths.length > 0) {
+                autoDetectStatus.value = unityEditorPath.value && assetRipperPath.value ? 'found' : 'partial';
+                autoDetectMessage.value = t('dialog.vrca_bridge.detected', { tools: foundPaths.join(', ') });
+            } else {
+                autoDetectStatus.value = '';
+            }
+        } catch (err) {
+            console.error('Auto-detect failed:', err);
+            autoDetectStatus.value = '';
+        }
+    }
+
+    async function downloadAssetRipper() {
+        isDownloadingRipper.value = true;
+        try {
+            const result = await window.interopApi.callDotNetMethod('VrcaBridge', 'DownloadAssetRipper', []);
+            if (result) {
+                assetRipperPath.value = result;
+                await configRepository.setString('VrcaBridge_assetRipperPath', result);
+                toast.success(t('dialog.vrca_bridge.ripper_downloaded'));
+            } else {
+                toast.error(t('dialog.vrca_bridge.ripper_download_failed'));
+            }
+        } catch (err) {
+            console.error('Download failed:', err);
+            toast.error(t('dialog.vrca_bridge.ripper_download_failed'));
+        } finally {
+            isDownloadingRipper.value = false;
+        }
+    }
 
     async function browseFile() {
         try {
             const filePath = await window.electron.openVrcaFileDialog();
             if (filePath) {
                 selectedFilePath.value = filePath;
-                // Extract just the filename for display
                 const parts = filePath.replace(/\\/g, '/').split('/');
                 selectedFileName.value = parts[parts.length - 1];
             }
@@ -218,7 +309,7 @@
             const dir = await window.electron.openDirectoryDialog();
             if (dir) {
                 unityEditorPath.value = dir;
-                configRepository.setString('VrcaBridge_unityPath', dir);
+                await configRepository.setString('VrcaBridge_unityPath', dir);
             }
         } catch (err) {
             console.error('Failed to open directory dialog:', err);
@@ -230,7 +321,7 @@
             const dir = await window.electron.openDirectoryDialog();
             if (dir) {
                 assetRipperPath.value = dir;
-                configRepository.setString('VrcaBridge_assetRipperPath', dir);
+                await configRepository.setString('VrcaBridge_assetRipperPath', dir);
             }
         } catch (err) {
             console.error('Failed to open directory dialog:', err);
@@ -249,8 +340,8 @@
         progressLog.value = [];
 
         // Save paths for next time
-        configRepository.setString('VrcaBridge_unityPath', unityEditorPath.value);
-        configRepository.setString('VrcaBridge_assetRipperPath', assetRipperPath.value);
+        await configRepository.setString('VrcaBridge_unityPath', unityEditorPath.value);
+        await configRepository.setString('VrcaBridge_assetRipperPath', assetRipperPath.value);
 
         try {
             addLog('Starting VRCA Bridge pipeline...');
@@ -268,7 +359,7 @@
             );
 
             if (!extractResult) {
-                throw new Error('AssetRipper extraction failed');
+                throw new Error('AssetRipper extraction failed - check that AssetRipper path is correct');
             }
             addLog(`Extracted to: ${extractResult}`);
 
@@ -283,7 +374,7 @@
             );
 
             if (!projectPath) {
-                throw new Error('Unity project creation failed');
+                throw new Error('Unity project creation failed - check that Unity path is correct');
             }
             addLog(`Project: ${projectPath}`);
 
@@ -298,7 +389,7 @@
             );
 
             if (!buildResult) {
-                throw new Error('Unity build failed');
+                throw new Error('Unity build failed - check Unity logs');
             }
 
             const bundles = JSON.parse(buildResult);

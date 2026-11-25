@@ -13,7 +13,7 @@ import { useFriendStore, useGameStore, useLocationStore } from '../stores';
 
 const KEY_LIST = 'Aura_modules';
 const KEY_OPTS = 'Aura_moduleOpts';
-const KEY_STORE = 'Aura_moduleStore';
+const KEY_STORE = 'Aura_moduleData';
 export const MAX_SOURCE = 200 * 1024;
 
 /** Installed modules: { id, name, version, description, source, enabled, error, options } */
@@ -21,7 +21,7 @@ export const modules = ref([]);
 /** Panels of running modules: { key, modId, title, render } */
 export const modulePanels = ref([]);
 export const moduleOpts = reactive({});
-const moduleStore = {};
+const moduleData = {};
 const running = new Map(); // modId -> { listeners: [] }
 const listeners = new Map(); // event -> Set<{ modId, cb }>
 let loaded = false;
@@ -35,7 +35,7 @@ function saveOpts() {
     configRepository.setString(KEY_OPTS, JSON.stringify(moduleOpts));
 }
 function saveStore() {
-    configRepository.setString(KEY_STORE, JSON.stringify(moduleStore));
+    configRepository.setString(KEY_STORE, JSON.stringify(moduleData));
 }
 
 function emit(event, payload) {
@@ -91,11 +91,11 @@ function liveHost(mod) {
             if (!listeners.has(event)) listeners.set(event, new Set());
             listeners.get(event).add({ modId: id, cb });
         },
-        storageGet: (id, key, fallback) => moduleStore[id]?.[key] ?? fallback,
+        storageGet: (id, key, fallback) => moduleData[id]?.[key] ?? fallback,
         storageSet(id, key, value) {
             const text = JSON.stringify(value);
             if (text === undefined || text.length > 8192) throw new Error('storage value is too big (8 KB max).');
-            (moduleStore[id] ||= {})[key] = JSON.parse(text);
+            (moduleData[id] ||= {})[key] = JSON.parse(text);
             saveStore();
         },
         addPanel(id, panel) {
@@ -137,7 +137,7 @@ export async function initModules() {
     loaded = true;
     try {
         Object.assign(moduleOpts, JSON.parse(await configRepository.getString(KEY_OPTS, '{}')));
-        Object.assign(moduleStore, JSON.parse(await configRepository.getString(KEY_STORE, '{}')));
+        Object.assign(moduleData, JSON.parse(await configRepository.getString(KEY_STORE, '{}')));
         const list = JSON.parse(await configRepository.getString(KEY_LIST, '[]'));
         modules.value = (Array.isArray(list) ? list : []).map((m) => reactive({ id: m.id, name: m.id, version: '', description: '', options: [], error: '', source: String(m.source || ''), enabled: m.enabled !== false }));
     } catch {
@@ -191,7 +191,7 @@ export function removeModule(id) {
     stopModule(id);
     modules.value = modules.value.filter((m) => m.id !== id);
     delete moduleOpts[id];
-    delete moduleStore[id];
+    delete moduleData[id];
     saveList();
     saveOpts();
     saveStore();

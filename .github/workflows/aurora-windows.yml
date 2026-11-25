@@ -53,12 +53,16 @@ jobs:
         run: choco install nsis -y
 
       - name: Create installer
+        shell: pwsh
         run: |
-          NSIS_DIR="$(cmd.exe //c 'echo %ProgramFiles(x86)%\\NSIS' 2>/dev/null | tr -d '\r')"
-          [ -d "$NSIS_DIR" ] || NSIS_DIR="/c/Program Files (x86)/NSIS"
-          export PATH="$NSIS_DIR:$PATH"
-          cp -r Installer/Plugins/* "$NSIS_DIR/Plugins/" 2>/dev/null || true
-          makensis Installer/installer.nsi
+          $nsis = (Get-Command makensis -ErrorAction SilentlyContinue).Source
+          if (-not $nsis) {
+            $nsis = "C:\Program Files (x86)\NSIS\makensis.exe"
+          }
+          $pluginDir = Split-Path $nsis
+          Copy-Item -Recurse -Force Installer\Plugins\* "$pluginDir\Plugins\" -ErrorAction SilentlyContinue
+          & $nsis Installer\installer.nsi
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Stage installer and updater
         run: |

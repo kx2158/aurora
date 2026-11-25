@@ -343,16 +343,36 @@ namespace VRCX
 
                 if (Directory.Exists(target))
                 {
+                    // wipe everything that can be wiped, even while VRChat is running
                     try
                     {
                         foreach (var f in Directory.GetFiles(target, "*", SearchOption.AllDirectories))
+                        {
                             ClearReadOnly(f);
+                            try { File.Delete(f); } catch { }
+                        }
+                    }
+                    catch { }
+
+                    try
+                    {
                         Directory.Delete(target, true);
                     }
-                    catch (Exception ex)
+                    catch
                     {
-                        logger.Warn(ex, "BlockCacheEntry: could not delete {0} (in use?)", hash);
-                        return "ok-pending";
+                        // still in use: move the whole folder out of the way so the name is free for the placeholder
+                        var parked = target + ".aurora-old";
+                        try
+                        {
+                            if (Directory.Exists(parked)) { try { Directory.Delete(parked, true); } catch { } }
+                            if (Directory.Exists(parked)) parked = target + "." + DateTime.UtcNow.Ticks + ".aurora-old";
+                            Directory.Move(target, parked);
+                        }
+                        catch (Exception ex)
+                        {
+                            logger.Warn(ex, "BlockCacheEntry: could not remove or move {0} (in use)", hash);
+                            return "ok-pending";
+                        }
                     }
                 }
 
@@ -388,6 +408,26 @@ namespace VRCX
             {
                 return "error: " + ex.Message;
             }
+        }
+
+        /// <summary>Deletes folders that were moved aside by BlockCacheEntry once nothing uses them anymore.</summary>
+        private void CleanParkedFolders()
+        {
+            try
+            {
+                var cachePath = GetVRChatCacheLocation();
+                if (!Directory.Exists(cachePath)) return;
+                foreach (var dir in Directory.GetDirectories(cachePath, "*.aurora-old"))
+                {
+                    try
+                    {
+                        foreach (var f in Directory.GetFiles(dir, "*", SearchOption.AllDirectories)) ClearReadOnly(f);
+                        Directory.Delete(dir, true);
+                    }
+                    catch { }
+                }
+            }
+            catch { }
         }
 
         /// <summary>
@@ -426,6 +466,7 @@ namespace VRCX
             int locked = 0, pending = 0, errors = 0;
             try
             {
+                CleanParkedFolders();
                 var hashes = Newtonsoft.Json.JsonConvert.DeserializeObject<List<string>>(hashesJson) ?? new List<string>();
                 foreach (var h in hashes)
                 {

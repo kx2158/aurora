@@ -50,7 +50,7 @@ namespace VRCX
                 SchemeName = "file",
                 DomainName = "vrcx",
                 SchemeHandlerFactory = new FolderSchemeHandlerFactory(
-                    Path.Join(Program.BaseDirectory, "html"),
+                    UiPatch.ResolveHtmlRoot(Path.Join(Program.BaseDirectory, "html")),
                     "file",
                     defaultPage: "index.html"
                 ),

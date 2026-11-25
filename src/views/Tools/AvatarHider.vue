@@ -66,6 +66,10 @@
                 <!-- Cache entries -->
                 <div>
                     <div class="text-sm font-medium mb-1">{{ t('dialog.avatar_hider.cached') }}</div>
+                    <label class="flex items-center gap-2 text-xs text-muted-foreground mb-2">
+                        <input v-model="showAll" type="checkbox" />
+                        {{ t('dialog.avatar_hider.show_all') }}
+                    </label>
                     <div v-if="!cacheRows.length" class="text-xs text-muted-foreground">
                         {{ t('dialog.avatar_hider.empty') }}
                     </div>
@@ -106,6 +110,7 @@
 
     import { useAvatarStore } from '../../stores/avatar';
     import { useGameStore } from '../../stores/game';
+    import { useWorldStore } from '../../stores/world';
     import {
         getBlockedList,
         hasBackend,
@@ -120,9 +125,11 @@
     const router = useRouter();
     const avatarStore = useAvatarStore();
     const gameStore = useGameStore();
+    const worldStore = useWorldStore();
     const { isGameRunning } = storeToRefs(gameStore);
 
     const RECENT_MS = 10 * 60 * 1000;
+    const MIN_AVATAR_BYTES = 1024 * 1024; // smaller cache entries are not avatars
 
     const backendOk = ref(hasBackend());
     const loading = ref(false);
@@ -130,6 +137,8 @@
     const entries = ref([]);
     const blockedList = ref([]);
     const hashNames = ref({}); // hash -> avatar name
+    const worldHashes = ref(new Set());
+    const showAll = ref(false);
     const avatarIdInput = ref('');
     const blockStates = ref({}); // hash -> active | pending | none
 
@@ -140,6 +149,12 @@
     const cacheRows = computed(() =>
         entries.value
             .filter((e) => !e.blocked)
+            .filter(
+                (e) =>
+                    showAll.value ||
+                    hashNames.value[e.hash] ||
+                    (!worldHashes.value.has(e.hash) && e.sizeBytes >= MIN_AVATAR_BYTES)
+            )
             .map((e) => ({
                 ...e,
                 name: hashNames.value[e.hash] || '',
@@ -168,6 +183,16 @@
             console.error('Avatar name matching failed', err);
         }
         hashNames.value = map;
+
+        const worlds = new Set();
+        try {
+            for (const world of worldStore.cachedWorlds.values()) {
+                for (const h of await hashesForUnityPackages(world.unityPackages)) worlds.add(h);
+            }
+        } catch (err) {
+            console.error('World matching failed', err);
+        }
+        worldHashes.value = worlds;
     }
 
     async function refresh() {

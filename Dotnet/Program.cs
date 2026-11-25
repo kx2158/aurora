@@ -296,6 +296,7 @@ namespace VRCX
                 OverlayProgram.OverlayMain();
 
             Update.Check();
+            UiPatch.CheckInBackground();
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);

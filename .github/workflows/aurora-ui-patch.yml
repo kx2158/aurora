@@ -1,0 +1,48 @@
+name: Aura UI patch (fast, UI only)
+
+# Run it by hand: Actions tab > "Aura UI patch (fast, UI only)" > Run workflow.
+# Publishes only the built UI (about a minute or two, no installer). Apps on the latest installer download it
+# in the background and use it from the next start. It is for UI-only changes: anything that needs new .NET code
+# still needs the full "Build Aura (Windows installer)" run.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Build the app UI
+        run: npm run prod
+
+      - name: Package the patch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          BASE="$(gh api "repos/${{ github.repository }}/releases/latest" -q .tag_name | sed 's/^v//')"
+          echo "Patch is for installer version: $BASE"
+          mkdir -p stage
+          (cd build/html && zip -qr ../../stage/ui-patch.zip .)
+          printf '{"id":"%s","baseVersion":"%s","builtAt":"%s"}\n' "${GITHUB_RUN_ID}" "$BASE" "$(date -u +%FT%TZ)" > stage/ui-patch.json
+          cat stage/ui-patch.json
+
+      # A fixed pre-release tag, so the installer updater (which looks for Setup .exe files) never offers it
+      - name: Publish the patch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete ui-latest --cleanup-tag --yes || true
+          gh release create ui-latest stage/ui-patch.zip stage/ui-patch.json \
+            --prerelease --title "UI patch" --notes "Automatic UI-only patch. Not an installer."

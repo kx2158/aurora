@@ -3,7 +3,7 @@ import configRepository from '../services/config.js';
 import { extractFileId } from '../shared/utils/fileUtils.js';
 
 const CONFIG_KEY = 'AvatarHider_blocked';
-const GUARD_INTERVAL_MS = 60 * 1000;
+const GUARD_INTERVAL_MS = 10 * 1000;
 
 let guardTimer = null;
 

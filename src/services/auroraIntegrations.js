@@ -13,7 +13,7 @@ import { useGameStore, useLocationStore } from '../stores';
 const KEY = 'Neon_integrations';
 
 /** Definitions: what each integration is and which options it has. */
-export const INTEGRATIONS = [
+export const INTEGRATIONS = reactive([
     {
         id: 'status',
         name: 'Personal status',
@@ -186,7 +186,28 @@ export const INTEGRATIONS = [
             { key: 'text', label: 'Text', type: 'text' }
         ]
     }
-];
+]);
+
+/** Chatbox lines that modules add (ids start with "mod-"): id -> render(options) */
+const externalRenderers = new Map();
+
+/** Adds an integration made by a module. Replaces one with the same id. */
+export function addExternalIntegration(def, render) {
+    removeExternalIntegrations((d) => d.id === def.id);
+    INTEGRATIONS.push({ desktop: true, vr: true, icon: 'ri-puzzle-line', ...def, external: true });
+    externalRenderers.set(def.id, render);
+    state[def.id] = { slot: 'top', ...def.defaults, ...(state[def.id] || {}) };
+}
+
+/** Removes the integrations of a module (the user's settings for them stay saved). */
+export function removeExternalIntegrations(match) {
+    for (let i = INTEGRATIONS.length - 1; i >= 0; i--) {
+        if (INTEGRATIONS[i].external && match(INTEGRATIONS[i])) {
+            externalRenderers.delete(INTEGRATIONS[i].id);
+            INTEGRATIONS.splice(i, 1);
+        }
+    }
+}
 
 /** Integrations that exist in other chatbox apps but are not built yet. */
 export const COMING_SOON = ['Twitch', 'TikTok', 'Discord', 'Spotify (account)', 'Soundpad', 'VR gear battery'];
@@ -456,6 +477,15 @@ function minutesSince(ms) {
 
 function lineFor(id, statusText) {
     const s = state[id];
+    const external = externalRenderers.get(id);
+    if (external) {
+        try {
+            return String(external({ ...s }) ?? '');
+        } catch (e) {
+            console.error('module line failed', id, e);
+            return '';
+        }
+    }
     const info = sysInfo.value || {};
     switch (id) {
         case 'status':

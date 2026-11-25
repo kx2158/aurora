@@ -40,6 +40,7 @@
     import { initChatbox } from './services/auroraChatbox';
     import { initDevLock } from './services/devLock';
     import { initUnmuteCounter } from './services/unmuteCounter';
+    import { initModules } from './services/auroraModules';
     import { backupDatabase } from './services/auroraBackup';
     import { initMusicMic, watchGameForMic } from './services/auroraMusicMic';
     import { initAccent } from './services/auroraAccent';
@@ -71,6 +72,7 @@
     initNoty();
     initChatbox();
     initUnmuteCounter();
+    initModules();
     initDevLock();
     initStealth();
     initBadgeGuard();

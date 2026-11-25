@@ -198,6 +198,14 @@ const navDefinitions = [
         section: 'aurora'
     },
     {
+        key: 'modules',
+        icon: 'a:puzzle',
+        tooltip: 'nav_aurora.modules',
+        labelKey: 'nav_aurora.modules',
+        routeName: 'modules',
+        section: 'aurora'
+    },
+    {
         key: 'tools',
         icon: 'a:tool',
         tooltip: 'nav_aurora.tools',

@@ -90,6 +90,7 @@ export const AURORA_ICONS = {
     emoji: {
         paths: ['M12 4.5a7.5 7.5 0 1 0 0 15 7.5 7.5 0 0 0 0-15Z', 'M9 10.2h.01', 'M15 10.2h.01', 'M8.8 13.6c1.8 2 4.6 2 6.4 0']
     },
+    puzzle: { paths: ['M5 8.5h4.2a2.3 2.3 0 1 1 4.6 0H18v4.2a2.3 2.3 0 1 0 0 4.6V20H5Z'] },
     bolt: { paths: ['M13 3.5 5.5 13.5H12l-1 7 7.5-10H12Z'] },
     tool: { paths: ['M4.5 4.5h6v6h-6Z', 'M13.5 4.5h6v6h-6Z', 'M4.5 13.5h6v6h-6Z', 'M13.5 13.5h6v6h-6Z'] },
     command: {

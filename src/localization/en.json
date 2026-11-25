@@ -2022,6 +2022,25 @@
                 "move": "Move to folder",
                 "no_folder": "No folder"
             }
+        },
+        "modules": {
+            "title": "Modules",
+            "sub": "Add your own pieces to Aura.",
+            "make": "Make a module",
+            "make_desc": "Copy the starter prompt, paste it into any AI, then add your idea at the end. It writes one file that plugs into Aura. Install that file below.",
+            "copy_prompt": "Copy starter prompt",
+            "copied": "Starter prompt copied",
+            "copy_failed": "Could not copy",
+            "show_connectors": "Show the fixed connectors",
+            "hide_connectors": "Hide the connectors",
+            "install": "Install a module",
+            "trust": "Modules run inside Aura with the connectors above. Only install modules you trust.",
+            "pick": "Choose a module file",
+            "paste": "Or paste the module code here",
+            "install_btn": "Install",
+            "installed": "Installed {name}",
+            "none": "No modules yet.",
+            "remove": "Remove"
         }
     },
     "dialog": {
@@ -4353,7 +4372,8 @@
         "friends_manager": "Friends manager",
         "now": "Now",
         "log": "Log",
-        "circle": "Circle"
+        "circle": "Circle",
+        "modules": "Modules"
     },
     "aura": {
         "more": "more",

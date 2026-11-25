@@ -49,6 +49,7 @@ const routes = [
             { path: 'neon', name: 'neon', redirect: { name: 'mic' } },
             { path: 'mic', name: 'mic', component: Mic },
             { path: 'automations', name: 'automations', component: Automations },
+            { path: 'modules', name: 'modules', component: () => import('./../views/Modules/Modules.vue') },
             { path: 'stickers', name: 'stickers', component: Stickers },
             { path: 'emoji', name: 'emoji', component: Stickers },
             {

@@ -273,7 +273,7 @@ const toolDefinitions = [
         titleKey: 'view.tools.other.vrca_bridge',
         descriptionKey: 'view.tools.other.vrca_bridge_description',
         navEligible: true,
-        action: { type: 'dialog', dialogKey: 'vrca-bridge' }
+        action: { type: 'route', routeName: 'vrca-bridge' }
     }
 ];
 

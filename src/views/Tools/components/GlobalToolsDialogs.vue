@@ -18,7 +18,6 @@
         @close="closeDialog('moderationReports')" />
     <PurchaseHistoryDialog :isPurchaseHistoryDialogVisible="purchaseHistory" @close="closeDialog('purchaseHistory')" />
     <InfoPushDialog :isInfoPushDialogVisible="infoPush" @close="closeDialog('infoPush')" />
-    <VrcaBridgeDialog :isVrcaBridgeDialogVisible="vrcaBridge" @close="closeDialog('vrcaBridge')" />
 </template>
 
 <script setup>
@@ -40,7 +39,7 @@
     import ModerationReportsDialog from '../dialogs/ModerationReportsDialog.vue';
     import PurchaseHistoryDialog from '../dialogs/PurchaseHistoryDialog.vue';
     import NoteExportDialog from '../dialogs/NoteExportDialog.vue';
-    import VrcaBridgeDialog from '../dialogs/VrcaBridgeDialog.vue';
+
 
     const { friends } = storeToRefs(useFriendStore());
     const toolsStore = useToolsStore();
@@ -56,8 +55,7 @@
         infoPush,
         moderationReports,
         purchaseHistory,
-        noteExport,
-        vrcaBridge
+        noteExport
     } = storeToRefs(toolsStore);
 
     const { closeDialog } = toolsStore;

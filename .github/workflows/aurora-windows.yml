@@ -53,10 +53,12 @@ jobs:
         run: choco install nsis -y
 
       - name: Create installer
-        uses: joncloud/makensis-action@v5.0
-        with:
-          script-file: Installer/installer.nsi
-          additional-plugin-paths: Installer/Plugins
+        run: |
+          NSIS_DIR="$(cmd.exe //c 'echo %ProgramFiles(x86)%\\NSIS' 2>/dev/null | tr -d '\r')"
+          [ -d "$NSIS_DIR" ] || NSIS_DIR="/c/Program Files (x86)/NSIS"
+          export PATH="$NSIS_DIR:$PATH"
+          cp -r Installer/Plugins/* "$NSIS_DIR/Plugins/" 2>/dev/null || true
+          makensis Installer/installer.nsi
 
       - name: Stage installer and updater
         run: |

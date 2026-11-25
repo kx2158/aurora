@@ -756,7 +756,9 @@
                 "info_push": "Info Push",
                 "info_push_description": "Browse VRChat info push announcements and content",
                 "avatar_hider": "Avatar Hider",
-                "avatar_hider_description": "Browse VRChat's cached avatar files and lock specific ones so they never get created again"
+                "avatar_hider_description": "Browse VRChat's cached avatar files and lock specific ones so they never get created again",
+                "account_sync": "Account Sync",
+                "account_sync_description": "Copy your profile, groups, blocks and favorites from one of your VRChat accounts to another"
             },
             "dev_placeholder": "Developer password",
             "dev_unlock": "Unlock",
@@ -3543,6 +3545,32 @@
             "assign": "Assign",
             "remove": "Remove Link",
             "saving": "Saving..."
+        },
+        "account_sync": {
+            "header": "Account Sync",
+            "description": "Aura saves what each of your accounts has while you are logged in. When you log into another account you can copy it over from here.",
+            "logged_in_as": "Copy onto the account you are logged into now:",
+            "save_now": "Save this account now",
+            "ask_on_switch": "Ask me when I switch accounts",
+            "no_sources": "No other account saved yet. Log into your other account once and Aura saves it automatically, then switch back here.",
+            "copy_from": "Copy from",
+            "profile": "Profile",
+            "profile_hint": "bio, links, status, pronouns",
+            "groups": "Groups",
+            "moderations": "Blocks and mutes",
+            "fav_worlds": "Favorite worlds",
+            "fav_avatars": "Favorite avatars",
+            "copy_selected": "Copy selected",
+            "copy_everything": "Copy everything",
+            "cancel": "Stop",
+            "forget": "Forget this saved account",
+            "limits": "Invite-only groups can't be joined without an invite, friends can't be copied, and avatars that are private to the other account can't be favorited. Those show up in the result.",
+            "saved_toast": "Saved this account",
+            "failed_toast": "Failed",
+            "cancelled": "Stopped before everything was copied.",
+            "done_profile": "Profile copied",
+            "done_groups": "Groups: {joined} joined, {requested} requested, {already} already in, {failed} failed",
+            "done_generic": "{name}: {added} added, {already} already there, {failed} failed"
         },
         "avatar_hider": {
             "header": "Avatar Hider",

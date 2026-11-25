@@ -274,6 +274,16 @@ const toolDefinitions = [
         descriptionKey: 'view.tools.other.avatar_hider_description',
         navEligible: true,
         action: { type: 'route', routeName: 'avatar-hider' }
+    },
+    {
+        key: 'account-sync',
+        category: 'other',
+        iconKey: 'users',
+        navIcon: 'ri-user-shared-line',
+        titleKey: 'view.tools.other.account_sync',
+        descriptionKey: 'view.tools.other.account_sync_description',
+        navEligible: true,
+        action: { type: 'route', routeName: 'account-sync' }
     }
 ];
 

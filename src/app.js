@@ -5,6 +5,7 @@ import { i18n, initComponents, initPlugins, initRouter, initSentry } from './plu
 import { initPiniaPlugins, pinia } from './stores';
 import { queryClient } from './queries';
 
+import { startAccountSync } from './coordinators/accountSyncCoordinator';
 import { startGuard as startAvatarHiderGuard } from './coordinators/avatarHiderCoordinator';
 
 import App from './App.vue';
@@ -24,3 +25,4 @@ await initSentry(app);
 app.mount('#root');
 
 startAvatarHiderGuard();
+startAccountSync();

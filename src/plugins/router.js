@@ -25,6 +25,7 @@ import Notification from './../views/Notifications/Notification.vue';
 import PlayerList from './../views/PlayerList/PlayerList.vue';
 import ScreenshotMetadata from './../views/Tools/ScreenshotMetadata.vue';
 import AvatarHider from './../views/Tools/AvatarHider.vue';
+import AccountSync from './../views/Tools/AccountSync.vue';
 import Search from './../views/Search/Search.vue';
 import Settings from './../views/Settings/Settings.vue';
 import Tools from './../views/Tools/Tools.vue';
@@ -149,6 +150,12 @@ const routes = [
                 name: 'avatar-hider',
                 component: AvatarHider,
                 meta: { navKeys: ['tool-avatar-hider', 'tools'] }
+            },
+            {
+                path: 'tools/account-sync',
+                name: 'account-sync',
+                component: AccountSync,
+                meta: { navKeys: ['tool-account-sync', 'tools'] }
             },
             {
                 path: 'settings',

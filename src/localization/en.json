@@ -2020,6 +2020,14 @@
                 "move": "Move to folder",
                 "no_folder": "No folder"
             }
+        },
+        "avatar_file": {
+            "title": "Replace avatar file",
+            "desc": "Upload a .vrca you built yourself to an avatar you own. It replaces the file for the platform you pick (PC or Quest). Needs an existing avatar with a file for that platform.",
+            "id": "Avatar id",
+            "pick": "Choose .vrca",
+            "upload": "Upload",
+            "done": "Done. Uploaded and attached (Unity {unity})."
         }
     },
     "dialog": {

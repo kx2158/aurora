@@ -7,6 +7,7 @@
                 <AuroraStealth class="mb-6" />
                 <AuroraHeight class="mb-6" />
                 <AuroraSpaceDrag class="mb-6" />
+                <AuroraAvatarFile />
                 <div v-for="category in categories" :key="category.key" class="mb-6">
                     <div
                         class="cursor-pointer flex items-center p-2 px-3 rounded-lg mb-3 transition-all duration-200 ease-in-out"
@@ -107,6 +108,7 @@
     import { Switch } from '@/components/ui/switch';
     import { TooltipWrapper } from '@/components/ui/tooltip';
     import ToolItem from './components/ToolItem.vue';
+    import AuroraAvatarFile from '../../components/AuroraAvatarFile.vue';
     import AuroraStealth from '../../components/AuroraStealth.vue';
     import AuroraHeight from '../../components/AuroraHeight.vue';
     import AuroraSpaceDrag from '../../components/AuroraSpaceDrag.vue';

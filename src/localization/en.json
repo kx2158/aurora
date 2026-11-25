@@ -3575,7 +3575,11 @@
             "download_ripper": "Auto-install",
             "downloading": "Downloading...",
             "ripper_downloaded": "AssetRipper downloaded successfully",
-            "ripper_download_failed": "Failed to download AssetRipper"
+            "ripper_download_failed": "Failed to download AssetRipper",
+            "drop_hint": "Drop .vrca files here or click to browse",
+            "drop_sub": "Multiple files supported",
+            "start_multi": "Convert & Upload ({count} files)",
+            "toast_success_multi": "{count} avatars uploaded successfully!"
         }
     },
     "confirm": {

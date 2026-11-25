@@ -197,12 +197,12 @@ ipcMain.handle('dialog:openFile', async () => {
 
 ipcMain.handle('dialog:openVrcaFile', async () => {
     const result = await dialog.showOpenDialog({
-        properties: ['openFile'],
+        properties: ['openFile', 'multiSelections'],
         filters: [{ name: 'VRChat Avatar', extensions: ['vrca'] }]
     });
 
     if (!result.canceled && result.filePaths.length > 0) {
-        return result.filePaths[0];
+        return result.filePaths; // always return array
     }
     return null;
 });

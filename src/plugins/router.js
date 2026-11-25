@@ -24,7 +24,6 @@ import Moderation from './../views/Moderation/Moderation.vue';
 import Notification from './../views/Notifications/Notification.vue';
 import PlayerList from './../views/PlayerList/PlayerList.vue';
 import ScreenshotMetadata from './../views/Tools/ScreenshotMetadata.vue';
-import VrcaBridge from './../views/Tools/VrcaBridge.vue';
 import AvatarHider from './../views/Tools/AvatarHider.vue';
 import Search from './../views/Search/Search.vue';
 import Settings from './../views/Settings/Settings.vue';
@@ -144,12 +143,6 @@ const routes = [
                 name: 'screenshot-metadata',
                 component: ScreenshotMetadata,
                 meta: { navKeys: ['tool-screenshot-metadata', 'tools'] }
-            },
-            {
-                path: 'tools/vrca-bridge',
-                name: 'vrca-bridge',
-                component: VrcaBridge,
-                meta: { navKeys: ['tool-vrca-bridge', 'tools'] }
             },
             {
                 path: 'tools/avatar-hider',

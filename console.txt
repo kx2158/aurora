@@ -1,0 +1,154 @@
+[navigated] http://localhost:9000/preview.html
+[navigated] http://localhost:9000/preview.html#/
+[navigated] http://localhost:9000/preview.html#/login?redirect=/now
+[warning] [preview sql] duplicate column name: group_name ALTER TABLE gamelog_location ADD group_name TEXT DEFAULT ''
+[warning] [preview sql] no such column: "groupName" ALTER TABLE gamelog_location DROP COLUMN groupName
+[pageerror] Cannot read properties of undefined (reading 'updated_at')
+[navigated] http://localhost:9000/preview.html#/now
+[navigated] http://localhost:9000/preview.html#/now
+[navigated] http://localhost:9000/preview.html#/home
+[error] getInstanceName failed location wrld_c:1001~private TypeError: Cannot read properties of null (reading 'displayName')
+    at Proxy.I (http://localhost:9000/assets/plugins-kklZkzBx.js:307:43210)
+    at async f (http://localhost:9000/assets/plugins-kklZkzBx.js:306:269876)
+[error] getInstanceName failed location wrld_c:1001~private TypeError: Cannot read properties of null (reading 'displayName')
+    at Proxy.I (http://localhost:9000/assets/plugins-kklZkzBx.js:307:43210)
+    at async f (http://localhost:9000/assets/plugins-kklZkzBx.js:306:269876)
+[error] getInstanceName failed location wrld_c:1001~private TypeError: Cannot read properties of null (reading 'displayName')
+    at Proxy.I (http://localhost:9000/assets/plugins-kklZkzBx.js:307:43210)
+    at async f (http://localhost:9000/assets/plugins-kklZkzBx.js:306:269876)
+[error] getInstanceName failed location wrld_c:1001~private TypeError: Cannot read properties of null (reading 'displayName')
+    at Proxy.I (http://localhost:9000/assets/plugins-kklZkzBx.js:307:43210)
+    at async f (http://localhost:9000/assets/plugins-kklZkzBx.js:306:269876)
+[error] getInstanceName failed location wrld_c:1001~private TypeError: Cannot read properties of null (reading 'displayName')
+    at Proxy.I (http://localhost:9000/assets/plugins-kklZkzBx.js:307:43210)
+    at async f (http://localhost:9000/assets/plugins-kklZkzBx.js:306:269876)
+[error] getInstanceName failed location wrld_c:1001~private TypeError: Cannot read properties of null (reading 'displayName')
+    at Proxy.I (http://localhost:9000/assets/plugins-kklZkzBx.js:307:43210)
+    at async f (http://localhost:9000/assets/plugins-kklZkzBx.js:306:269876)
+[error] getInstanceName failed location wrld_c:1001~private TypeError: Cannot read properties of null (reading 'displayName')
+    at Proxy.I (http://localhost:9000/assets/plugins-kklZkzBx.js:307:43210)
+    at async f (http://localhost:9000/assets/plugins-kklZkzBx.js:306:269876)
+[error] getInstanceName failed location wrld_c:1001~private TypeError: Cannot read properties of null (reading 'displayName')
+    at Proxy.I (http://localhost:9000/assets/plugins-kklZkzBx.js:307:43210)
+    at async f (http://localhost:9000/assets/plugins-kklZkzBx.js:306:269876)
+[error] getInstanceName failed location wrld_c:1001~private TypeError: Cannot read properties of null (reading 'displayName')
+    at Proxy.I (http://localhost:9000/assets/plugins-kklZkzBx.js:307:43210)
+    at async f (http://localhost:9000/assets/plugins-kklZkzBx.js:306:269876)
+[error] getInstanceName failed location wrld_c:1001~private TypeError: Cannot read properties of null (reading 'displayName')
+    at Proxy.I (http://localhost:9000/assets/plugins-kklZkzBx.js:307:43210)
+    at async f (http://localhost:9000/assets/plugins-kklZkzBx.js:306:269876)
+[error] getInstanceName failed location wrld_c:1001~private TypeError: Cannot read properties of null (reading 'displayName')
+    at Proxy.I (http://localhost:9000/assets/plugins-kklZkzBx.js:307:43210)
+    at async f (http://localhost:9000/assets/plugins-kklZkzBx.js:306:269876)
+[error] getInstanceName failed location wrld_c:1001~private TypeError: Cannot read properties of null (reading 'displayName')
+    at Proxy.I (http://localhost:9000/assets/plugins-kklZkzBx.js:307:43210)
+    at async f (http://localhost:9000/assets/plugins-kklZkzBx.js:306:269876)
+[error] getInstanceName failed location wrld_c:1001~private TypeError: Cannot read properties of null (reading 'displayName')
+    at Proxy.I (http://localhost:9000/assets/plugins-kklZkzBx.js:307:43210)
+    at async f (http://localhost:9000/assets/plugins-kklZkzBx.js:306:269876)
+[error] getInstanceName failed location wrld_a:1001~private TypeError: Cannot read properties of null (reading 'displayName')
+    at Proxy.I (http://localhost:9000/assets/plugins-kklZkzBx.js:307:43210)
+    at async f (http://localhost:9000/assets/plugins-kklZkzBx.js:306:269876)
+[error] getInstanceName failed location wrld_a:1001~private TypeError: Cannot read properties of null (reading 'displayName')
+    at Proxy.I (http://localhost:9000/assets/plugins-kklZkzBx.js:307:43210)
+    at async f (http://localhost:9000/assets/plugins-kklZkzBx.js:306:269876)
+[error] getInstanceName failed location wrld_a:1001~private TypeError: Cannot read properties of null (reading 'displayName')
+    at Proxy.I (http://localhost:9000/assets/plugins-kklZkzBx.js:307:43210)
+    at async f (http://localhost:9000/assets/plugins-kklZkzBx.js:306:269876)
+[error] getInstanceName failed location wrld_a:1001~private TypeError: Cannot read properties of null (reading 'displayName')
+    at Proxy.I (http://localhost:9000/assets/plugins-kklZkzBx.js:307:43210)
+    at async f (http://localhost:9000/assets/plugins-kklZkzBx.js:306:269876)
+[error] getInstanceName failed location wrld_a:1001~private TypeError: Cannot read properties of null (reading 'displayName')
+    at Proxy.I (http://localhost:9000/assets/plugins-kklZkzBx.js:307:43210)
+    at async f (http://localhost:9000/assets/plugins-kklZkzBx.js:306:269876)
+[error] getInstanceName failed location wrld_a:1001~private TypeError: Cannot read properties of null (reading 'displayName')
+    at Proxy.I (http://localhost:9000/assets/plugins-kklZkzBx.js:307:43210)
+    at async f (http://localhost:9000/assets/plugins-kklZkzBx.js:306:269876)
+[error] getInstanceName failed location wrld_a:1001~private TypeError: Cannot read properties of null (reading 'displayName')
+    at Proxy.I (http://localhost:9000/assets/plugins-kklZkzBx.js:307:43210)
+    at async f (http://localhost:9000/assets/plugins-kklZkzBx.js:306:269876)
+[error] getInstanceName failed location wrld_a:1001~private TypeError: Cannot read properties of null (reading 'displayName')
+    at Proxy.I (http://localhost:9000/assets/plugins-kklZkzBx.js:307:43210)
+    at async f (http://localhost:9000/assets/plugins-kklZkzBx.js:306:269876)
+[error] getInstanceName failed location wrld_a:1001~private TypeError: Cannot read properties of null (reading 'displayName')
+    at Proxy.I (http://localhost:9000/assets/plugins-kklZkzBx.js:307:43210)
+    at async f (http://localhost:9000/assets/plugins-kklZkzBx.js:306:269876)
+[error] getInstanceName failed location wrld_a:1001~private TypeError: Cannot read properties of null (reading 'displayName')
+    at Proxy.I (http://localhost:9000/assets/plugins-kklZkzBx.js:307:43210)
+    at async f (http://localhost:9000/assets/plugins-kklZkzBx.js:306:269876)
+[error] getInstanceName failed location wrld_a:1001~private TypeError: Cannot read properties of null (reading 'displayName')
+    at Proxy.I (http://localhost:9000/assets/plugins-kklZkzBx.js:307:43210)
+    at async f (http://localhost:9000/assets/plugins-kklZkzBx.js:306:269876)
+[error] getInstanceName failed location wrld_a:1001~private TypeError: Cannot read properties of null (reading 'displayName')
+    at Proxy.I (http://localhost:9000/assets/plugins-kklZkzBx.js:307:43210)
+    at async f (http://localhost:9000/assets/plugins-kklZkzBx.js:306:269876)
+[pageerror] e.json.instances is not iterable
+--- after home: http://localhost:9000/preview.html#/home
+[navigated] http://localhost:9000/preview.html#/now
+[navigated] http://localhost:9000/preview.html#/now
+[pageerror] n is not iterable
+--- after now: http://localhost:9000/preview.html#/now
+[navigated] http://localhost:9000/preview.html#/log
+[navigated] http://localhost:9000/preview.html#/log
+[navigated] http://localhost:9000/preview.html#/feed
+--- after log: http://localhost:9000/preview.html#/feed
+[navigated] http://localhost:9000/preview.html#/people
+[navigated] http://localhost:9000/preview.html#/people
+--- after circle: http://localhost:9000/preview.html#/people
+[navigated] http://localhost:9000/preview.html#/friends-manager
+[navigated] http://localhost:9000/preview.html#/friends-manager
+--- after friends-mgr: http://localhost:9000/preview.html#/friends-manager
+[navigated] http://localhost:9000/preview.html#/mic
+[navigated] http://localhost:9000/preview.html#/mic
+--- after mic: http://localhost:9000/preview.html#/mic
+[navigated] http://localhost:9000/preview.html#/insights
+[navigated] http://localhost:9000/preview.html#/insights
+--- after insights: http://localhost:9000/preview.html#/insights
+[navigated] http://localhost:9000/preview.html#/automations
+[navigated] http://localhost:9000/preview.html#/automations
+--- after automations: http://localhost:9000/preview.html#/automations
+[navigated] http://localhost:9000/preview.html#/chatbox
+[navigated] http://localhost:9000/preview.html#/chatbox
+--- after chatbox: http://localhost:9000/preview.html#/chatbox
+[navigated] http://localhost:9000/preview.html#/feed
+[navigated] http://localhost:9000/preview.html#/feed
+--- after feed: http://localhost:9000/preview.html#/feed
+[navigated] http://localhost:9000/preview.html#/friends-locations
+[navigated] http://localhost:9000/preview.html#/friends-locations
+--- after friends: http://localhost:9000/preview.html#/friends-locations
+[navigated] http://localhost:9000/preview.html#/social/friend-list
+[navigated] http://localhost:9000/preview.html#/social/friend-list
+--- after friend-list: http://localhost:9000/preview.html#/social/friend-list
+[navigated] http://localhost:9000/preview.html#/game-log
+[navigated] http://localhost:9000/preview.html#/game-log
+--- after game-log: http://localhost:9000/preview.html#/game-log
+[navigated] http://localhost:9000/preview.html#/tools
+[navigated] http://localhost:9000/preview.html#/tools
+--- after tools: http://localhost:9000/preview.html#/tools
+[navigated] http://localhost:9000/preview.html#/settings
+[navigated] http://localhost:9000/preview.html#/settings
+--- after settings: http://localhost:9000/preview.html#/settings
+[pageerror] Cannot read properties of undefined (reading 'filter')
+[navigated] http://localhost:9000/preview.html#/automations
+[navigated] http://localhost:9000/preview.html#/automations
+[navigated] http://localhost:9000/preview.html#/insights
+[navigated] http://localhost:9000/preview.html#/insights
+[navigated] http://localhost:9000/preview.html#/mic
+[navigated] http://localhost:9000/preview.html#/mic
+[navigated] http://localhost:9000/preview.html#/chatbox
+[navigated] http://localhost:9000/preview.html#/chatbox
+[navigated] http://localhost:9000/preview.html#/insights
+[navigated] http://localhost:9000/preview.html#/insights
+[navigated] http://localhost:9000/preview.html#/home
+[navigated] http://localhost:9000/preview.html#/home
+[navigated] http://localhost:9000/preview.html#/tools
+[navigated] http://localhost:9000/preview.html#/tools
+[navigated] http://localhost:9000/preview.html#/charts/mutual
+[navigated] http://localhost:9000/preview.html#/charts/mutual
+[warning] [.WebGL-0x1e840012fc00] GL_INVALID_OPERATION: glDrawArraysInstanced: Active draw buffers with missing fragment shader outputs.
+[network diag] {"appChildren":2,"canvases":2,"webgl":true,"text":"aura\nOverview\nFeed\nFriends\nNotifications\nSearch\nAura\nMic\nChatbox\nAutomations\nStickers\nTools\nPeople\nAll friends\nFriend history\nFavorites\nBlocked & muted\nWorlds\nSaved worlds\nGame log\nThis instance\nInsig"}
+[pageerror] Cannot read properties of undefined (reading 'updated_at')
+[vr pageerror] Cannot read properties of null (reading 'forEach')
+[navigated] http://localhost:9000/preview.html#/stickers
+[navigated] http://localhost:9000/preview.html#/stickers
+[stickers] no preview

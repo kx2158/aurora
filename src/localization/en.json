@@ -756,7 +756,9 @@
                 "info_push": "Info Push",
                 "info_push_description": "Browse VRChat info push announcements and content",
                 "vrca_bridge": "VRCA Bridge",
-                "vrca_bridge_description": "Convert and upload .vrca avatar bundles to your VRChat account"
+                "vrca_bridge_description": "Convert and upload .vrca avatar bundles to your VRChat account",
+                "avatar_hider": "Avatar Hider",
+                "avatar_hider_description": "Browse VRChat's cached avatar files and lock specific ones so they never get created again"
             },
             "dev_placeholder": "Developer password",
             "dev_unlock": "Unlock",
@@ -3543,6 +3545,32 @@
             "assign": "Assign",
             "remove": "Remove Link",
             "saving": "Saving..."
+        },
+        "avatar_hider": {
+            "header": "Avatar Hider",
+            "description": "Block a cached avatar file. Its cache entry is replaced by a locked placeholder so VRChat cannot create that file again. Experimental: test with a harmless avatar first.",
+            "windows_only": "This tool needs the Windows app (it works on VRChat's cache folder).",
+            "refresh": "Refresh",
+            "guard_on": "Guard active: blocked entries are re-locked every minute",
+            "game_running": "VRChat is running. Entries in use may only lock after you close it - the guard retries automatically.",
+            "block_by_id": "Block by avatar ID",
+            "block_by_id_placeholder": "avtr_xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+            "block_by_id_button": "Block avatar",
+            "cached": "Cached entries (newest first)",
+            "blocked": "Blocked",
+            "block": "Block",
+            "unblock": "Unblock",
+            "unknown_avatar": "Unknown avatar",
+            "recent": "recent",
+            "versions": "versions",
+            "empty": "No cache entries found.",
+            "empty_blocked": "Nothing blocked yet.",
+            "blocked_toast": "Blocked",
+            "pending_toast": "Locked as soon as VRChat releases it (guard keeps retrying)",
+            "unblocked_toast": "Unblocked",
+            "failed_toast": "Failed",
+            "avatar_blocked_toast": "Avatar blocked ({count} files)",
+            "invalid_id": "Enter a valid avatar ID (avtr_...)"
         },
         "vrca_bridge": {
             "header": "VRCA Bridge",

@@ -25,6 +25,7 @@ import Notification from './../views/Notifications/Notification.vue';
 import PlayerList from './../views/PlayerList/PlayerList.vue';
 import ScreenshotMetadata from './../views/Tools/ScreenshotMetadata.vue';
 import VrcaBridge from './../views/Tools/VrcaBridge.vue';
+import AvatarHider from './../views/Tools/AvatarHider.vue';
 import Search from './../views/Search/Search.vue';
 import Settings from './../views/Settings/Settings.vue';
 import Tools from './../views/Tools/Tools.vue';
@@ -149,6 +150,12 @@ const routes = [
                 name: 'vrca-bridge',
                 component: VrcaBridge,
                 meta: { navKeys: ['tool-vrca-bridge', 'tools'] }
+            },
+            {
+                path: 'tools/avatar-hider',
+                name: 'avatar-hider',
+                component: AvatarHider,
+                meta: { navKeys: ['tool-avatar-hider', 'tools'] }
             },
             {
                 path: 'settings',

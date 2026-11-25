@@ -274,6 +274,16 @@ const toolDefinitions = [
         descriptionKey: 'view.tools.other.vrca_bridge_description',
         navEligible: true,
         action: { type: 'route', routeName: 'vrca-bridge' }
+    },
+    {
+        key: 'avatar-hider',
+        category: 'other',
+        iconKey: 'ban',
+        navIcon: 'ri-eye-off-line',
+        titleKey: 'view.tools.other.avatar_hider',
+        descriptionKey: 'view.tools.other.avatar_hider_description',
+        navEligible: true,
+        action: { type: 'route', routeName: 'avatar-hider' }
     }
 ];
 

@@ -240,5 +240,209 @@ namespace VRCX
             }
             return size;
         }
+
+        // ---------------------------------------------------------------
+        // Avatar hider: lock cache entries so a file never gets created.
+        // A blocked entry is a read-only FILE named like the cache folder,
+        // so VRChat/Unity cannot create the folder (and bundle) there.
+        // ---------------------------------------------------------------
+
+        private static readonly System.Text.RegularExpressions.Regex HashRegex =
+            new System.Text.RegularExpressions.Regex("^[0-9A-F]{16}$");
+
+        private const string BlockMarker = "AURORA-BLOCKED";
+
+        private static bool IsBlockedPlaceholder(string path)
+        {
+            try
+            {
+                var fi = new FileInfo(path);
+                if (!fi.Exists || fi.Length > 64) return false;
+                return File.ReadAllText(path).StartsWith(BlockMarker, StringComparison.Ordinal);
+            }
+            catch { return false; }
+        }
+
+        private static void ClearReadOnly(string path)
+        {
+            try { File.SetAttributes(path, FileAttributes.Normal); } catch { }
+        }
+
+        /// <summary>
+        /// Lists top-level cache entries as JSON: hash, sizeBytes, lastWriteUtc (ISO), versionCount, blocked.
+        /// </summary>
+        public string ListCacheEntries()
+        {
+            var list = new List<Dictionary<string, object>>();
+            var cachePath = GetVRChatCacheLocation();
+            if (!Directory.Exists(cachePath)) return "[]";
+
+            foreach (var entry in new DirectoryInfo(cachePath).GetFileSystemInfos())
+            {
+                var name = entry.Name.ToUpperInvariant();
+                if (!HashRegex.IsMatch(name)) continue;
+                try
+                {
+                    if (entry is DirectoryInfo dir)
+                    {
+                        long size = 0;
+                        DateTime last = dir.LastWriteTimeUtc;
+                        foreach (var f in dir.GetFiles("*", SearchOption.AllDirectories))
+                        {
+                            size += f.Length;
+                            if (f.LastWriteTimeUtc > last) last = f.LastWriteTimeUtc;
+                        }
+                        list.Add(new Dictionary<string, object>
+                        {
+                            ["hash"] = name,
+                            ["sizeBytes"] = size,
+                            ["lastWriteUtc"] = last.ToString("o"),
+                            ["versionCount"] = dir.GetDirectories().Length,
+                            ["blocked"] = false
+                        });
+                    }
+                    else if (IsBlockedPlaceholder(entry.FullName))
+                    {
+                        list.Add(new Dictionary<string, object>
+                        {
+                            ["hash"] = name,
+                            ["sizeBytes"] = 0L,
+                            ["lastWriteUtc"] = entry.LastWriteTimeUtc.ToString("o"),
+                            ["versionCount"] = 0,
+                            ["blocked"] = true
+                        });
+                    }
+                }
+                catch (Exception ex)
+                {
+                    logger.Warn(ex, "ListCacheEntries skipped {0}", name);
+                }
+            }
+            return Newtonsoft.Json.JsonConvert.SerializeObject(list);
+        }
+
+        /// <summary>
+        /// Deletes the cache folder for this hash (if any) and replaces it with a read-only placeholder file.
+        /// Returns "ok", "ok-pending" (folder could not be fully removed yet), or "error: ...".
+        /// </summary>
+        public string BlockCacheEntry(string hash)
+        {
+            hash = (hash ?? "").ToUpperInvariant();
+            if (!HashRegex.IsMatch(hash)) return "error: invalid hash";
+            var cachePath = GetVRChatCacheLocation();
+            if (!Directory.Exists(cachePath)) return "error: cache folder not found";
+            var target = Path.Combine(cachePath, hash);
+
+            try
+            {
+                if (File.Exists(target))
+                {
+                    if (IsBlockedPlaceholder(target)) return "ok";
+                    return "error: unexpected file in the way";
+                }
+
+                if (Directory.Exists(target))
+                {
+                    try
+                    {
+                        foreach (var f in Directory.GetFiles(target, "*", SearchOption.AllDirectories))
+                            ClearReadOnly(f);
+                        Directory.Delete(target, true);
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.Warn(ex, "BlockCacheEntry: could not delete {0} (in use?)", hash);
+                        return "ok-pending";
+                    }
+                }
+
+                File.WriteAllText(target, BlockMarker);
+                File.SetAttributes(target, FileAttributes.ReadOnly | FileAttributes.Hidden);
+                return "ok";
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, "BlockCacheEntry failed for {0}", hash);
+                return "error: " + ex.Message;
+            }
+        }
+
+        /// <summary>
+        /// Removes our placeholder for this hash. Never touches a real cache folder.
+        /// </summary>
+        public string UnblockCacheEntry(string hash)
+        {
+            hash = (hash ?? "").ToUpperInvariant();
+            if (!HashRegex.IsMatch(hash)) return "error: invalid hash";
+            var target = Path.Combine(GetVRChatCacheLocation(), hash);
+            try
+            {
+                if (File.Exists(target) && IsBlockedPlaceholder(target))
+                {
+                    ClearReadOnly(target);
+                    File.Delete(target);
+                }
+                return "ok";
+            }
+            catch (Exception ex)
+            {
+                return "error: " + ex.Message;
+            }
+        }
+
+        /// <summary>
+        /// Guard: makes sure every hash in the JSON array has a placeholder. Returns JSON {locked, pending, errors}.
+        /// </summary>
+        public string EnsureBlocked(string hashesJson)
+        {
+            int locked = 0, pending = 0, errors = 0;
+            try
+            {
+                var hashes = Newtonsoft.Json.JsonConvert.DeserializeObject<List<string>>(hashesJson) ?? new List<string>();
+                foreach (var h in hashes)
+                {
+                    var r = BlockCacheEntry(h);
+                    if (r == "ok") locked++;
+                    else if (r == "ok-pending") pending++;
+                    else errors++;
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, "EnsureBlocked failed");
+                errors++;
+            }
+            return Newtonsoft.Json.JsonConvert.SerializeObject(new { locked, pending, errors });
+        }
+
+        /// <summary>
+        /// Batch-computes cache folder names. Input JSON: [{"id":"file_...","variant":""}]. Output: [{"id","variant","hash"}].
+        /// </summary>
+        public string GetAssetIds(string itemsJson)
+        {
+            var result = new List<Dictionary<string, string>>();
+            try
+            {
+                var items = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Dictionary<string, string>>>(itemsJson)
+                            ?? new List<Dictionary<string, string>>();
+                foreach (var it in items)
+                {
+                    it.TryGetValue("id", out var id);
+                    it.TryGetValue("variant", out var variant);
+                    if (string.IsNullOrEmpty(id)) continue;
+                    result.Add(new Dictionary<string, string>
+                    {
+                        ["id"] = id,
+                        ["variant"] = variant ?? "",
+                        ["hash"] = GetAssetId(id, variant ?? "")
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, "GetAssetIds failed");
+            }
+            return Newtonsoft.Json.JsonConvert.SerializeObject(result);
+        }
     }
 }

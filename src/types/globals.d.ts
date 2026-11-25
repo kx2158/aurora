@@ -344,6 +344,11 @@ declare global {
         ): Promise<{ Item1: number; Item2: boolean; Item3: string }>;
         DeleteCache(fileId: string, fileVersion: number, variant: string, variantVersion: number): Promise<void>;
         DeleteAllCache: () => Promise<void>;
+        ListCacheEntries(): Promise<string>;
+        BlockCacheEntry(hash: string): Promise<string>;
+        UnblockCacheEntry(hash: string): Promise<string>;
+        EnsureBlocked(hashesJson: string): Promise<string>;
+        GetAssetIds(itemsJson: string): Promise<string>;
     };
 
     const webApiService: {

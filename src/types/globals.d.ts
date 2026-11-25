@@ -348,6 +348,7 @@ declare global {
         BlockCacheEntry(hash: string): Promise<string>;
         UnblockCacheEntry(hash: string): Promise<string>;
         EnsureBlocked(hashesJson: string): Promise<string>;
+        GetBlockStates(hashesJson: string): Promise<string>;
         GetAssetIds(itemsJson: string): Promise<string>;
     };
 

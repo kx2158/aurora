@@ -52,7 +52,10 @@
                     <div v-for="b in blockedList" :key="b.hash" class="flex items-center gap-2 py-1 border-b text-sm">
                         <div class="min-w-0 flex-1">
                             <div class="truncate">{{ b.name || t('dialog.avatar_hider.unknown_avatar') }}</div>
-                            <div class="text-xs text-muted-foreground font-mono">{{ b.hash }}</div>
+                            <div class="text-xs text-muted-foreground">
+                                <span class="font-mono">{{ b.hash }}</span>
+                                · {{ t('dialog.avatar_hider.state_' + (blockStates[b.hash] || 'none')) }}
+                            </div>
                         </div>
                         <Button variant="outline" size="sm" :disabled="busy" @click="unblock(b.hash)">
                             {{ t('dialog.avatar_hider.unblock') }}
@@ -128,6 +131,7 @@
     const blockedList = ref([]);
     const hashNames = ref({}); // hash -> avatar name
     const avatarIdInput = ref('');
+    const blockStates = ref({}); // hash -> active | pending | none
 
     function goBack() {
         router.push({ name: 'tools' });
@@ -175,6 +179,9 @@
         try {
             blockedList.value = await getBlockedList();
             entries.value = JSON.parse(await window.AssetBundleManager.ListCacheEntries());
+            blockStates.value = JSON.parse(
+                await window.AssetBundleManager.GetBlockStates(JSON.stringify(blockedList.value.map((b) => b.hash)))
+            );
             await buildNameMap();
         } catch (err) {
             console.error(err);

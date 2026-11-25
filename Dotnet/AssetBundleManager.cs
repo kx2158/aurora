@@ -391,6 +391,34 @@ namespace VRCX
         }
 
         /// <summary>
+        /// Reports whether each hash is really locked right now. JSON object hash -> "active" (placeholder in place),
+        /// "pending" (a real cache folder is still there, usually because VRChat is using it) or "none".
+        /// </summary>
+        public string GetBlockStates(string hashesJson)
+        {
+            var states = new Dictionary<string, string>();
+            try
+            {
+                var cachePath = GetVRChatCacheLocation();
+                var hashes = Newtonsoft.Json.JsonConvert.DeserializeObject<List<string>>(hashesJson) ?? new List<string>();
+                foreach (var h in hashes)
+                {
+                    var hash = (h ?? "").ToUpperInvariant();
+                    if (!HashRegex.IsMatch(hash)) continue;
+                    var target = Path.Combine(cachePath, hash);
+                    if (File.Exists(target) && IsBlockedPlaceholder(target)) states[hash] = "active";
+                    else if (Directory.Exists(target)) states[hash] = "pending";
+                    else states[hash] = "none";
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, "GetBlockStates failed");
+            }
+            return Newtonsoft.Json.JsonConvert.SerializeObject(states);
+        }
+
+        /// <summary>
         /// Guard: makes sure every hash in the JSON array has a placeholder. Returns JSON {locked, pending, errors}.
         /// </summary>
         public string EnsureBlocked(string hashesJson)

@@ -93,6 +93,7 @@
     "nav_menu": {
         "switch_account": "Switch account",
         "manage_accounts": "Manage accounts...",
+        "add_account_hint": "Only one saved account so far. Log into another with \"Save credentials\" ticked and it shows up here.",
         "resources": "RESOURCES",
         "wiki": "Wiki",
         "get_help": "GET HELP",

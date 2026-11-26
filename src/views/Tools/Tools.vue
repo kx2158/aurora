@@ -121,7 +121,7 @@
     const { triggerTool } = useToolActions();
     const { pinToolToNav, pinnedToolKeys, refreshPinnedState, unpinToolFromNav } = useToolNavPinning();
     // a new key so everything starts closed, even for people who had opened sections before
-    const toolsCategoryCollapsedConfigKey = 'Aura_toolsCollapsed';
+    const toolsCategoryCollapsedConfigKey = 'Aura_toolsCollapsed2';
     // shortcuts and exports go to the bottom
     const BOTTOM = ['shortcuts', 'user'];
     // developer-only categories stay hidden until the developer password is entered
@@ -146,7 +146,7 @@
         shortcuts: true,
         system: true,
         user: true,
-        other: true
+        other: false
     });
 
     const toggleCategory = (category) => {

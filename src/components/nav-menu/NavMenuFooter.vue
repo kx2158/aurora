@@ -115,11 +115,14 @@
                             <span>{{ t('nav_menu.custom_nav.header') }}</span>
                         </DropdownMenuItem>
 
-                        <DropdownMenuSub v-if="accounts.length > 1">
+                        <DropdownMenuSub>
                             <DropdownMenuSubTrigger>
                                 <span>{{ t('nav_menu.switch_account') }}</span>
                             </DropdownMenuSubTrigger>
                             <DropdownMenuSubContent side="right" align="start" class="w-54">
+                                <DropdownMenuItem v-if="accounts.length < 2" disabled>
+                                    <span class="whitespace-normal text-xs">{{ t('nav_menu.add_account_hint') }}</span>
+                                </DropdownMenuItem>
                                 <DropdownMenuCheckboxItem
                                     v-for="account in accounts"
                                     :key="account.id"

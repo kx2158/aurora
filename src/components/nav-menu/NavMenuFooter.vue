@@ -119,10 +119,7 @@
                             <DropdownMenuSubTrigger>
                                 <span>{{ t('nav_menu.switch_account') }}</span>
                             </DropdownMenuSubTrigger>
-                            <DropdownMenuSubContent side="right" align="start" class="w-54">
-                                <DropdownMenuItem v-if="accounts.length < 2" disabled>
-                                    <span class="whitespace-normal text-xs">{{ t('nav_menu.add_account_hint') }}</span>
-                                </DropdownMenuItem>
+                            <DropdownMenuSubContent side="right" align="start" class="w-54 min-w-[13.5rem]">
                                 <DropdownMenuCheckboxItem
                                     v-for="account in accounts"
                                     :key="account.id"
@@ -133,7 +130,11 @@
                                 </DropdownMenuCheckboxItem>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem @click="router.push({ name: 'account-sync' })">
-                                    <span>{{ t('nav_menu.manage_accounts') }}</span>
+                                    <span>{{
+                                        accounts.length < 2
+                                            ? t('nav_menu.add_account')
+                                            : t('nav_menu.manage_accounts')
+                                    }}</span>
                                 </DropdownMenuItem>
                             </DropdownMenuSubContent>
                         </DropdownMenuSub>

@@ -22,6 +22,12 @@
                     {{ sec.folder.name }}
                     <small>{{ sec.groups.length }}</small>
                 </button>
+                <button type="button" class="a-btn icon" :aria-label="t('view.friends_manager.groups.folder_up')" @click="moveFolder(sec.folder.id, -1)">&#9650;</button>
+                <button type="button" class="a-btn icon" :aria-label="t('view.friends_manager.groups.folder_down')" @click="moveFolder(sec.folder.id, 1)">&#9660;</button>
+                <label class="gm-vis" :title="t('view.friends_manager.groups.folder_visible')">
+                    <input type="checkbox" :checked="sec.folder.visible" @change="setFolderVisible(sec.folder.id, $event.target.checked)" />
+                    {{ t('view.friends_manager.groups.folder_visible') }}
+                </label>
                 <button type="button" class="a-btn" @click="removeFolder(sec.folder.id)">{{ t('view.friends_manager.groups.remove_folder') }}</button>
             </div>
             <p v-if="sec.folder && sec.folder.open && !sec.groups.length" class="a-note">{{ t('view.friends_manager.groups.folder_empty') }}</p>
@@ -34,7 +40,7 @@
                         class="a-input gm-move"
                         :value="folderOf(g.id)"
                         :aria-label="t('view.friends_manager.groups.move')"
-                        @change="moveGroup(g.id, $event.target.value)">
+                        @change="moveGroup(g.id, $event.target.value); applyFolderOrder()">
                         <option value="">{{ t('view.friends_manager.groups.no_folder') }}</option>
                         <option v-for="f in groupFolders" :key="f.id" :value="f.id">{{ f.name }}</option>
                     </select>
@@ -61,8 +67,11 @@
         folderOf,
         groupFolders,
         initGroupFolders,
+        applyFolderOrder,
+        moveFolder,
         moveGroup,
         removeFolder,
+        setFolderVisible,
         sectionsFor
     } from '../../services/groupFolders';
     import { useGroupStore } from '../../stores';
@@ -130,6 +139,13 @@
     }
     .gm-caret.open {
         transform: rotate(90deg);
+    }
+    .gm-vis {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        white-space: nowrap;
     }
     .gm-in {
         margin-left: 22px;

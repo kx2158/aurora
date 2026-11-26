@@ -2074,7 +2074,10 @@
                 "remove_folder": "Remove folder",
                 "folder_empty": "Empty. Move groups in with the menu on each group.",
                 "move": "Move to folder",
-                "no_folder": "No folder"
+                "no_folder": "No folder",
+                "folder_up": "Move folder up",
+                "folder_down": "Move folder down",
+                "folder_visible": "Visible on profile"
             }
         },
         "modules": {

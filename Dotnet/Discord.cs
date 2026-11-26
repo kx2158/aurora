@@ -15,6 +15,7 @@ namespace VRCX
         private DiscordRpcClient _client;
         private readonly Timer _timer;
         private bool _active;
+        private bool _hasContent;
         private string _discordAppId;
         private const string VrcxUrl = "https://vrcx.app";
 
@@ -40,6 +41,7 @@ namespace VRCX
             lock (this)
             {
                 _timer.Change(-1, -1);
+                try { _client?.ClearPresence(); } catch { /* shutting down anyway */ }
                 _client?.Dispose();
             }
         }
@@ -89,11 +91,14 @@ namespace VRCX
 
             if (_client != null && !_active)
             {
+                // take the activity off the profile right away instead of waiting for Discord to time it out
+                try { _client.ClearPresence(); } catch (Exception ex) { _logger.Warn(ex, "Could not clear Discord presence"); }
                 _client.Dispose();
                 _client = null;
             }
 
-            if (_client != null && !_lock.IsWriteLockHeld)
+            // never push a presence that has not been filled in for the current session
+            if (_client != null && _hasContent && !_lock.IsWriteLockHeld)
             {
                 _lock.EnterReadLock();
                 try
@@ -110,6 +115,26 @@ namespace VRCX
 
         public bool SetActive(bool active)
         {
+            if (!active)
+            {
+                // drop the old world, timer and buttons so they can never reappear on the next start
+                _lock.EnterWriteLock();
+                try
+                {
+                    _hasContent = false;
+                    _presence.Details = null;
+                    _presence.State = null;
+                    _presence.DetailsUrl = null;
+                    _presence.Assets = null;
+                    _presence.Party = null;
+                    _presence.Timestamps = null;
+                    _presence.Buttons = [];
+                }
+                finally
+                {
+                    _lock.ExitWriteLock();
+                }
+            }
             _active = active;
             return _active;
         }
@@ -162,9 +187,11 @@ namespace VRCX
                     _presence.Assets = null;
                     _presence.Party = null;
                     _presence.Timestamps = null;
+                    _hasContent = false;
                     return;
                 }
 
+                _hasContent = true;
                 _presence.Details = LimitByteLength(details, 127);
                 _presence.DetailsUrl = !string.IsNullOrEmpty(detailsUrl) ? detailsUrl : null;
                 // _presence.StateUrl

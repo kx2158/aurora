@@ -12,6 +12,7 @@ import {
 import { ActivityType, StatusDisplayType } from '../../shared/constants/discord';
 import { queryRequest } from '../../api';
 import { useGameLogStore } from '../gameLog';
+import { useAdvancedSettingsStore } from './advanced';
 import { useGameStore } from '../game';
 import { useLocationStore } from '../location';
 import { useUpdateLoopStore } from '../updateLoop';
@@ -23,6 +24,7 @@ import configRepository from '../../services/config';
 export const useDiscordPresenceSettingsStore = defineStore('DiscordPresenceSettings', () => {
     const locationStore = useLocationStore();
     const gameStore = useGameStore();
+    const advancedSettingsStore = useAdvancedSettingsStore();
     const gameLogStore = useGameLogStore();
     const userStore = useUserStore();
     const updateLoopStore = useUpdateLoopStore();
@@ -145,7 +147,11 @@ export const useDiscordPresenceSettingsStore = defineStore('DiscordPresenceSetti
                 currentLocation = userStore.currentUser.$travelingToLocation;
             }
         }
-        if (!discordActive.value || !isRealInstance(currentLocation)) {
+        // only show while VRChat is actually running; location data outlives the game (crash, closed app,
+        // API location from another device) and made the presence show a world you were no longer in.
+        // With the game log disabled there is no process detection, so fall back to the old behaviour.
+        const gameOpen = advancedSettingsStore.gameLogDisabled || gameStore.isGameRunning;
+        if (!discordActive.value || !gameOpen || !isRealInstance(currentLocation)) {
             setIsDiscordActive(false);
             return;
         }

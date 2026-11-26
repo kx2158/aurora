@@ -67,6 +67,27 @@ export async function runGameRunningChangedFlow(isGameRunning) {
     updateLoopStore.setNextDiscordUpdate(0);
 }
 
+// VRChat's process can hang around for minutes (or hours) after the game itself has quit, and the process
+// check alone then keeps the "in game" timers, the Discord presence and the visit duration running.
+// The log line "VRCApplication: HandleApplicationQuit" is the real end of the game, so once it has been
+// seen the process is no longer trusted until it is actually gone or the game is launched again.
+const QUIT_GRACE_MS = 10000;
+let quitSeenAt = 0;
+
+/**
+ * VRChat logged that it is quitting. Called from the game log watcher.
+ */
+export function runGameQuitSeenFlow() {
+    quitSeenAt = Date.now();
+}
+
+/**
+ * VRChat was launched again, so the process check can be trusted again.
+ */
+export function runGameLaunchSeenFlow() {
+    quitSeenAt = 0;
+}
+
 /**
  * Orchestrates the game running state update from IPC.
  *
@@ -80,6 +101,15 @@ export async function runUpdateIsGameRunningFlow(isGameRunningArg, isSteamVRRunn
 
     if (advancedSettingsStore.gameLogDisabled) {
         return;
+    }
+    if (quitSeenAt) {
+        if (!isGameRunningArg) {
+            // the process is gone for real
+            quitSeenAt = 0;
+        } else if (Date.now() - quitSeenAt > QUIT_GRACE_MS) {
+            // VRChat said it quit but the process is still alive: treat the game as closed
+            isGameRunningArg = false;
+        }
     }
     if (isGameRunningArg !== gameStore.isGameRunning) {
         gameStore.setIsGameRunning(isGameRunningArg);

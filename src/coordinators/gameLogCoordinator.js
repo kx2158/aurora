@@ -14,6 +14,7 @@ import {
 import { i18n } from '../plugins/i18n';
 import { AppDebug, logWebRequest } from '../services/appConfig';
 import { database } from '../services/database';
+import { runGameLaunchSeenFlow, runGameQuitSeenFlow } from './gameCoordinator';
 import { runLastLocationResetFlow, runUpdateCurrentUserLocationFlow } from './locationCoordinator';
 import { getGroupName } from '../shared/utils';
 import { userRequest } from '../api';
@@ -398,6 +399,10 @@ export async function addGameLogEntry(gameLog, location) {
             if (!gameStore.isGameRunning) {
                 break;
             }
+            // only a quit that just happened counts, not one replayed from an old log
+            if (Date.parse(gameLog.dt) > Date.now() - 30000) {
+                runGameQuitSeenFlow();
+            }
             if (advancedSettingsStore.vrcQuitFix) {
                 const bias = Date.parse(gameLog.dt) + 3000;
                 if (bias < Date.now()) {
@@ -416,11 +421,13 @@ export async function addGameLogEntry(gameLog, location) {
             }
             break;
         case 'openvr-init':
+            runGameLaunchSeenFlow();
             gameStore.setIsGameNoVR(false);
             configRepository.setBool('isGameNoVR', gameStore.isGameNoVR);
             vrStore.updateOpenVR();
             break;
         case 'desktop-mode':
+            runGameLaunchSeenFlow();
             gameStore.setIsGameNoVR(true);
             configRepository.setBool('isGameNoVR', gameStore.isGameNoVR);
             vrStore.updateOpenVR();

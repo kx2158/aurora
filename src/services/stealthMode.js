@@ -5,7 +5,8 @@
  * On:  status text and pronouns cleared, bio and bio links cleared, banner and profile icon cleared,
  *      language tags removed, every group set to hidden, every favourites group set to private,
  *      every badge hidden.
- * Off: everything above restored from a snapshot taken right before it was hidden.
+ * Off: everything above restored from a snapshot taken right before it was hidden, including
+ *      the group you represent (hiding a group drops it, so it is set again after the group is visible).
  *
  * What it cannot do: change your avatar, your account age, your trust rank or your friends list.
  * Each part is its own step, so if VRChat refuses one, the others still go through and the
@@ -53,9 +54,18 @@ function languageTags(tags) {
 async function takeSnapshot() {
     const user = useUserStore().currentUser;
     const profile = (await userRequest.getSelfProfile()).json;
+    // the group you represent, asked from VRChat directly because the local copy can be stale
+    let representedId = '';
+    try {
+        const rep = (await groupRequest.getRepresentedGroup({ userId: user.id })).json;
+        if (rep?.groupId || rep?.id) representedId = rep.groupId || rep.id;
+    } catch {
+        // fall back to what the group list says
+    }
     const groups = [...useGroupStore().currentUserGroups.values()].map((g) => ({
         id: g.id,
-        visibility: g.myMember?.visibility || 'visible'
+        visibility: g.myMember?.visibility || 'visible',
+        isRepresenting: representedId ? g.id === representedId : Boolean(g.myMember?.isRepresenting)
     }));
     const fav = useFavoriteStore();
     const favGroups = [...fav.favoriteFriendGroups, ...fav.favoriteWorldGroups, ...fav.favoriteAvatarGroups]
@@ -129,6 +139,14 @@ function restoreSteps(s) {
         if (g.visibility !== 'hidden') {
             steps.push({ name: `group ${g.id}`, run: () => groupRequest.setGroupMemberProps(userId, g.id, { visibility: g.visibility }) });
         }
+    }
+    // last of the group steps: representing only works once the group is visible again
+    const represented = s.groups.find((g) => g.isRepresenting);
+    if (represented) {
+        steps.push({
+            name: `represented group ${represented.id}`,
+            run: () => groupRequest.setGroupRepresentation(represented.id, { isRepresenting: true })
+        });
     }
     for (const g of s.favGroups) {
         if (g.visibility !== 'private') {

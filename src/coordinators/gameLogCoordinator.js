@@ -1,5 +1,6 @@
 import dayjs from 'dayjs';
 
+import { applyJoinHeight } from '../services/auroraHeight';
 import {
     createJoinLeaveEntry,
     createLocationEntry,
@@ -187,6 +188,10 @@ export async function addGameLogEntry(gameLog, location) {
             }
             break;
         case 'location':
+            // entering an instance: put the OSC avatar height to the chosen value (default 180 cm)
+            if (gameStore.isGameRunning && Date.now() - Date.parse(gameLog.dt) < 30000) {
+                applyJoinHeight().catch(() => {});
+            }
             instanceStore.addInstanceJoinHistory(locationStore.lastLocation.location, gameLog.dt);
             const worldName = replaceBioSymbols(gameLog.worldName);
             if (gameStore.isGameRunning) {

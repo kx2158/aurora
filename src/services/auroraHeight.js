@@ -12,6 +12,9 @@ export const MIN_HEIGHT = 0.01;
 export const MAX_HEIGHT = 10000;
 const KEY = 'Aurora_height';
 
+/** Height set automatically whenever you enter an instance (OSC height can break the chatbox), default 180 cm */
+export const joinHeight = ref({ enabled: true, m: 1.8 });
+
 /** the last height you picked, and your normal height to come back to */
 export const height = ref(1.6);
 export const normalHeight = ref(1.6);
@@ -66,11 +69,20 @@ export async function initHeight() {
         const saved = JSON.parse(await configRepository.getString(KEY, '{}'));
         if (Number(saved.height) > 0) height.value = clamp(saved.height);
         if (Number(saved.normal) > 0) normalHeight.value = clamp(saved.normal);
+        if (saved.join && typeof saved.join === 'object') {
+            joinHeight.value = {
+                enabled: saved.join.enabled !== false,
+                m: Number(saved.join.m) > 0 ? clamp(saved.join.m) : 1.8
+            };
+        }
     } catch {
         // defaults
     }
-    watch([height, normalHeight], () =>
-        configRepository.setString(KEY, JSON.stringify({ height: height.value, normal: normalHeight.value }))
+    watch([height, normalHeight, joinHeight], () =>
+        configRepository.setString(
+            KEY,
+            JSON.stringify({ height: height.value, normal: normalHeight.value, join: joinHeight.value })
+        ), { deep: true }
     );
 }
 
@@ -135,3 +147,20 @@ export function setNormalHeight(m = height.value) {
 /** The slider works in powers of ten so 1 cm and 10 km both fit: -2 .. 4. */
 export const toSlider = (m) => Math.log10(clamp(m));
 export const fromSlider = (v) => 10 ** Number(v);
+
+let joinTimers = [];
+
+/**
+ * Called when you enter an instance. VRChat can reset or keep a stale eye height while the avatar loads, so the
+ * height is sent a few times over the first seconds. Does nothing if the option is off.
+ */
+export async function applyJoinHeight() {
+    await initHeight();
+    if (!joinHeight.value.enabled) return;
+    joinTimers.forEach(clearTimeout);
+    joinTimers = [2500, 7000, 14000].map((ms) =>
+        setTimeout(() => {
+            if (joinHeight.value.enabled) setHeight(joinHeight.value.m);
+        }, ms)
+    );
+}

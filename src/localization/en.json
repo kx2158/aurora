@@ -1871,7 +1871,8 @@
             "import_found": "Got your height from VRChat.",
             "import_none": "Nothing came in. Turn on OSC in VRChat, then change your height or reload your avatar while this listens.",
             "extreme": "Outside 0.1 m to 100 m: VRChat will show a warning on your HUD and things can look odd. It still works.",
-            "desk_hint": "Needs OSC on in VRChat. Worlds can block scaling."
+            "desk_hint": "Needs OSC on in VRChat. Worlds can block scaling.",
+            "join_label": "Set my height automatically when I enter an instance"
         },
         "desk": {
             "hint": "{key} to hide",

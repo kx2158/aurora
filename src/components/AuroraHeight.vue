@@ -61,6 +61,22 @@
             <span v-if="importState === 'found'" class="a-note">{{ t('view.height.import_found') }}</span>
             <span v-else-if="importState === 'none'" class="a-note height-warn">{{ t('view.height.import_none') }}</span>
         </div>
+        <div class="height-row mt-3">
+            <label class="flex items-center gap-2 text-sm">
+                <input v-model="joinHeight.enabled" type="checkbox" />
+                {{ t('view.height.join_label') }}
+            </label>
+            <input
+                type="number"
+                min="1"
+                max="1000"
+                step="1"
+                class="height-join-input"
+                :value="Math.round(joinHeight.m * 100)"
+                :disabled="!joinHeight.enabled"
+                @change="joinHeight.m = clamp(Number($event.target.value) / 100)" />
+            <span class="a-note">cm</span>
+        </div>
         <p v-if="isExtreme(height)" class="a-note height-warn">{{ t('view.height.extreme') }}</p>
     </section>
 </template>
@@ -72,6 +88,8 @@
     import AuroraIcon from './AuroraIcon.vue';
     import {
         backToNormal,
+        clamp,
+        joinHeight,
         formatHeight,
         fromSlider,
         height,
@@ -94,6 +112,14 @@
 </script>
 
 <style scoped>
+    .height-join-input {
+        width: 72px;
+        padding: 4px 8px;
+        border: 1px solid var(--a-line, rgba(128, 128, 128, 0.3));
+        border-radius: 8px;
+        background: transparent;
+        color: inherit;
+    }
     .height-value {
         font-size: 1.4rem;
         font-weight: 300;

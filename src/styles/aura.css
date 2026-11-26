@@ -1598,3 +1598,57 @@
     text-align: left !important;
     gap: 10px;
 }
+
+/* ---------- fixes: fields, tabs and menus that the rounding rule above bent out of shape ----------
+   Fields and tabs draw their line with an inset shadow along the bottom. The global 16px radius made that
+   line curl up the sides into a pill (select triggers) or a bracket (the Friends tabs), and left the text
+   hard against the edge. They stay square, so the line is a line, and the text gets room. */
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='select-trigger'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='native-select'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='input'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='textarea'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='number-field'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='tabs-list'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='tabs-trigger'] {
+    border-radius: 0 !important;
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='select-trigger'] {
+    height: auto !important;
+    min-height: 34px;
+    padding: 6px 4px 6px 4px !important;
+    gap: 10px;
+    line-height: 1.3;
+    overflow: visible;
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='select-trigger'] [data-slot='select-value'] {
+    overflow: visible;
+    -webkit-line-clamp: unset;
+    white-space: nowrap;
+}
+/* tab text sits fully above its underline */
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='tabs-trigger'] {
+    line-height: 1.4;
+    padding: 2px 0 8px !important;
+    height: auto;
+    overflow: visible;
+    white-space: nowrap;
+}
+/* menu and select rows: soft corners that do not eat the text, and room on both sides */
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='dropdown-menu-item'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='dropdown-menu-checkbox-item'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='dropdown-menu-radio-item'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='dropdown-menu-sub-trigger'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='select-item'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='context-menu-item'] {
+    border-radius: 10px !important;
+    min-height: 32px;
+    line-height: 1.3;
+    padding-inline: 10px;
+    white-space: nowrap;
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='select-content'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='dropdown-menu-content'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='dropdown-menu-sub-content'] {
+    padding: 6px;
+    min-width: max-content;
+}

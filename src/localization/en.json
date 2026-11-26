@@ -90,6 +90,24 @@
         "neon": "Aura",
         "more": "More"
     },
+    "aura_calendar": {
+        "header": "Calendar",
+        "description": "Every day your game log has recorded. Pick a day to see where you were, when, for how long and who was in the instance. It reads your existing history, so old days are already there.",
+        "today": "Today",
+        "loading": "Loading...",
+        "empty_month": "Nothing recorded in this month.",
+        "pick_day": "Pick a day on the calendar.",
+        "n_visits": "{n} visits",
+        "month_summary": "{days} days, {time} in VRChat, {visits} visits",
+        "day_summary": "{time} in VRChat, {visits} visits, {worlds} worlds, {people} people met",
+        "no_visits": "Nothing recorded on this day.",
+        "show_people": "who was there",
+        "hide_people": "hide",
+        "nobody": "Nobody else was recorded.",
+        "people_met": "People met",
+        "more": "+{n} more",
+        "earlier_years": "On this day in earlier years"
+    },
     "nav_menu": {
         "switch_account": "Switch account",
         "manage_accounts": "Manage accounts...",
@@ -761,7 +779,9 @@
                 "avatar_hider": "Avatar Hider",
                 "avatar_hider_description": "Browse VRChat's cached avatar files and lock specific ones so they never get created again",
                 "account_sync": "Account Sync",
-                "account_sync_description": "Copy your profile, groups, blocks and favorites from one of your VRChat accounts to another"
+                "account_sync_description": "Copy your profile, groups, blocks and favorites from one of your VRChat accounts to another",
+                "location_calendar": "Calendar",
+                "location_calendar_description": "Go back to any day and see which worlds you were in, for how long, and who was there"
             },
             "dev_placeholder": "Developer password",
             "dev_unlock": "Unlock",

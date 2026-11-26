@@ -26,6 +26,7 @@ import PlayerList from './../views/PlayerList/PlayerList.vue';
 import ScreenshotMetadata from './../views/Tools/ScreenshotMetadata.vue';
 import AvatarHider from './../views/Tools/AvatarHider.vue';
 import AccountSync from './../views/Tools/AccountSync.vue';
+import Calendar from './../views/Tools/Calendar.vue';
 import Search from './../views/Search/Search.vue';
 import Settings from './../views/Settings/Settings.vue';
 import Tools from './../views/Tools/Tools.vue';
@@ -156,6 +157,12 @@ const routes = [
                 name: 'account-sync',
                 component: AccountSync,
                 meta: { navKeys: ['tool-account-sync', 'tools'] }
+            },
+            {
+                path: 'tools/calendar',
+                name: 'location-calendar',
+                component: Calendar,
+                meta: { navKeys: ['tool-location-calendar', 'tools'] }
             },
             {
                 path: 'settings',

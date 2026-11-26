@@ -284,6 +284,16 @@ const toolDefinitions = [
         descriptionKey: 'view.tools.other.account_sync_description',
         navEligible: true,
         action: { type: 'route', routeName: 'account-sync' }
+    },
+    {
+        key: 'location-calendar',
+        category: 'other',
+        iconKey: 'calendar',
+        navIcon: 'ri-calendar-2-line',
+        titleKey: 'view.tools.other.location_calendar',
+        descriptionKey: 'view.tools.other.location_calendar_description',
+        navEligible: true,
+        action: { type: 'route', routeName: 'location-calendar' }
     }
 ];
 

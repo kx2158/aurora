@@ -1,5 +1,8 @@
 <template>
     <div class="flex h-full min-h-0 flex-col overflow-hidden p-2 rounded-xl bg-(--profile-card)">
+        <div v-if="userDialog.ref.id !== currentUser.id" class="mb-1 text-xs text-muted-foreground">
+            {{ t('dialog.user.avatars.remote_hint') }}
+        </div>
         <div style="display: flex; align-items: center; justify-content: space-between">
             <div style="display: flex; align-items: center">
                 <Button

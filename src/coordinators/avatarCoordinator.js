@@ -118,9 +118,7 @@ export function showAvatarDialog(avatarId, options = {}) {
         uiStore.setDialogCrumbLabel('avatar', D.id, D.ref?.name || D.id);
         nextTick(() => (D.loading = false));
     }
-    const loadAvatarRequest = forceRefresh
-        ? avatarRequest.getAvatar({ avatarId })
-        : queryRequest.fetch('avatar.dialog', { avatarId });
+    const loadAvatarRequest = fetchAvatarForDialog(avatarId, forceRefresh);
     loadAvatarRequest
         .then((args) => {
             const ref = applyAvatar(args.json);
@@ -153,12 +151,68 @@ export function showAvatarDialog(avatarId, options = {}) {
             D.id = null;
             D.visible = false;
             uiStore.jumpBackDialogCrumb();
-            toast.error(t('message.api_handler.avatar_private_or_deleted'));
+            // 404 is VRChat saying this account may not see the avatar; anything else (rate limit, network,
+            // server error) says nothing about the avatar, so it gets its own message instead of "private"
+            if (err?.status === 404 || err?.status === 403) {
+                toast.error(t('message.api_handler.avatar_private_or_deleted'));
+            } else {
+                toast.error(t('message.api_handler.avatar_lookup_failed', { error: err?.message || String(err) }));
+            }
             throw err;
         })
         .finally(() => {
             nextTick(() => (D.loading = false));
         });
+}
+
+/**
+ * Load one avatar for the dialog. VRChat first; a temporary failure (rate limit, server error, network) is retried,
+ * and when VRChat will not show the avatar to this account the public avatar database is asked as well.
+ * @param {string} avatarId
+ * @param {boolean} forceRefresh
+ * @returns {Promise<{json: object}>}
+ */
+async function fetchAvatarForDialog(avatarId, forceRefresh) {
+    const load = () =>
+        forceRefresh ? avatarRequest.getAvatar({ avatarId }) : queryRequest.fetch('avatar.dialog', { avatarId });
+    const temporary = (err) => !err || ![403, 404].includes(err.status);
+    let lastError;
+    for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+            return await load();
+        } catch (err) {
+            lastError = err;
+            if (!temporary(err)) break;
+            await new Promise((resolve) => setTimeout(resolve, 1500 * (attempt + 1)));
+        }
+    }
+    const fromDatabase = await lookupAvatarInDatabase(avatarId);
+    if (fromDatabase) {
+        return { json: fromDatabase, params: { avatarId } };
+    }
+    throw lastError;
+}
+
+/**
+ * Ask the public avatar database (the same one the Avatars tab uses) about one avatar id.
+ * @param {string} avatarId
+ * @returns {Promise<object|null>}
+ */
+async function lookupAvatarInDatabase(avatarId) {
+    try {
+        const advancedSettingsStore = useAdvancedSettingsStore();
+        const avatarProviderStore = useAvatarProviderStore();
+        if (!advancedSettingsStore.avatarRemoteDatabase || !avatarProviderStore.avatarRemoteDatabaseProvider) {
+            return null;
+        }
+        const found = await lookupAvatars('search', avatarId);
+        const ref = found.get(avatarId);
+        if (!ref) return null;
+        return { unityPackages: [], tags: [], ...ref };
+    } catch (err) {
+        console.error('Avatar database lookup failed', err);
+        return null;
+    }
 }
 
 /**

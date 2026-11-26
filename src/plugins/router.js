@@ -27,6 +27,7 @@ import ScreenshotMetadata from './../views/Tools/ScreenshotMetadata.vue';
 import AvatarHider from './../views/Tools/AvatarHider.vue';
 import AccountSync from './../views/Tools/AccountSync.vue';
 import Calendar from './../views/Tools/Calendar.vue';
+import People from './../views/Tools/People.vue';
 import Search from './../views/Search/Search.vue';
 import Settings from './../views/Settings/Settings.vue';
 import Tools from './../views/Tools/Tools.vue';
@@ -164,6 +165,12 @@ const routes = [
                 name: 'location-calendar',
                 component: Calendar,
                 meta: { navKeys: ['tool-location-calendar', 'tools'] }
+            },
+            {
+                path: 'tools/people',
+                name: 'people-search',
+                component: People,
+                meta: { navKeys: ['tool-people-search', 'tools'] }
             },
             {
                 path: 'settings',

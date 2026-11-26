@@ -108,6 +108,25 @@
         "more": "+{n} more",
         "earlier_years": "On this day in earlier years"
     },
+    "aura_people": {
+        "header": "People search",
+        "description": "Type a name. It searches your friends and everyone your game log has seen, instantly. Press Enter to search all of VRChat too.",
+        "placeholder": "Search by name...",
+        "start_typing": "Start typing a name.",
+        "search_vrchat": "Search all of VRChat",
+        "searching": "Searching...",
+        "friends": "Friends",
+        "met": "People you have met",
+        "vrchat": "On VRChat",
+        "friend": "Friend",
+        "times_met": "met {n} times",
+        "last": "last",
+        "where": "where",
+        "hide": "hide",
+        "limit": "Showing the 100 most recent matches. Type more of the name to narrow it down.",
+        "no_online": "VRChat found nobody with that name.",
+        "nothing_local": "Nobody in your friends or history matches. Press Enter to search all of VRChat."
+    },
     "nav_menu": {
         "switch_account": "Switch account",
         "manage_accounts": "Manage accounts...",
@@ -205,6 +224,7 @@
     },
     "side_panel": {
         "search_placeholder": "Quick Search...",
+        "search_all_vrchat": "Search all VRChat users for \"{name}\"",
         "search_no_results": "No results found",
         "search_min_chars": "Type at least 2 characters",
         "search_categories": "Search for...",
@@ -784,7 +804,9 @@
                 "account_sync": "Account Sync",
                 "account_sync_description": "Copy your profile, groups, blocks and favorites from one of your VRChat accounts to another",
                 "location_calendar": "Calendar",
-                "location_calendar_description": "Go back to any day and see which worlds you were in, for how long, and who was there"
+                "location_calendar_description": "Go back to any day and see which worlds you were in, for how long, and who was there",
+                "people_search": "People search",
+                "people_search_description": "Look anyone up by name: your friends, everyone you have met, and any VRChat user"
             },
             "dev_placeholder": "Developer password",
             "dev_unlock": "Unlock",

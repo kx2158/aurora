@@ -3,6 +3,7 @@
     import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
     import { Globe, Image, Users } from 'lucide-vue-next';
     import { storeToRefs } from 'pinia';
+    import { useRouter } from 'vue-router';
     import { useI18n } from 'vue-i18n';
 
     import { useQuickSearchStore } from '../stores/quickSearch';
@@ -26,12 +27,20 @@
     } = storeToRefs(quickSearchStore);
     const { selectResult } = quickSearchStore;
     const { t } = useI18n();
+    const router = useRouter();
 
     /**
      * @param item
      */
     function handleSelect(item) {
         selectResult(item);
+    }
+
+    /** open the People search with this name and ask VRChat for everyone who matches */
+    function searchEveryone() {
+        const name = query.value.trim();
+        quickSearchStore.close();
+        router.push({ name: 'people-search', query: { q: name, online: '1' } });
     }
 </script>
 
@@ -84,6 +93,16 @@
                         <div v-if="!hasResults" class="py-6 text-center text-sm text-muted-foreground">
                             {{ t('side_panel.search_no_results') }}
                         </div>
+
+                        <CommandGroup>
+                            <CommandItem
+                                :value="query + ' search all vrchat users'"
+                                class="gap-3"
+                                @select="searchEveryone">
+                                <Users class="size-4" />
+                                <span class="truncate">{{ t('side_panel.search_all_vrchat', { name: query.trim() }) }}</span>
+                            </CommandItem>
+                        </CommandGroup>
 
                         <CommandGroup v-if="friendResults.length > 0" :heading="t('side_panel.friends')">
                             <CommandItem

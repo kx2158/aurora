@@ -294,6 +294,16 @@ const toolDefinitions = [
         descriptionKey: 'view.tools.other.location_calendar_description',
         navEligible: true,
         action: { type: 'route', routeName: 'location-calendar' }
+    },
+    {
+        key: 'people-search',
+        category: 'other',
+        iconKey: 'users',
+        navIcon: 'ri-user-search-line',
+        titleKey: 'view.tools.other.people_search',
+        descriptionKey: 'view.tools.other.people_search_description',
+        navEligible: true,
+        action: { type: 'route', routeName: 'people-search' }
     }
 ];
 

@@ -309,6 +309,20 @@ const toolDefinitions = [
 
 const toolDefinitionMap = new Map(toolDefinitions.map((tool) => [tool.key, tool]));
 
+// which sidebar group a tool belongs to once it is in the sidebar
+const toolNavSections = {
+    'people-search': 'social',
+    'group-calendar': 'social',
+    'group-invites': 'social',
+    'blocked-groups': 'social',
+    'location-calendar': 'history',
+    'screenshot-metadata': 'history',
+    gallery: 'history',
+    'account-sync': 'accounts',
+    'avatar-hider': 'accounts',
+    'auto-change-status': 'accounts'
+};
+
 const toolNavDefinitions = toolDefinitions
     .filter((tool) => tool.navEligible)
     .map((tool) => ({
@@ -324,6 +338,7 @@ const toolNavDefinitions = toolDefinitions
                       type: 'tool',
                       toolKey: tool.key
                   },
+        section: toolNavSections[tool.key] || 'accounts',
         defaultHidden: true
     }));
 

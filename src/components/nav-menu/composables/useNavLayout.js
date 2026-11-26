@@ -178,6 +178,14 @@ export function useNavLayout({ t, locale, router, dashboardStore, dashboards, di
                 );
                 await configRepository.setBool('Aurora_navV3', true);
             }
+            // one time: the reorganised sidebar (Overview, Social, History, Live, Accounts, no Tools tab)
+            if (!(await configRepository.getBool('Aura_navV4', false))) {
+                await configRepository.setString(
+                    NAV_CONFIG_KEY,
+                    JSON.stringify({ layout: createDefaultNavLayout(), hiddenKeys: ['direct-access'] })
+                );
+                await configRepository.setBool('Aura_navV4', true);
+            }
             const loaded = await loadStoredNavConfig(configRepository, createDefaultNavLayout(), {
                 configKey: NAV_CONFIG_KEY,
                 filterHiddenKey: (key) => !isToolNavKey(key)

@@ -129,12 +129,11 @@
                                     <span>{{ account.displayName }}{{ account.isMain ? ' ★' : '' }}</span>
                                 </DropdownMenuCheckboxItem>
                                 <DropdownMenuSeparator />
-                                <DropdownMenuItem @click="router.push({ name: 'account-sync' })">
-                                    <span>{{
-                                        accounts.length < 2
-                                            ? t('nav_menu.add_account')
-                                            : t('nav_menu.manage_accounts')
-                                    }}</span>
+                                <DropdownMenuItem class="aura-add-account" @click="addAccount">
+                                    <span>{{ t('nav_menu.add_account') }}</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem v-if="accounts.length > 1" @click="router.push({ name: 'account-sync' })">
+                                    <span>{{ t('nav_menu.manage_accounts') }}</span>
                                 </DropdownMenuItem>
                             </DropdownMenuSubContent>
                         </DropdownMenuSub>
@@ -182,6 +181,7 @@
     import { SidebarFooter, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 
     import { listSavedAccounts, switchAccount } from '../../coordinators/accountSyncCoordinator';
+    import { useAuthStore } from '../../stores/auth';
     import { useUserStore } from '../../stores/user';
     import { watchState } from '../../services/watchState';
 
@@ -272,6 +272,16 @@
             accounts.value = await listSavedAccounts();
         } catch (err) {
             console.error('Failed to list saved accounts', err);
+        }
+    }
+
+    const authStore = useAuthStore();
+    async function addAccount() {
+        try {
+            await authStore.handleLogoutEvent();
+            router.push({ name: 'login' });
+        } catch (err) {
+            toast.error(err?.message || String(err));
         }
     }
 

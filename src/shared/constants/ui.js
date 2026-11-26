@@ -35,7 +35,7 @@ const navDefinitions = [
         tooltip: 'nav_aurora.feed',
         labelKey: 'nav_aurora.feed',
         routeName: 'feed',
-        section: ''
+        section: 'social'
     },
     {
         key: 'friends-locations',
@@ -43,7 +43,7 @@ const navDefinitions = [
         tooltip: 'nav_aurora.friends',
         labelKey: 'nav_aurora.friends',
         routeName: 'friends-locations',
-        section: ''
+        section: 'social'
     },
     {
         key: 'notification',
@@ -51,7 +51,7 @@ const navDefinitions = [
         tooltip: 'nav_aurora.notifications',
         labelKey: 'nav_aurora.notifications',
         routeName: 'notification',
-        section: ''
+        section: 'social'
     },
     {
         key: 'search',
@@ -59,7 +59,7 @@ const navDefinitions = [
         tooltip: 'nav_aurora.search',
         labelKey: 'nav_aurora.search',
         routeName: 'search',
-        section: ''
+        section: 'social'
     },
     {
         key: 'friend-list',
@@ -67,7 +67,7 @@ const navDefinitions = [
         tooltip: 'nav_aurora.friend_list',
         labelKey: 'nav_aurora.friend_list',
         routeName: 'friend-list',
-        section: 'people'
+        section: 'social'
     },
     {
         key: 'friend-log',
@@ -75,7 +75,7 @@ const navDefinitions = [
         tooltip: 'nav_aurora.friend_log',
         labelKey: 'nav_aurora.friend_log',
         routeName: 'friend-log',
-        section: 'people'
+        section: 'social'
     },
     {
         key: 'favorite-friends',
@@ -83,7 +83,7 @@ const navDefinitions = [
         tooltip: 'nav_aurora.favorite_friends',
         labelKey: 'nav_aurora.favorite_friends',
         routeName: 'favorite-friends',
-        section: 'people'
+        section: 'social'
     },
     {
         key: 'moderation',
@@ -91,7 +91,7 @@ const navDefinitions = [
         tooltip: 'nav_aurora.moderation',
         labelKey: 'nav_aurora.moderation',
         routeName: 'moderation',
-        section: 'people'
+        section: 'social'
     },
     {
         key: 'favorite-worlds',
@@ -99,7 +99,7 @@ const navDefinitions = [
         tooltip: 'nav_aurora.favorite_worlds',
         labelKey: 'nav_aurora.favorite_worlds',
         routeName: 'favorite-worlds',
-        section: 'worlds'
+        section: 'social'
     },
     {
         key: 'game-log',
@@ -107,7 +107,7 @@ const navDefinitions = [
         tooltip: 'nav_aurora.game_log',
         labelKey: 'nav_aurora.game_log',
         routeName: 'game-log',
-        section: 'worlds'
+        section: 'history'
     },
     {
         key: 'player-list',
@@ -115,7 +115,7 @@ const navDefinitions = [
         tooltip: 'nav_aurora.player_list',
         labelKey: 'nav_aurora.player_list',
         routeName: 'player-list',
-        section: 'worlds'
+        section: 'history'
     },
     {
         key: 'friends-manager',
@@ -123,7 +123,7 @@ const navDefinitions = [
         tooltip: 'nav_aurora.friends_manager',
         labelKey: 'nav_aurora.friends_manager',
         routeName: 'friends-manager',
-        section: 'people'
+        section: 'social'
     },
     {
         key: 'insights',
@@ -131,7 +131,7 @@ const navDefinitions = [
         tooltip: 'nav_aurora.insights',
         labelKey: 'nav_aurora.insights',
         routeName: 'insights',
-        section: 'insights'
+        section: 'history'
     },
     {
         key: 'charts-mutual',
@@ -139,7 +139,7 @@ const navDefinitions = [
         tooltip: 'nav_aurora.network',
         labelKey: 'nav_aurora.network',
         routeName: 'charts-mutual',
-        section: 'insights'
+        section: 'history'
     },
     {
         key: 'charts-instance',
@@ -147,7 +147,7 @@ const navDefinitions = [
         tooltip: 'nav_aurora.sessions',
         labelKey: 'nav_aurora.sessions',
         routeName: 'charts-instance',
-        section: 'insights'
+        section: 'history'
     },
     {
         key: 'charts-hot-worlds',
@@ -155,7 +155,7 @@ const navDefinitions = [
         tooltip: 'nav_aurora.hot_worlds',
         labelKey: 'nav_aurora.hot_worlds',
         routeName: 'charts-hot-worlds',
-        section: 'insights'
+        section: 'history'
     },
     {
         key: 'mic',
@@ -163,7 +163,7 @@ const navDefinitions = [
         tooltip: 'nav_aurora.mic',
         labelKey: 'nav_aurora.mic',
         routeName: 'mic',
-        section: 'aurora'
+        section: 'live'
     },
     {
         key: 'chatbox',
@@ -171,7 +171,7 @@ const navDefinitions = [
         tooltip: 'nav_aurora.chatbox',
         labelKey: 'nav_aurora.chatbox',
         routeName: 'chatbox',
-        section: 'aurora'
+        section: 'live'
     },
     {
         key: 'stickers',
@@ -179,7 +179,7 @@ const navDefinitions = [
         tooltip: 'nav_aurora.stickers',
         labelKey: 'nav_aurora.stickers',
         routeName: 'stickers',
-        section: 'aurora'
+        section: 'live'
     },
     {
         key: 'emoji',
@@ -187,7 +187,7 @@ const navDefinitions = [
         tooltip: 'nav_aurora.emoji',
         labelKey: 'nav_aurora.emoji',
         routeName: 'emoji',
-        section: 'aurora'
+        section: 'live'
     },
     {
         key: 'automations',
@@ -195,7 +195,7 @@ const navDefinitions = [
         tooltip: 'nav_aurora.automations',
         labelKey: 'nav_aurora.automations',
         routeName: 'automations',
-        section: 'aurora'
+        section: 'live'
     },
     {
         key: 'modules',
@@ -203,7 +203,7 @@ const navDefinitions = [
         tooltip: 'nav_aurora.modules',
         labelKey: 'nav_aurora.modules',
         routeName: 'modules',
-        section: 'aurora'
+        section: 'live'
     },
     {
         key: 'tools',
@@ -211,7 +211,7 @@ const navDefinitions = [
         tooltip: 'nav_aurora.tools',
         labelKey: 'nav_aurora.tools',
         routeName: 'tools',
-        section: 'aurora'
+        section: 'accounts'
     },
     {
         key: 'direct-access',
@@ -219,7 +219,7 @@ const navDefinitions = [
         tooltip: 'nav_aurora.direct_access',
         labelKey: 'nav_aurora.direct_access',
         action: 'direct-access',
-        section: 'aurora'
+        section: 'accounts'
     },
     ...toolNavDefinitions
 ];
@@ -227,6 +227,11 @@ const navDefinitions = [
 /** The order of sidebar sections and their labels. */
 const navSections = {
     '': '',
+    social: 'nav_aurora.section_social',
+    history: 'nav_aurora.section_history',
+    live: 'nav_aurora.section_live',
+    accounts: 'nav_aurora.section_accounts',
+    // kept so layouts and entries that still use the old group names keep their label
     aurora: 'nav_aurora.section_aurora',
     people: 'nav_aurora.section_people',
     worlds: 'nav_aurora.section_worlds',

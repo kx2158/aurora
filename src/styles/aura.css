@@ -1652,3 +1652,107 @@
     padding: 6px;
     min-width: max-content;
 }
+
+/* ---- Motion: gentle, quick, and switched off for people who ask for less ---- */
+@keyframes aura-rise {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: none; }
+}
+@keyframes aura-pop {
+    from { opacity: 0; transform: scale(0.94) translateY(-4px); }
+    to { opacity: 1; transform: none; }
+}
+@keyframes aura-float {
+    0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+    50% { transform: translate3d(24px, -30px, 0) scale(1.12); }
+}
+@keyframes aura-bob {
+    0%, 100% { transform: translateY(0) rotate(-2deg); }
+    50% { transform: translateY(-6px) rotate(2deg); }
+}
+@keyframes aura-twinkle {
+    0%, 100% { opacity: 0.25; transform: scale(0.8); }
+    50% { opacity: 1; transform: scale(1.15); }
+}
+
+:root:is([data-theme='aura'], [data-theme='auradark']) .a-page-inner > * {
+    animation: aura-rise 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) .a-page-inner > *:nth-child(2) { animation-delay: 0.05s; }
+:root:is([data-theme='aura'], [data-theme='auradark']) .a-page-inner > *:nth-child(3) { animation-delay: 0.1s; }
+:root:is([data-theme='aura'], [data-theme='auradark']) .a-page-inner > *:nth-child(4) { animation-delay: 0.15s; }
+:root:is([data-theme='aura'], [data-theme='auradark']) .a-page-inner > *:nth-child(n + 5) { animation-delay: 0.2s; }
+
+:root:is([data-theme='aura'], [data-theme='auradark']) .a-card {
+    transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) .a-card:hover {
+    transform: translateY(-2px);
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) .a-grid > .a-card {
+    animation: aura-rise 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) .a-grid > .a-card:nth-child(2) { animation-delay: 0.06s; }
+:root:is([data-theme='aura'], [data-theme='auradark']) .a-grid > .a-card:nth-child(3) { animation-delay: 0.12s; }
+:root:is([data-theme='aura'], [data-theme='auradark']) .a-grid > .a-card:nth-child(4) { animation-delay: 0.18s; }
+
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='dropdown-menu-content'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='dropdown-menu-sub-content'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='popover-content'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='select-content'] {
+    animation: aura-pop 0.16s ease-out both;
+    transform-origin: top left;
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-sidebar='menu-button'],
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='button'] {
+    transition: background-color 0.15s ease, transform 0.15s ease, color 0.15s ease;
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-sidebar='menu-button']:hover {
+    transform: translateX(2px);
+}
+:root:is([data-theme='aura'], [data-theme='auradark']) [data-slot='button']:active {
+    transform: scale(0.96);
+}
+
+/* login: drifting colour blobs, a bobbing star, twinkles */
+.aura-login-bg {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 0;
+}
+.aura-login-bg i {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(60px);
+    opacity: 0.4;
+    background: var(--primary);
+    animation: aura-float 14s ease-in-out infinite;
+}
+.aura-login-bg i:nth-child(1) { width: 320px; height: 320px; top: -80px; left: -60px; }
+.aura-login-bg i:nth-child(2) { width: 260px; height: 260px; bottom: -60px; right: -40px; animation-delay: -5s; opacity: 0.3; }
+.aura-login-bg i:nth-child(3) { width: 180px; height: 180px; top: 40%; left: 60%; animation-delay: -9s; opacity: 0.22; }
+.aura-login-star {
+    display: inline-block;
+    font-size: 2.2rem;
+    animation: aura-bob 3.2s ease-in-out infinite;
+}
+.aura-login-spark {
+    position: absolute;
+    font-size: 0.9rem;
+    animation: aura-twinkle 2.6s ease-in-out infinite;
+}
+.aura-login-card {
+    position: relative;
+    z-index: 1;
+    animation: aura-rise 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+    }
+}

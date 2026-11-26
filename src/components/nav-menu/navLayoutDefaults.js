@@ -1,30 +1,73 @@
 import { DASHBOARD_NAV_KEY_PREFIX } from '../../shared/constants';
 
 export function createBaseDefaultNavLayout(t) {
-    void t;
-    // flat list, the sidebar draws section labels from each entry's section
+    // flat list, the sidebar draws the group labels (Social, History, Live, Accounts) from each entry's section.
+    // The Tools page is gone from here: every tool sits in the group it belongs to, the rare ones in "More tools".
+    const item = (key) => ({ type: 'item', key });
     return [
-        { type: 'item', key: 'home' },
-        { type: 'item', key: 'feed' },
-        { type: 'item', key: 'friends-locations' },
-        { type: 'item', key: 'notification' },
-        { type: 'item', key: 'search' },
-        { type: 'item', key: 'mic' },
-        { type: 'item', key: 'chatbox' },
-        { type: 'item', key: 'automations' },
-        { type: 'item', key: 'stickers' },
-        { type: 'item', key: 'tools' },
-        { type: 'item', key: 'friend-list' },
-        { type: 'item', key: 'friend-log' },
-        { type: 'item', key: 'favorite-friends' },
-        { type: 'item', key: 'moderation' },
-        { type: 'item', key: 'favorite-worlds' },
-        { type: 'item', key: 'game-log' },
-        { type: 'item', key: 'player-list' },
-        { type: 'item', key: 'insights' },
-        { type: 'item', key: 'charts-mutual' },
-        { type: 'item', key: 'charts-instance' },
-        { type: 'item', key: 'charts-hot-worlds' }
+        item('home'),
+
+        // Social
+        item('feed'),
+        item('friends-locations'),
+        item('notification'),
+        item('friend-list'),
+        item('friend-log'),
+        item('favorite-friends'),
+        item('moderation'),
+        item('favorite-worlds'),
+        item('tool-people-search'),
+        item('tool-group-calendar'),
+        item('tool-group-invites'),
+        item('tool-blocked-groups'),
+
+        // History
+        item('game-log'),
+        item('tool-location-calendar'),
+        item('player-list'),
+        item('insights'),
+        item('charts-mutual'),
+        item('charts-instance'),
+        item('charts-hot-worlds'),
+        item('tool-gallery'),
+        item('tool-screenshot-metadata'),
+
+        // Live
+        item('mic'),
+        item('chatbox'),
+        item('stickers'),
+        item('automations'),
+        item('modules'),
+
+        // Accounts & more
+        item('tool-account-sync'),
+        item('tool-avatar-hider'),
+        item('tool-auto-change-status'),
+        {
+            type: 'folder',
+            id: 'default-folder-more-tools',
+            nameKey: 'nav_aurora.more_tools',
+            name: t('nav_aurora.more_tools'),
+            icon: 'ri-apps-line',
+            items: [
+                'tool-vrc-photos',
+                'tool-steam-screenshots',
+                'tool-vrcx-data',
+                'tool-vrchat-data',
+                'tool-crash-dumps',
+                'tool-vrchat-config',
+                'tool-launch-options',
+                'tool-registry-backup',
+                'tool-discord-names',
+                'tool-export-notes',
+                'tool-export-friend-list',
+                'tool-export-own-avatars',
+                'tool-edit-invite-message',
+                'tool-moderation-reports',
+                'tool-purchase-history',
+                'tool-info-push'
+            ]
+        }
     ];
 }
 

@@ -130,7 +130,7 @@
     "nav_menu": {
         "switch_account": "Switch account",
         "manage_accounts": "Manage accounts...",
-        "add_account": "Add another account...",
+        "add_account": "Add account",
         "resources": "RESOURCES",
         "wiki": "Wiki",
         "get_help": "GET HELP",
@@ -317,7 +317,8 @@
                 "hint": "Scan with a device signed in to VRChat, then approve the login.",
                 "cancel": "Cancel",
                 "failed": "QR login failed"
-            }
+            },
+            "add_hint": "Sign in to add another account. Your other accounts stay saved."
         },
         "feed": {
             "favorites_only_tooltip": "Filter favorites only",
@@ -1566,7 +1567,9 @@
             "met_in": "in {n} instances",
             "on_this_day": "On this day",
             "more_insights": "Insights",
-            "add_note": "Add note"
+            "add_note": "Add note",
+            "search_placeholder": "Search friends, worlds, avatars...",
+            "search_people": "Search all VRChat users"
         },
         "chatbox": {
             "title": "Chatbox",
@@ -4643,6 +4646,11 @@
         "section_worlds": "Worlds",
         "section_insights": "Insights",
         "section_aurora": "Aura",
+        "section_social": "Social",
+        "section_history": "History",
+        "section_live": "Live",
+        "section_accounts": "Accounts & more",
+        "more_tools": "More tools",
         "stickers": "Stickers",
         "emoji": "Emoji",
         "friends_manager": "Friends manager",

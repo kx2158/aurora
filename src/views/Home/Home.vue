@@ -9,6 +9,23 @@
                 <div class="home-clock">{{ clock }}</div>
             </header>
 
+            <div class="home-search" @click="focusSearch">
+                <AuroraIcon name="search" :size="16" />
+                <input
+                    ref="searchInput"
+                    v-model="searchText"
+                    class="home-search-input"
+                    :placeholder="t('view.home.search_placeholder')"
+                    @keydown.enter.prevent="runSearch"
+                    @keydown.esc="searchText = ''" />
+                <router-link
+                    :to="{ name: 'people-search', query: searchText ? { q: searchText, online: '1' } : {} }"
+                    class="home-search-link"
+                    @click.stop>
+                    {{ t('view.home.search_people') }}
+                </router-link>
+            </div>
+
             <div class="a-grid a-grid-4">
                 <div v-for="tile in tiles" :key="tile.label" class="a-card a-stat">
                     <span class="a-stat-label">{{ tile.label }}</span>
@@ -137,10 +154,23 @@
     import { clearPending, initPendingNotes, pendingNotes } from '../../services/auroraNotes';
     import AuroraIcon from '../../components/AuroraIcon.vue';
     import { useFriendStore, useLocationStore } from '../../stores';
+    import { useQuickSearchStore } from '../../stores/quickSearch';
 
     const { t } = useI18n();
     const friendStore = useFriendStore();
     const locationStore = useLocationStore();
+
+    const quickSearchStore = useQuickSearchStore();
+    const searchText = ref('');
+    const searchInput = ref(null);
+    function focusSearch() {
+        searchInput.value?.focus();
+    }
+    function runSearch() {
+        quickSearchStore.open();
+        if (searchText.value) quickSearchStore.query = searchText.value;
+        searchText.value = '';
+    }
 
     const now = ref(new Date());
     let timer = null;
@@ -214,6 +244,44 @@
 </script>
 
 <style scoped>
+    .home-search {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 14px;
+        margin-bottom: 14px;
+        border: 1px solid var(--a-line, rgba(128, 128, 128, 0.25));
+        border-radius: 14px;
+        color: var(--a-muted);
+        cursor: text;
+        transition:
+            border-color 0.2s ease,
+            box-shadow 0.2s ease,
+            transform 0.2s ease;
+    }
+    .home-search:focus-within {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 16%, transparent);
+        transform: translateY(-1px);
+    }
+    .home-search-input {
+        flex: 1;
+        min-width: 0;
+        background: transparent;
+        border: 0;
+        outline: 0;
+        color: var(--foreground);
+        font-size: 0.95rem;
+    }
+    .home-search-link {
+        font-size: 0.75rem;
+        white-space: nowrap;
+        color: var(--a-muted);
+        transition: color 0.15s ease;
+    }
+    .home-search-link:hover {
+        color: var(--primary);
+    }
     .home-clock {
         font-size: 1.55rem;
         font-weight: 300;

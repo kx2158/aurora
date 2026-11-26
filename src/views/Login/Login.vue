@@ -1,5 +1,11 @@
 <template>
     <div class="absolute inset-0 flex flex-col items-center overflow-y-auto px-4 pt-12">
+        <div class="aura-login-bg" aria-hidden="true">
+            <i></i><i></i><i></i>
+            <span class="aura-login-spark" style="top: 18%; left: 22%">✦</span>
+            <span class="aura-login-spark" style="top: 30%; right: 18%; animation-delay: -1s">✧</span>
+            <span class="aura-login-spark" style="bottom: 24%; left: 14%; animation-delay: -1.8s">✦</span>
+        </div>
         <div class="absolute top-0 left-0 m-1.5">
             <LoginSettingsDialog />
             <TooltipWrapper v-if="!noUpdater" side="top" :content="t('view.login.updater')">
@@ -31,7 +37,11 @@
                 </DropdownMenuContent>
             </DropdownMenu>
         </div>
-        <div class="my-auto flex w-full max-w-sm flex-col" :class="{ 'sm:max-w-3xl': hasSavedCredentials }">
+        <div class="aura-login-card my-auto flex w-full max-w-sm flex-col" :class="{ 'sm:max-w-3xl': hasSavedCredentials }">
+            <div class="mb-3 text-center">
+                <span class="aura-login-star">✦</span>
+                <p v-if="hasSavedCredentials" class="text-xs text-muted-foreground">{{ t('view.login.add_hint') }}</p>
+            </div>
             <Alert
                 v-if="vrcStatusStore.hasIssue"
                 :variant="vrcStatusStore.isMajor ? 'destructive' : 'warning'"

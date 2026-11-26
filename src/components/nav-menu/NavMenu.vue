@@ -341,7 +341,7 @@
     };
 
     const openGithub = () => {
-        openExternalLink('https://github.com/vrcx-team/VRCX');
+        openExternalLink(links.github);
     };
 
     const handleSupportLink = (id) => {

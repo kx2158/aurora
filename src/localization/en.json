@@ -713,6 +713,9 @@
         },
         "tools": {
             "header": "Tools",
+            "pin_all": "Add all tools to sidebar",
+            "unpin_all": "Remove all tools from sidebar",
+            "pin_hint": "or use the pin on each tool. Pinned tools sit in a Tools folder you can rearrange in Customize Navigation.",
             "group": {
                 "header": "Group",
                 "calendar": "Calendar",

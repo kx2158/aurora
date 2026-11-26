@@ -209,12 +209,63 @@ export function useToolNavPinning() {
         dispatchNavLayoutUpdated();
     };
 
+    // several tools at once, one write: `pin all` puts them in a single Tools folder instead of 15 loose items
+    const writeToolLayout = async (nextLayout, nextHiddenKeys) => {
+        const definitions = buildSanitizeDefinitions(nextLayout, nextHiddenKeys);
+        const definitionMap = createNavDefinitionMap(buildDefinitions());
+        const normalizedHiddenKeys = normalizeHiddenKeys(nextHiddenKeys, definitionMap);
+        const sanitizedLayout = sanitizeLayout(
+            nextLayout,
+            normalizedHiddenKeys,
+            definitionMap,
+            definitions,
+            t,
+            generateNavFolderId
+        );
+        await configRepository.setString(
+            NAV_CONFIG_KEY,
+            JSON.stringify({ layout: sanitizedLayout, hiddenKeys: normalizedHiddenKeys })
+        );
+        await refreshPinnedState();
+        dispatchNavLayoutUpdated();
+    };
+
+    const pinToolsToNav = async (toolKeys, options = {}) => {
+        const navKeys = toolKeys.map((key) => `tool-${key}`);
+        const { layout, hiddenKeys } = await loadConfig();
+        let nextLayout = layout;
+        for (const navKey of navKeys) {
+            nextLayout = insertToolNavItem(nextLayout, navKey, t, options.placement || 'folder');
+        }
+        await writeToolLayout(
+            nextLayout,
+            hiddenKeys.filter((key) => !navKeys.includes(key))
+        );
+        toast.success(t('nav_menu.custom_nav.pinned'));
+    };
+
+    const unpinToolsFromNav = async (toolKeys) => {
+        const navKeys = toolKeys.map((key) => `tool-${key}`);
+        const { layout, hiddenKeys } = await loadConfig();
+        let nextLayout = layout;
+        for (const navKey of navKeys) {
+            nextLayout = removeToolNavItem(nextLayout, navKey);
+        }
+        await writeToolLayout(
+            nextLayout,
+            hiddenKeys.filter((key) => !navKeys.includes(key))
+        );
+        toast.success(t('nav_menu.custom_nav.unpinned'));
+    };
+
     useEventListener(typeof window !== 'undefined' ? window : undefined, NAV_LAYOUT_UPDATED_EVENT, refreshPinnedState);
 
     return {
         pinnedToolKeys: computed(() => pinnedToolKeysRef.value),
         pinToolToNav,
         unpinToolFromNav,
+        pinToolsToNav,
+        unpinToolsFromNav,
         refreshPinnedState
     };
 }

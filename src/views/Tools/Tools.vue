@@ -4,6 +4,15 @@
             <span class="header">{{ t('view.tools.header') }}</span>
 
             <div class="mt-5 px-5">
+                <div class="mb-6 flex flex-wrap items-center gap-2">
+                    <Button variant="outline" size="sm" :disabled="allPinned" @click="pinAllTools">
+                        {{ t('view.tools.pin_all') }}
+                    </Button>
+                    <Button variant="outline" size="sm" :disabled="!anyPinned" @click="unpinAllTools">
+                        {{ t('view.tools.unpin_all') }}
+                    </Button>
+                    <span class="text-xs text-muted-foreground">{{ t('view.tools.pin_hint') }}</span>
+                </div>
                 <AuroraStealth class="mb-6" />
                 <AuroraHeight class="mb-6" />
                 <AuroraSpaceDrag class="mb-6" />
@@ -35,7 +44,7 @@
                                     <Button
                                         size="icon-xs"
                                         variant="secondary"
-                                        class="opacity-0 transition-opacity group-hover:opacity-100"
+                                        class="transition-opacity"
                                         :title="t('nav_menu.custom_nav.unpin_from_nav')"
                                         :ariaLabel="t('nav_menu.custom_nav.unpin_from_nav')"
                                         @click.stop="unpinToolFromNav(tool.key)">
@@ -58,7 +67,7 @@
                                     <Button
                                         size="icon-xs"
                                         variant="ghost"
-                                        class="opacity-0 transition-opacity group-hover:opacity-100"
+                                        class="transition-opacity"
                                         :title="t('nav_menu.custom_nav.pin_to_nav')"
                                         :ariaLabel="t('nav_menu.custom_nav.pin_to_nav')"
                                         @click.stop="pinToolToNav(tool.key)">
@@ -119,7 +128,8 @@
 
     const { t } = useI18n();
     const { triggerTool } = useToolActions();
-    const { pinToolToNav, pinnedToolKeys, refreshPinnedState, unpinToolFromNav } = useToolNavPinning();
+    const { pinToolToNav, pinToolsToNav, pinnedToolKeys, refreshPinnedState, unpinToolFromNav, unpinToolsFromNav } =
+        useToolNavPinning();
     // a new key so everything starts closed, even for people who had opened sections before
     const toolsCategoryCollapsedConfigKey = 'Aura_toolsCollapsed2';
     // shortcuts and exports go to the bottom
@@ -139,6 +149,14 @@
         devPassword.value = '';
         if (!ok) toast.error(t('view.tools.dev_wrong'));
     }
+
+    const pinnableKeys = computed(() =>
+        categories.value.flatMap((c) => c.tools).filter((tool) => tool.navEligible).map((tool) => tool.key)
+    );
+    const allPinned = computed(() => pinnableKeys.value.every((key) => pinnedToolKeys.value.has(key)));
+    const anyPinned = computed(() => pinnableKeys.value.some((key) => pinnedToolKeys.value.has(key)));
+    const pinAllTools = () => pinToolsToNav(pinnableKeys.value.filter((key) => !pinnedToolKeys.value.has(key)));
+    const unpinAllTools = () => unpinToolsFromNav(pinnableKeys.value.filter((key) => pinnedToolKeys.value.has(key)));
 
     const categoryCollapsed = ref({
         group: true,

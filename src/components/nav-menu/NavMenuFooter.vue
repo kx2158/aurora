@@ -115,6 +115,26 @@
                             <span>{{ t('nav_menu.custom_nav.header') }}</span>
                         </DropdownMenuItem>
 
+                        <DropdownMenuSub v-if="accounts.length > 1">
+                            <DropdownMenuSubTrigger>
+                                <span>{{ t('nav_menu.switch_account') }}</span>
+                            </DropdownMenuSubTrigger>
+                            <DropdownMenuSubContent side="right" align="start" class="w-54">
+                                <DropdownMenuCheckboxItem
+                                    v-for="account in accounts"
+                                    :key="account.id"
+                                    :model-value="account.id === currentUserId"
+                                    indicator-position="right"
+                                    @select="switchTo(account.id)">
+                                    <span>{{ account.displayName }}{{ account.isMain ? ' ★' : '' }}</span>
+                                </DropdownMenuCheckboxItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem @click="router.push({ name: 'account-sync' })">
+                                    <span>{{ t('nav_menu.manage_accounts') }}</span>
+                                </DropdownMenuItem>
+                            </DropdownMenuSubContent>
+                        </DropdownMenuSub>
+
                         <DropdownMenuSeparator />
                         <DropdownMenuItem variant="destructive" @click="emit('logout-click')">
                             <span>{{ t('dialog.user.actions.logout') }}</span>
@@ -139,7 +159,8 @@
     import AuroraIcon from '@/components/AuroraIcon.vue';
     import { useI18n } from 'vue-i18n';
     import { useRouter } from 'vue-router';
-    import { computed, ref, watch } from 'vue';
+    import { computed, onMounted, ref, watch } from 'vue';
+    import { toast } from 'vue-sonner';
 
     import { TooltipWrapper } from '@/components/ui/tooltip';
     import {
@@ -155,6 +176,10 @@
         DropdownMenuTrigger
     } from '@/components/ui/dropdown-menu';
     import { SidebarFooter, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
+
+    import { listSavedAccounts, switchAccount } from '../../coordinators/accountSyncCoordinator';
+    import { useUserStore } from '../../stores/user';
+    import { watchState } from '../../services/watchState';
 
     defineProps({
         isCollapsed: {
@@ -233,6 +258,29 @@
 
     const router = useRouter();
     const isSettingsRoute = ref(false);
+
+    const userStore = useUserStore();
+    const currentUserId = computed(() => userStore.currentUser?.id);
+    const accounts = ref([]);
+
+    async function loadAccounts() {
+        try {
+            accounts.value = await listSavedAccounts();
+        } catch (err) {
+            console.error('Failed to list saved accounts', err);
+        }
+    }
+
+    async function switchTo(userId) {
+        try {
+            await switchAccount(userId);
+        } catch (err) {
+            toast.error(err?.message || String(err));
+        }
+    }
+
+    onMounted(loadAccounts);
+    watch(() => watchState.isLoggedIn, loadAccounts);
 
     watch(
         () => router?.currentRoute.value?.name,

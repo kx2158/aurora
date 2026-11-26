@@ -199,6 +199,15 @@ export const useAuthStore = defineStore('Auth', () => {
                 AppDebug.websocketDomain = user.loginParams.websocket;
             }
             await applyAutoLoginDelay();
+            // a chosen main account wins over the last used one
+            const mainUserId = await configRepository.getString('AccountSync_mainUserId', '');
+            if (mainUserId && mainUserId !== loginForm.value.lastUserLoggedIn) {
+                const mainUser = await getSavedCredentials(mainUserId);
+                if (mainUser?.loginParams) {
+                    await relogin(mainUser);
+                    return;
+                }
+            }
             // login at startup
             loginForm.value.loading = true;
             try {

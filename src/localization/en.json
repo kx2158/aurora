@@ -91,6 +91,8 @@
         "more": "More"
     },
     "nav_menu": {
+        "switch_account": "Switch account",
+        "manage_accounts": "Manage accounts...",
         "resources": "RESOURCES",
         "wiki": "Wiki",
         "get_help": "GET HELP",
@@ -3548,6 +3550,13 @@
         },
         "account_sync": {
             "header": "Account Sync",
+            "accounts": "Your accounts",
+            "no_accounts": "No saved logins yet. Log in with \"Save credentials\" ticked and the account shows up here.",
+            "current": "logged in",
+            "switch": "Switch",
+            "main_on": "Main account",
+            "main_off": "Make main",
+            "accounts_hint": "Switching logs out and straight back into the other account, no typing. The main account is the one Aura logs into when it starts. Only accounts saved with \"Save credentials\" can be switched to.",
             "description": "Aura saves what each of your accounts has while you are logged in. When you log into another account you can copy it over from here.",
             "logged_in_as": "Copy onto the account you are logged into now:",
             "save_now": "Save this account now",

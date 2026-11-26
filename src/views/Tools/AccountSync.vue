@@ -19,6 +19,33 @@
                 </Button>
             </div>
 
+            <!-- Accounts: switch and main -->
+            <div>
+                <div class="text-sm font-medium mb-1">{{ t('dialog.account_sync.accounts') }}</div>
+                <div v-if="!accounts.length" class="text-xs text-muted-foreground">
+                    {{ t('dialog.account_sync.no_accounts') }}
+                </div>
+                <div v-for="a in accounts" :key="a.id" class="flex items-center gap-2 py-1 border-b text-sm">
+                    <span class="min-w-0 flex-1 truncate">
+                        {{ a.displayName }}
+                        <span v-if="a.id === currentUser?.id" class="text-xs text-muted-foreground">
+                            ({{ t('dialog.account_sync.current') }})
+                        </span>
+                    </span>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        :disabled="busy || a.id === currentUser?.id"
+                        @click="switchTo(a.id)">
+                        {{ t('dialog.account_sync.switch') }}
+                    </Button>
+                    <Button variant="outline" size="sm" :disabled="busy" @click="toggleMain(a)">
+                        {{ a.isMain ? t('dialog.account_sync.main_on') : t('dialog.account_sync.main_off') }}
+                    </Button>
+                </div>
+                <p class="text-xs text-muted-foreground mt-1">{{ t('dialog.account_sync.accounts_hint') }}</p>
+            </div>
+
             <label class="flex items-center gap-2 text-xs text-muted-foreground">
                 <input v-model="promptOnSwitch" type="checkbox" @change="savePrompt" />
                 {{ t('dialog.account_sync.ask_on_switch') }}
@@ -108,7 +135,10 @@
         deleteSnapshot,
         getPromptOnSwitch,
         getSnapshots,
-        setPromptOnSwitch
+        listSavedAccounts,
+        setMainUserId,
+        setPromptOnSwitch,
+        switchAccount
     } from '../../coordinators/accountSyncCoordinator';
     import { storeToRefs } from 'pinia';
     import { useUserStore } from '../../stores/user';
@@ -119,6 +149,7 @@
     const { currentUser } = storeToRefs(useUserStore());
 
     const snapshots = ref({});
+    const accounts = ref([]);
     const sourceId = ref('');
     const busy = ref(false);
     const progress = ref('');
@@ -157,7 +188,22 @@
         router.push({ name: 'tools' });
     }
 
+    async function switchTo(userId) {
+        try {
+            await switchAccount(userId);
+            await reload();
+        } catch (err) {
+            toast.error(err?.message || String(err));
+        }
+    }
+
+    async function toggleMain(account) {
+        await setMainUserId(account.isMain ? '' : account.id);
+        await reload();
+    }
+
     async function reload() {
+        accounts.value = await listSavedAccounts();
         snapshots.value = await getSnapshots();
         const wanted = route.query.from;
         if (typeof wanted === 'string' && snapshots.value[wanted]) sourceId.value = wanted;

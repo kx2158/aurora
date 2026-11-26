@@ -3,6 +3,7 @@ import { toast } from 'vue-sonner';
 
 import { favoriteRequest, groupRequest, playerModerationRequest, userRequest } from '../api';
 import { router } from '../plugins/router';
+import { useAuthStore } from '../stores/auth';
 import { useUserStore } from '../stores/user';
 import { watchState } from '../services/watchState';
 import configRepository from '../services/config.js';
@@ -10,6 +11,7 @@ import configRepository from '../services/config.js';
 const SNAPSHOTS_KEY = 'AccountSync_snapshots';
 const LAST_USER_KEY = 'AccountSync_lastUserId';
 const PROMPT_KEY = 'AccountSync_promptOnSwitch';
+const MAIN_KEY = 'AccountSync_mainUserId';
 const SNAPSHOT_DELAY_MS = 10 * 1000;
 const SNAPSHOT_INTERVAL_MS = 30 * 60 * 1000;
 const WRITE_DELAY_MS = 1200; // be gentle with VRChat's rate limits
@@ -290,6 +292,56 @@ export async function applySnapshot(sourceUserId, what, { onProgress, signal } =
 
     if (cancelled()) summary.cancelled = true;
     return summary;
+}
+
+// #endregion
+
+// #region accounts: main account and quick switching
+
+/**
+ * @returns {Promise<string>} the id of the account Aura logs into when it starts ('' = last used)
+ */
+export async function getMainUserId() {
+    return configRepository.getString(MAIN_KEY, '');
+}
+
+/**
+ * @param {string} userId account id, or '' to follow the last used account again
+ */
+export async function setMainUserId(userId) {
+    if (userId) await configRepository.setString(MAIN_KEY, userId);
+    else await configRepository.remove(MAIN_KEY);
+}
+
+/**
+ * Accounts Aura has a saved login for (these can be switched to without typing anything).
+ * @returns {Promise<Array<{id: string, displayName: string, isMain: boolean}>>}
+ */
+export async function listSavedAccounts() {
+    const authStore = useAuthStore();
+    const [creds, mainId] = await Promise.all([authStore.getAllSavedCredentials(), getMainUserId()]);
+    return Object.values(creds)
+        .filter((c) => c?.user?.id && (c.cookies || c.loginParams?.password))
+        .map((c) => ({ id: c.user.id, displayName: c.user.displayName || c.user.id, isMain: c.user.id === mainId }))
+        .sort((a, b) => a.displayName.localeCompare(b.displayName));
+}
+
+/**
+ * Logs out of the current account and straight into another saved one, no typing.
+ * @param {string} userId
+ */
+export async function switchAccount(userId) {
+    const authStore = useAuthStore();
+    const userStore = useUserStore();
+    if (userStore.currentUser?.id === userId) return;
+
+    const saved = await authStore.getSavedCredentials(userId);
+    if (!saved || (!saved.cookies && !saved.loginParams?.password)) {
+        throw new Error('No saved login for that account. Log into it once with "Save credentials" ticked.');
+    }
+    // logging out keeps the outgoing account's session saved so it can be switched back to
+    await authStore.handleLogoutEvent();
+    await authStore.relogin(saved);
 }
 
 // #endregion
